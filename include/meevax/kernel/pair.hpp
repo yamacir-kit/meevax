@@ -21,8 +21,6 @@
 
 namespace meevax::inline kernel
 {
-  using object = mutator;
-
   using let = object;
 
   let extern unit;

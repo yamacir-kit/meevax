@@ -21,12 +21,12 @@ auto root_object_counts_by_type()
 
   auto count_of = std::map<std::type_index, std::size_t>();
 
-  for (auto const m : backdoor::mutators())
+  for (auto const x : backdoor::objects())
   {
-    if (is_root(m))
+    if (is_root(x))
     {
       ++root_count;
-      ++count_of[m->type()];
+      ++count_of[x->type()];
     }
     else
     {

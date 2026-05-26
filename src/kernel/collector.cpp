@@ -24,55 +24,55 @@ namespace meevax::inline kernel
 
   auto data = canonical_pointer_set<pair>();
 
-  auto mutators = canonical_pointer_set<mutator>();
+  auto objects = canonical_pointer_set<object>();
 
   auto cleared = false;
 
-  mutator::mutator(std::nullptr_t) noexcept
+  object::object(std::nullptr_t) noexcept
   {}
 
-  mutator::mutator(mutator const& other)
+  object::object(object const& other)
     : pointer { other }
   {
     if (*this)
     {
-      assert(not mutators.contains(this));
-      mutators.insert(this);
+      assert(not objects.contains(this));
+      objects.insert(this);
     }
   }
 
-  mutator::mutator(pair * pair)
+  object::object(pair * pair)
     : pointer { pair }
   {
     if (pair)
     {
-      assert(not mutators.contains(this));
-      mutators.insert(this);
+      assert(not objects.contains(this));
+      objects.insert(this);
     }
   }
 
-  mutator::~mutator()
+  object::~object()
   {
     if (pointer::operator bool() and not cleared)
     {
-      assert(mutators.contains(this));
-      mutators.erase(this);
+      assert(objects.contains(this));
+      objects.erase(this);
     }
   }
 
-  auto mutator::operator =(mutator const& other) -> mutator &
+  auto object::operator =(object const& other) -> object &
   {
     reset(other);
     return *this;
   }
 
-  auto mutator::operator =(std::nullptr_t) -> mutator &
+  auto object::operator =(std::nullptr_t) -> object &
   {
     reset();
     return *this;
   }
 
-  auto mutator::eqv(mutator const& rhs) const -> bool
+  auto object::eqv(object const& rhs) const -> bool
   {
     if (pointer::dereferenceable())
     {
@@ -84,7 +84,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto mutator::reset(mutator const& after) -> void
+  auto object::reset(object const& after) -> void
   {
     auto const before = pointer::operator bool();
 
@@ -94,18 +94,18 @@ namespace meevax::inline kernel
     {
       if (not after)
       {
-        assert(mutators.contains(this));
-        mutators.erase(this);
+        assert(objects.contains(this));
+        objects.erase(this);
       }
     }
     else if (after)
     {
-      assert(not mutators.contains(this));
-      mutators.insert(this);
+      assert(not objects.contains(this));
+      objects.insert(this);
     }
   }
 
-  auto mutator::reset(std::nullptr_t) -> void
+  auto object::reset(std::nullptr_t) -> void
   {
     auto const before = pointer::operator bool();
 
@@ -113,12 +113,12 @@ namespace meevax::inline kernel
 
     if (before)
     {
-      assert(mutators.contains(this));
-      mutators.erase(this);
+      assert(objects.contains(this));
+      objects.erase(this);
     }
   }
 
-  auto mutator::type() const -> std::type_info const&
+  auto object::type() const -> std::type_info const&
   {
     if (pointer::dereferenceable())
     {
@@ -130,7 +130,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto mutator::write(std::ostream & os) const -> std::ostream &
+  auto object::write(std::ostream & os) const -> std::ostream &
   {
     if (pointer::dereferenceable())
     {
@@ -170,13 +170,13 @@ namespace meevax::inline kernel
        - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
     */
 
-    auto roots = canonical_pointer_set<mutator>();
+    auto roots = canonical_pointer_set<object>();
 
-    for (auto m : mutators)
+    for (auto x : objects)
     {
-      if (is_root(m))
+      if (is_root(x))
       {
-        roots.insert(m);
+        roots.insert(x);
       }
     }
 
@@ -211,8 +211,8 @@ namespace meevax::inline kernel
 
         size += size_;
 
-        std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
-                      mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(base)),
+                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
                       mark);
       }
     }
@@ -237,14 +237,14 @@ namespace meevax::inline kernel
     data.insert(datum);
   }
 
-  auto is_root(mutator const* m) noexcept -> bool
+  auto is_root(object const* x) noexcept -> bool
   {
     /*
-       If the given mutator is a non-root object, then an object containing
-       this mutator as a data member exists somewhere in memory.
+       If the given object is a non-root object, then an object containing
+       this object as a data member exists somewhere in memory.
 
-       Containing the mutator as a data member means that the address of the
-       mutator is contained in the interval of the object's base-address ~
+       Containing the object as a data member means that the address of the
+       object is contained in the interval of the object's base-address ~
        base-address + object-size. The pair is present to keep track of the
        base-address and size of the object needed here.
 
@@ -255,9 +255,9 @@ namespace meevax::inline kernel
        pair const*, which may be an iterator to the object itself, which may
        contain m, or the next iterator of the object, which may contain m.
     */
-    auto iterator = data.lower_bound(reinterpret_cast<pair const*>(m));
+    auto iterator = data.lower_bound(reinterpret_cast<pair const*>(x));
 
-    return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
+    return not ((iterator and (*iterator)->contains(x)) or (--iterator and (*iterator)->contains(x)));
   }
 
   auto request(std::size_t n) -> void
@@ -275,9 +275,9 @@ namespace meevax::inline kernel
 
 namespace backdoor
 {
-  auto mutators() -> canonical_pointer_set<mutator> const&
+  auto objects() -> canonical_pointer_set<object> const&
   {
-    return kernel::mutators;
+    return kernel::objects;
   }
 }
 } // namespace meevax::kernel

@@ -42,30 +42,30 @@ namespace meevax::inline kernel
 
     struct pair;
 
-    struct mutator : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
+    struct object : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
     {
       using pointer = nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
 
-      mutator(std::nullptr_t = nullptr) noexcept;
+      object(std::nullptr_t = nullptr) noexcept;
 
-      mutator(mutator const&);
+      object(object const&);
 
-      mutator(pair *);
+      object(pair *);
 
       template <any_of<bool, small_integer, float, double, character, instruction> T>
-      mutator(T const& datum)
+      object(T const& datum)
         : pointer { datum }
       {
         assert(pointer::get() == nullptr);
       }
 
-      ~mutator();
+      ~object();
 
-      auto operator =(mutator const&) -> mutator &;
+      auto operator =(object const&) -> object &;
 
-      auto operator =(std::nullptr_t) -> mutator &;
+      auto operator =(std::nullptr_t) -> object &;
 
-      auto reset(mutator const&) -> void;
+      auto reset(object const&) -> void;
 
       auto reset(std::nullptr_t = nullptr) -> void;
 
@@ -93,11 +93,11 @@ namespace meevax::inline kernel
         }
       }
 
-      template <typename U> auto as        ()       -> decltype(auto) { return as<U>                      (*this) ; }
-      template <typename U> auto as        () const -> decltype(auto) { return as<U>                      (*this) ; }
-      template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<mutator &>(*this)); }
+      template <typename U> auto as        ()       -> decltype(auto) { return as<U>                     (*this) ; }
+      template <typename U> auto as        () const -> decltype(auto) { return as<U>                     (*this) ; }
+      template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<object &>(*this)); }
 
-      auto eqv(mutator const&) const -> bool;
+      auto eqv(object const&) const -> bool;
 
       template <typename U>
       auto is() const
@@ -115,23 +115,23 @@ namespace meevax::inline kernel
 
       auto write(std::ostream &) const -> std::ostream &;
 
-      auto friend operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
+      auto friend operator <<(std::ostream & os, object const& datum) -> std::ostream &
       {
         return datum.write(os);
       }
     };
 
-    struct pair : public std::pair<mutator, mutator>
+    struct pair : public std::pair<object, object>
     {
       pair()
-        : std::pair<mutator, mutator> { nullptr, nullptr }
+        : std::pair<object, object> { nullptr, nullptr }
       {}
 
       template <typename T,
                 typename U = std::nullptr_t,
-                typename = std::enable_if_t<std::is_constructible_v<std::pair<mutator, mutator>, T, U>>>
+                typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
       explicit pair(T&& x, U&& y = nullptr)
-        : std::pair<mutator, mutator> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
+        : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
       {}
 
       virtual ~pair() = default;
@@ -283,10 +283,10 @@ namespace meevax::inline kernel
 
     auto insert(pair const*) -> void;
 
-    auto is_root(mutator const*) noexcept -> bool;
+    auto is_root(object const*) noexcept -> bool;
 
     template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
-    auto make(auto&&... xs) -> mutator
+    auto make(auto&&... xs) -> object
     {
       if constexpr (std::is_class_v<T>)
       {
@@ -311,7 +311,7 @@ namespace meevax::inline kernel
 
 namespace backdoor
 {
-  auto mutators() -> canonical_pointer_set<mutator> const&;
+  auto objects() -> canonical_pointer_set<object> const&;
 }
 } // namespace meevax::kernel
 
