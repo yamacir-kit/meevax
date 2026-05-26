@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_EOF_HPP
 #define INCLUDED_MEEVAX_KERNEL_EOF_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {

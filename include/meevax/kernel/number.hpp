@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/large_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/utility/combination.hpp>
 

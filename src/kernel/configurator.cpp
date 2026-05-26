@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/error.hpp>

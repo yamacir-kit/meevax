@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {

@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
 
 #include <meevax/iostream/escape_sequence.hpp>
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/literal.hpp>

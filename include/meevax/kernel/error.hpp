@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
 #include <meevax/kernel/collector.hpp>
-#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel

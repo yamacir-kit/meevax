@@ -1,6 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>

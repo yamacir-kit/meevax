@@ -18,7 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 
 #include <meevax/kernel/identifier.hpp>
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {

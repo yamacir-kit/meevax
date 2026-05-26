@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
