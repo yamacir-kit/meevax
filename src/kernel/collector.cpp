@@ -280,6 +280,44 @@ namespace meevax::inline kernel
     capacity = n;
   }
 
+  status::status()
+    : root_count { 0 }
+    , non_root_count { 0 }
+  {
+    for (auto const& x : objects)
+    {
+      if (is_root(x))
+      {
+        ++root_count;
+        ++root_count_of[x->type()];
+      }
+      else
+      {
+        ++non_root_count;
+        ++non_root_count_of[x->type()];
+      }
+    }
+  }
+
+  auto operator <<(std::ostream & os, status const& status) -> std::ostream &
+  {
+    os << "collector.root-count=" << status.root_count << '\n';
+
+    for (auto const& [type, count] : status.root_count_of)
+    {
+      os << "collector.root-count-of." << demangle(type.name()) << "=" << count << '\n';
+    }
+
+    os << "collector.non-root-count=" << status.non_root_count << '\n';
+
+    for (auto const& [type, count] : status.non_root_count_of)
+    {
+      os << "collector.non-root-count-of." << demangle(type.name()) << "=" << count << '\n';
+    }
+
+    return os;
+  }
+
 namespace backdoor
 {
   auto objects() -> canonical_pointer_set<object> const&

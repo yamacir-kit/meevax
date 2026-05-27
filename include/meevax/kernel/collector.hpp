@@ -17,12 +17,14 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
 
+#include <map>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/pointer_set.hpp>
 #include <memory> // std::allocator
+#include <typeindex>
 
 namespace meevax::inline kernel
 {
@@ -41,6 +43,21 @@ namespace meevax::inline kernel
   auto request(std::size_t) -> void;
 
   auto reserve(std::size_t) -> void;
+
+  struct status
+  {
+    std::size_t root_count;
+
+    std::map<std::type_index, std::size_t> root_count_of;
+
+    std::size_t non_root_count;
+
+    std::map<std::type_index, std::size_t> non_root_count_of;
+
+    status();
+  };
+
+  auto operator <<(std::ostream &, status const&) -> std::ostream &;
 
   template <typename A>
   struct stateful : public A

@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
-#include <map>
-
 #include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax::inline kernel

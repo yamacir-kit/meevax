@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
-#include <filesystem>
 #include <list>
 #include <regex>
 

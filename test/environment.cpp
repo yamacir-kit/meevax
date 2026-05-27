@@ -61,74 +61,80 @@ auto main() -> int
   assert(unspecified.is<ghost>());
 
   {
-    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+    auto status = meevax::status();
 
-    assert(root_count == 3);
-    assert(non_root_count == 0);
+    std::cout << status << std::endl;
 
-    assert(count_of.size() == 2);
-    assert(count_of[typeid(eof  )] == 1);
-    assert(count_of[typeid(ghost)] == 2);
+    assert(status.root_count == 3);
+    assert(status.root_count_of.size() == 2);
+    assert(status.root_count_of[typeid(eof  )] == 1);
+    assert(status.root_count_of[typeid(ghost)] == 2);
+    assert(status.non_root_count == 0);
   }
 
   assert(interaction_environment().is<environment>());
 
   {
-    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+    auto status = meevax::status();
 
-    assert(root_count == 4);
-    assert(non_root_count == 0);
+    std::cout << status << std::endl;
 
-    assert(count_of.size() == 3);
-    assert(count_of[typeid(environment)] == 1); // The interaction-environment
-    assert(count_of[typeid(eof        )] == 1);
-    assert(count_of[typeid(ghost      )] == 2);
+    assert(status.root_count == 4);
+    assert(status.root_count_of.size() == 3);
+    assert(status.root_count_of[typeid(environment)] == 1); // The interaction-environment
+    assert(status.root_count_of[typeid(eof        )] == 1);
+    assert(status.root_count_of[typeid(ghost      )] == 2);
+    assert(status.non_root_count == 0);
   }
 
   boot();
 
   {
-    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+    auto status = meevax::status();
 
-    assert(root_count == 515);
+    std::cout << status << std::endl;
 
-    assert(count_of.size() == 6);
-    assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
-    assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
-    assert(count_of[typeid(eof                               )] ==   1);
-    assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  27); // There are 27 primitive libraries
-    assert(count_of[typeid(symbol                            )] == 483); // There are 483 builtin definitions
+    assert(status.root_count == 515);
+    assert(status.root_count_of.size() == 6);
+    assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
+    assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
+    assert(status.root_count_of[typeid(eof                               )] ==   1);
+    assert(status.root_count_of[typeid(ghost                             )] ==   2);
+    assert(status.root_count_of[typeid(library                           )] ==  27); // There are 27 primitive libraries
+    assert(status.root_count_of[typeid(symbol                            )] == 483); // There are 483 builtin definitions
   }
 
   interaction_environment().as<environment>().load_scheme_libraries();
 
   {
-    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+    auto status = meevax::status();
 
-    assert(root_count == 1431);
+    std::cout << status << std::endl;
 
-    assert(count_of.size() == 6);
-    assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
-    assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
-    assert(count_of[typeid(eof                               )] ==   1);
-    assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  76);
-    assert(count_of[typeid(symbol                            )] >= 482);
+    assert(status.root_count == 1431);
+    assert(status.root_count_of.size() == 6);
+    assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
+    assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
+    assert(status.root_count_of[typeid(eof                               )] ==   1);
+    assert(status.root_count_of[typeid(ghost                             )] ==   2);
+    assert(status.root_count_of[typeid(library                           )] ==  76);
+    assert(status.root_count_of[typeid(symbol                            )] >= 482);
   }
 
   collect();
 
   {
-    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+    auto status = meevax::status();
 
-    assert(count_of.size() == 6);
-    assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
-    assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
-    assert(count_of[typeid(eof                               )] ==   1);
-    assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  76);
-    assert(count_of[typeid(symbol                            )] >= 483); // There are 483 builtin definitions
+    std::cout << status << std::endl;
+
+    assert(status.root_count_of.size() == 6);
+    assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
+    assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
+    assert(status.root_count_of[typeid(eof                               )] ==   1);
+    assert(status.root_count_of[typeid(ghost                             )] ==   2);
+    assert(status.root_count_of[typeid(library                           )] ==  76);
+    assert(status.root_count_of[typeid(symbol                            )] >= 483); // There are 483 builtin definitions
   }
 
   symbols().clear();
@@ -144,11 +150,13 @@ auto main() -> int
   collect();
 
   {
-    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+    auto status = meevax::status();
 
-    assert(count_of.size() == 2);
-    assert(count_of[typeid(eof  )] == 1);
-    assert(count_of[typeid(ghost)] == 2);
+    std::cout << status << std::endl;
+
+    assert(status.root_count_of.size() == 2);
+    assert(status.root_count_of[typeid(eof  )] == 1);
+    assert(status.root_count_of[typeid(ghost)] == 2);
   }
 
   assert(count() == 3); // -1 is interaction_environment
