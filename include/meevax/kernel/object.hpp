@@ -28,9 +28,6 @@ namespace meevax::inline kernel
 {
   using null = std::nullptr_t;
 
-  using small_integer = std::int32_t; // Fixed sized integer that can be boxed.
-  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
-
   struct pair;
 
   struct object : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
