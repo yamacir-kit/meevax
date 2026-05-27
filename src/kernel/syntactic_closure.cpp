@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <algorithm>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/proper_list.hpp>

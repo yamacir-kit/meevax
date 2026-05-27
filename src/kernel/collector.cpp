@@ -16,10 +16,19 @@
 
 #include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/object.hpp>
+#include <meevax/memory/pointer_set.hpp>
 #include <vector>
 
 namespace meevax::inline kernel
 {
+  /*
+     https://www.kernel.org/doc/html/latest/arch/x86/x86_64/mm.html
+
+     0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
+  */
+  template <typename T>
+  using canonical_pointer_set = pointer_set<T const*, std::bit_width(0x7FFFu), std::bit_width(0xFFFFu), std::bit_width(0xFFFFu)>;
+
   auto size = std::size_t(0_MiB);
 
   auto capacity = std::size_t(16_MiB);
@@ -317,12 +326,4 @@ namespace meevax::inline kernel
 
     return os;
   }
-
-namespace backdoor
-{
-  auto objects() -> canonical_pointer_set<object> const&
-  {
-    return kernel::objects;
-  }
-}
 } // namespace meevax::kernel

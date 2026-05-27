@@ -28,6 +28,9 @@ inline namespace kernel
 {
   using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
+  auto constexpr operator ""_i64(unsigned long long int value) { return static_cast<std:: int64_t>(value); }
+  auto constexpr operator ""_u64(unsigned long long int value) { return static_cast<std::uint64_t>(value); }
+
   auto operator * (widen_integer, large_integer const&) -> large_integer;
   auto operator + (widen_integer, large_integer const&) -> large_integer;
   auto operator - (widen_integer, large_integer const&) -> large_integer;

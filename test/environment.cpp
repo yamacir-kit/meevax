@@ -11,45 +11,6 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/utility/debug.hpp>
 
-auto root_object_counts_by_type()
-{
-  using namespace meevax;
-
-  auto root_count = std::size_t(0);
-
-  auto non_root_count = std::size_t(0);
-
-  auto count_of = std::map<std::type_index, std::size_t>();
-
-  for (auto const x : backdoor::objects())
-  {
-    if (is_root(x))
-    {
-      ++root_count;
-      ++count_of[x->type()];
-    }
-    else
-    {
-      ++non_root_count;
-    }
-  }
-
-  std::cerr << "ROOT:" << std::endl;
-
-  for (auto const& [type, count] : count_of)
-  {
-    auto static const pattern = std::regex(R"(<.*>)");
-
-    std::cerr << "  "
-              << std::regex_replace(demangle(type.name()), pattern, "<...>")
-              << " = "
-              << count
-              << std::endl;
-  }
-
-  return std::make_tuple(root_count, non_root_count, count_of);
-}
-
 auto main() -> int
 {
   using namespace meevax;

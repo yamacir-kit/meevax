@@ -18,11 +18,9 @@
 #define INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
 
 #include <map>
-#include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/literal.hpp>
-#include <meevax/memory/pointer_set.hpp>
 #include <memory> // std::allocator
 #include <typeindex>
 
@@ -196,19 +194,6 @@ namespace meevax::inline kernel
       return { std::forward<decltype(xs)>(xs)... };
     }
   }
-
-  /*
-     https://www.kernel.org/doc/html/latest/arch/x86/x86_64/mm.html
-
-     0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
-  */
-  template <typename T>
-  using canonical_pointer_set = pointer_set<T const*, std::bit_width(0x7FFFu), std::bit_width(0xFFFFu), std::bit_width(0xFFFFu)>;
-
-namespace backdoor
-{
-  auto objects() -> canonical_pointer_set<object> const&;
-}
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
