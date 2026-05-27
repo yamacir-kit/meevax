@@ -58,9 +58,9 @@ namespace meevax::inline kernel
   auto operator <<(std::ostream &, status const&) -> std::ostream &;
 
   template <typename A>
-  struct stateful : public A
+  struct stateful_allocator : public A
   {
-    ~stateful()
+    ~stateful_allocator()
     {
       /*
          Execute clear before any static allocator is destroyed. Otherwise,
@@ -77,7 +77,7 @@ namespace meevax::inline kernel
   struct binder final : public virtual pair
                       , public Bound
   {
-    using allocator = stateful<typename std::allocator_traits<A>::template rebind_alloc<binder>>;
+    using allocator = stateful_allocator<typename std::allocator_traits<A>::template rebind_alloc<binder>>;
 
     auto static inline a = allocator();
 
@@ -152,7 +152,7 @@ namespace meevax::inline kernel
   template <typename A>
   struct binder<pair, A> final : public pair
   {
-    using allocator = stateful<typename std::allocator_traits<A>::template rebind_alloc<binder>>;
+    using allocator = stateful_allocator<typename std::allocator_traits<A>::template rebind_alloc<binder>>;
 
     auto static inline a = allocator();
 
