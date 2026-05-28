@@ -3,6 +3,7 @@
 #include <bitset>
 #include <cassert>
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>

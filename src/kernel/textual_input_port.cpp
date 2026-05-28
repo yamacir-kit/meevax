@@ -14,8 +14,10 @@
    limitations under the License.
 */
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/string.hpp>
@@ -25,6 +27,11 @@
 
 namespace meevax::inline kernel
 {
+  textual_input_port::iterator::iterator()
+    : input { nullptr }
+    , value { eof_object }
+  {}
+
   textual_input_port::iterator::iterator(textual_input_port & input)
     : input { std::addressof(input) }
     , value { input.read() }

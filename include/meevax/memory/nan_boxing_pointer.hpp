@@ -25,7 +25,8 @@
 #include <limits>
 #include <ostream>
 
-#include <meevax/type_traits/integer.hpp>
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/kernel/small_integer.hpp>
 
 namespace meevax::inline memory
 {

@@ -17,9 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 
-#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/input_port.hpp>
-#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_context.hpp>
 #include <meevax/kernel/textual_port.hpp>
 
@@ -43,11 +41,11 @@ namespace meevax::inline kernel
 
       using size_type = std::size_t;
 
-      textual_input_port * input = nullptr;
+      textual_input_port * input;
 
-      value_type value = eof_object;
+      value_type value;
 
-      iterator() = default;
+      iterator();
 
       explicit iterator(textual_input_port &);
 

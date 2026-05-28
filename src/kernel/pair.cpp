@@ -19,9 +19,31 @@
 
 namespace meevax::inline kernel
 {
-  template struct collector<bool, small_integer, float, character, instruction>;
+  auto pair::eqv(pair const* x) const -> bool
+  {
+    return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
+  }
 
-  let unit = nullptr;
+  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
+  {
+    return { static_cast<pair const*>(this), sizeof(pair) };
+  }
+
+  auto pair::contains(void const* p) const noexcept -> bool
+  {
+    auto base = static_cast<pair const*>(this);
+    return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(pair));
+  }
+
+  auto pair::type() const noexcept -> std::type_info const&
+  {
+    return typeid(pair);
+  }
+
+  auto pair::write(std::ostream & o) const -> std::ostream &
+  {
+    return o << static_cast<pair const&>(*this);
+  }
 
   struct datum_labels
   {

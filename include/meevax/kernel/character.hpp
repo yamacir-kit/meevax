@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
 #include <climits> // CHAR_BIT
-#include <cstdint>
 #include <optional>
 #include <string>
 

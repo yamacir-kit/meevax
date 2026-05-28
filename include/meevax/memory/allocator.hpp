@@ -18,9 +18,8 @@
 #define INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP
 
 #include <cassert>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
+#include <cstddef> // std::size_t, std::ptrdiff_t
+#include <type_traits> // std::false_type
 #include <utility> // std::exchange
 
 namespace meevax::inline memory

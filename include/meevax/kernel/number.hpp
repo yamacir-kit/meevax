@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/large_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/utility/combination.hpp>
 
@@ -27,8 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
-
   auto operator * (widen_integer, large_integer const&) -> large_integer;
   auto operator + (widen_integer, large_integer const&) -> large_integer;
   auto operator - (widen_integer, large_integer const&) -> large_integer;

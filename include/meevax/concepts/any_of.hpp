@@ -14,19 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EOF_HPP
-#define INCLUDED_MEEVAX_KERNEL_EOF_HPP
+#ifndef INCLUDED_MEEVAX_CONCEPTS_ANY_OF_HPP
+#define INCLUDED_MEEVAX_CONCEPTS_ANY_OF_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <concepts>
 
-namespace meevax::inline kernel
+namespace meevax::inline concepts
 {
-  struct eof
-  {};
+  template<typename T, typename... Ts>
+  concept any_of = (std::same_as<T, Ts> or ...);
+} // namespace meevax::type_traits
 
-  let extern const eof_object;
-
-  auto operator <<(std::ostream &, eof const&) -> std::ostream &;
-} // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_EOF_HPP
+#endif // INCLUDED_MEEVAX_CONCEPTS_ANY_OF_HPP

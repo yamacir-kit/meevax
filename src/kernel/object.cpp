@@ -14,19 +14,9 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EOF_HPP
-#define INCLUDED_MEEVAX_KERNEL_EOF_HPP
-
 #include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {
-  struct eof
-  {};
-
-  let extern const eof_object;
-
-  auto operator <<(std::ostream &, eof const&) -> std::ostream &;
-} // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_EOF_HPP
+  let unit = nullptr;
+}
