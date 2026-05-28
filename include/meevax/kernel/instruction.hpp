@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
-#include <iostream>
+#include <ostream>
 
 namespace meevax::inline kernel
 {
