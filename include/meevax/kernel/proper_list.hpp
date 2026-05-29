@@ -18,7 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PROPER_LIST_HPP
 
 #include <meevax/kernel/iterator.hpp>
-#include <meevax/kernel/list.hpp>
+// #include <meevax/kernel/list.hpp>
 
 namespace meevax::inline kernel
 {

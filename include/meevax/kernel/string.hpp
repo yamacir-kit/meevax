@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
@@ -35,10 +35,17 @@ namespace meevax::inline kernel
       : characters { std::forward<decltype(xs)>(xs)... }
     {}
 
+    template <typename Pair>
+    explicit string(proper_list_view<Pair> view)
+    {
+      for (let const& x : view)
+      {
+        characters.push_back(x.as<character>());
+      }
+    }
+
     auto utf8() const -> std::string;
   };
-
-  auto make_string_from_list_of_character(let const&) -> object;
 
   auto operator ==(string const&, string const&) -> bool;
   auto operator !=(string const&, string const&) -> bool;
