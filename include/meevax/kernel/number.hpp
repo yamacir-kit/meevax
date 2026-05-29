@@ -509,7 +509,7 @@ namespace number
     }
     else
     {
-      throw error(make<string>("not an number"));
+      throw error(make<string>("not an number"), unit);
     }
   }
 
@@ -533,7 +533,7 @@ namespace number
     }
     else
     {
-      throw error(make<string>("not an number"));
+      throw error(make<string>("not an number"), unit);
     }
   }
 

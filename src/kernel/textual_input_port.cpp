@@ -244,7 +244,7 @@ namespace meevax::inline kernel
         }
       }
 
-      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"), unit);
     };
 
     auto take_token = [this](character c)
@@ -510,7 +510,7 @@ namespace meevax::inline kernel
             switch (auto c1 = take_character())
             {
             case EOF:
-              throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+              throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"), unit);
 
             case '#':
               switch (peek_character())
@@ -614,7 +614,7 @@ namespace meevax::inline kernel
       }
     }
 
-    throw read_error(make<string>("underlying input stream went into a not good state"));
+    throw read_error(make<string>("underlying input stream went into a not good state"), unit);
   }
 
   auto textual_input_port::take_character() -> character
@@ -651,7 +651,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"), unit);
     }
   }
 } // namespace meevax::kernel

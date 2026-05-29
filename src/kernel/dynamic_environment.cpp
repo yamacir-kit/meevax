@@ -498,7 +498,7 @@ namespace meevax::inline kernel
     }
     catch (std::exception const& exception) // by the system.
     {
-      if (auto thrown = error(make<string>(exception.what())); exception_handler)
+      if (auto thrown = error(make<string>(exception.what()), unit); exception_handler)
       {
         return apply(exception_handler, thrown.make());
       }

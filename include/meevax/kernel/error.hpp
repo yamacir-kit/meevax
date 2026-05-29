@@ -99,7 +99,7 @@ namespace meevax::inline kernel
     }
     catch (std::exception const& exception)
     {
-      error(make<string>(exception.what())).report(std::cerr);
+      error(make<string>(exception.what()), unit).report(std::cerr);
       return EXIT_FAILURE;
     }
   }

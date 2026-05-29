@@ -227,7 +227,7 @@ namespace meevax::inline kernel
 
     if (bound_variables)
     {
-      throw error(make<string>("definition cannot appear in this syntactic-context"));
+      throw error(make<string>("definition cannot appear in this syntactic-context"), unit);
     }
     else
     {

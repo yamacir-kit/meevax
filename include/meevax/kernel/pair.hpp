@@ -30,7 +30,7 @@ namespace meevax::inline kernel
     template <typename T,
               typename U = std::nullptr_t,
               typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
-    explicit pair(T&& x, U&& y = nullptr)
+    explicit pair(T&& x, U&& y)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 

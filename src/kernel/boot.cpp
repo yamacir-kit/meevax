@@ -83,7 +83,7 @@ namespace meevax::inline kernel
       { "not",                           [](let const& xs) { return make<bool>(car(xs) == f); } },
 
       { "box?",                          [](let const& xs) { return make<bool>(car(xs).is<box>()); } },
-      { "box",                           [](let const& xs) { return make<box>(car(xs)); } },
+      { "box",                           [](let const& xs) { return make<box>(car(xs), unit); } },
       { "box-ref",                       [](let const& xs) { return caar(xs); } },
       { "box-set!",                      [](let const& xs) { car(xs).as_mutable<box>().first = cadr(xs); return unspecified; } },
 
