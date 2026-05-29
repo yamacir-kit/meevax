@@ -116,7 +116,7 @@ namespace meevax::inline kernel
       { "eqv?",                          [](let const& xs) { return make<bool>(eqv(car(xs), cadr(xs))); } },
       { "equal?",                        [](let const& xs) { return make<bool>(equal(car(xs), cadr(xs))); } },
 
-      { "environment",                   [](let const& xs) { auto e = make<environment>(); for (let const& x : xs | as_proper_list) { e.as<environment>().import(x); } return e; } },
+      { "environment",                   [](let const& xs) { return make<environment>(xs | as_proper_list); } },
       { "eval",                          [](let const& xs) { return cadr(xs).as<environment>().evaluate(car(xs)); } },
       { "expand",                        [](let const& xs) { return cadr(xs).as<environment>().expand(car(xs), unit); } },
       { "interaction-environment",       [](let const&   ) { return interaction_environment(); } },

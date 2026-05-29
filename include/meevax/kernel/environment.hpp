@@ -29,6 +29,15 @@ namespace meevax::inline kernel
   {
     using syntactic_environment::syntactic_environment;
 
+    template <typename Pair>
+    explicit environment(proper_list_view<Pair> view)
+    {
+      for (let const& x : view)
+      {
+        import(x);
+      }
+    }
+
     auto evaluate(object const&) -> object;
 
     auto import(object const&) -> void;
