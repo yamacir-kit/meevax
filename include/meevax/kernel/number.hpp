@@ -433,7 +433,7 @@ namespace number
 
   auto number_to_string(object const&, int) -> object;
 
-  auto canonicalize(auto&& x)
+  auto canonicalize(auto&& x) -> decltype(auto)
   {
     if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object> or
                   std::is_same_v<std::decay_t<decltype(x)>, object::pointer>)
@@ -444,7 +444,7 @@ namespace number
     {
       if (equals(x.imag(), e0))
       {
-        return x.real();
+        return object(x.real());
       }
       else
       {

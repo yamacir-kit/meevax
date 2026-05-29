@@ -388,10 +388,10 @@ namespace meevax::inline kernel
           switch (std::stoi(take_character_while(is_digit, character('0'))))
           {
           case 32:
-            return make_homogeneous_vector_from_list_of<f32>(read());
+            return make<f32vector>(read() | as_proper_list);
 
           case 64:
-            return make_homogeneous_vector_from_list_of<f64>(read());
+            return make<f64vector>(read() | as_proper_list);
 
           default:
             take_token(c2);
@@ -415,16 +415,16 @@ namespace meevax::inline kernel
           switch (auto n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make_homogeneous_vector_from_list_of<s8>(read());
+            return make<s8vector>(read() | as_proper_list);
 
           case 16:
-            return make_homogeneous_vector_from_list_of<s16>(read());
+            return make<s16vector>(read() | as_proper_list);
 
           case 32:
-            return make_homogeneous_vector_from_list_of<s32>(read());
+            return make<s32vector>(read() | as_proper_list);
 
           case 64:
-            return make_homogeneous_vector_from_list_of<s64>(read());
+            return make<s64vector>(read() | as_proper_list);
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -439,16 +439,16 @@ namespace meevax::inline kernel
           switch (auto const n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make_homogeneous_vector_from_list_of<u8>(read());
+            return make<u8vector>(read() | as_proper_list);
 
           case 16:
-            return make_homogeneous_vector_from_list_of<u16>(read());
+            return make<u16vector>(read() | as_proper_list);
 
           case 32:
-            return make_homogeneous_vector_from_list_of<u32>(read());
+            return make<u32vector>(read() | as_proper_list);
 
           case 64:
-            return make_homogeneous_vector_from_list_of<u64>(read());
+            return make<u64vector>(read() | as_proper_list);
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),

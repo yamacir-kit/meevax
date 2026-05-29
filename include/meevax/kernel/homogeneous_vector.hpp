@@ -36,6 +36,18 @@ namespace meevax::inline kernel
       : values(std::forward<decltype(xs)>(xs)...)
     {}
 
+    template <typename Pair>
+    explicit homogeneous_vector(proper_list_view<Pair> view)
+      : values(std::ranges::distance(view))
+    {
+      auto i = std::size_t(0);
+
+      for (let const& x : view)
+      {
+        values[i++] = homogeneous_vector<T>::input_cast(x);
+      }
+    }
+
     static auto tag() -> auto const&
     {
       auto static const tag = (std::is_integral_v<T> ? std::is_signed_v<T> ? "s" : "u" : "f") + std::to_string(sizeof(T) * CHAR_BIT);
@@ -62,21 +74,6 @@ namespace meevax::inline kernel
       return make<std::conditional_t<std::is_floating_point_v<T>, T, large_integer>>(x);
     }
   };
-
-  template <typename T>
-  auto make_homogeneous_vector_from_list_of(object const& xs)
-  {
-    auto v = make<homogeneous_vector<T>>(length(xs));
-
-    auto i = std::size_t(0);
-
-    for (let const& x : xs | as_proper_list)
-    {
-      v.template as<homogeneous_vector<T>>().values[i++] = homogeneous_vector<T>::input_cast(x);
-    }
-
-    return v;
-  }
 
   template <typename T>
   auto operator <<(std::ostream & output, homogeneous_vector<T> const& datum) -> std::ostream &
