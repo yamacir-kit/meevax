@@ -110,7 +110,7 @@ namespace meevax::inline kernel
       { "char-downcase",                 [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); } },
 
       { "emergency-exit",                [](let const& xs) -> object { if (xs.is<null>()) { throw EXIT_SUCCESS; } else if (let const& status = car(xs); status.is<bool>()) { throw status != f ? EXIT_SUCCESS : EXIT_FAILURE; } else { throw exact_integer_cast<int>(status); } } },
-      { "command-line",                  [](let const&   ) { let xs = list(); for (auto&& each : configurator::command_line()) { xs = cons(make<string>(each), xs); } return reverse(xs); } },
+      { "command-line",                  [](let const&   ) { let xs = unit; for (auto&& each : configurator::command_line()) { xs = cons(make<string>(each), xs); } return reverse(xs); } },
 
       { "eq?",                           [](let const& xs) { return make<bool>(eq(car(xs), cadr(xs))); } },
       { "eqv?",                          [](let const& xs) { return make<bool>(eqv(car(xs), cadr(xs))); } },

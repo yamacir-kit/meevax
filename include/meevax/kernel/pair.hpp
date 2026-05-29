@@ -49,20 +49,28 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 
-  template <typename T,
-            typename U,
-            typename = std::enable_if_t<std::is_constructible_v<pair, T, U>>>
-  auto operator |(T&& x, U&& y) -> decltype(auto)
+  auto inline cons = [](auto&&... xs) constexpr -> decltype(auto)
   {
-    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
-  }
+    auto cons = [](auto cons, auto&& x, auto&& y, auto&&... xs) constexpr -> decltype(auto)
+    {
+      if constexpr (0 < sizeof...(xs))
+      {
+        return make<pair>(std::forward<decltype(x)>(x),
+                          cons(cons,
+                               std::forward<decltype(y)>(y),
+                               std::forward<decltype(xs)>(xs)...));
+      }
+      else
+      {
+        return make<pair>(std::forward<decltype(x)>(x),
+                          std::forward<decltype(y)>(y));
+      }
+    };
 
-  inline auto cons = [](auto&&... xs) constexpr
-  {
-    return (std::forward<decltype(xs)>(xs) | ...);
+    return cons(cons, std::forward<decltype(xs)>(xs)...);
   };
 
-  inline auto xcons = [](auto&& x, auto&& y) constexpr
+  auto inline xcons = [](auto&& x, auto&& y) constexpr
   {
     return cons(std::forward<decltype(y)>(y),
                 std::forward<decltype(x)>(x));

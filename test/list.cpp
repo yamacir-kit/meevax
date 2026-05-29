@@ -28,9 +28,7 @@ auto main() -> int
 
   assert(lexical_cast(list(a, make<small_integer>(3 + 4), c)) == "(a 7 c)");
 
-  assert(lexical_cast(list()) == "nullptr");
-
-  assert(lexical_cast(object(list())) == "()");
+  assert(lexical_cast(unit) == "()");
 
   assert(lexical_cast(xcons(list(b, c), a)) == "(a b c)");
 
