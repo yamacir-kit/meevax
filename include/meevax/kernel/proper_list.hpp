@@ -18,12 +18,11 @@
 #define INCLUDED_MEEVAX_KERNEL_PROPER_LIST_HPP
 
 #include <meevax/kernel/iterator.hpp>
-// #include <meevax/kernel/list.hpp>
 
 namespace meevax::inline kernel
 {
   template <typename Pair>
-  struct proper_list_view // : public std::ranges::view_interface<proper_list_view<Pair>>
+  struct proper_list_view
   {
     Pair * p;
 
@@ -52,11 +51,13 @@ namespace meevax::inline kernel
     }
   };
 
+  auto is_proper_list(object const&) -> bool;
+
   struct proper_list_adaptor
   {
     auto operator ()(auto&& x) const
     {
-      assert(is_list(x));
+      assert(is_proper_list(x));
       return proper_list_view(x.get());
     }
   };

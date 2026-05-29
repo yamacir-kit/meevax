@@ -59,8 +59,6 @@ namespace meevax::inline kernel
     return x;
   }
 
-  auto is_list(object const&) -> bool;
-
   auto is_circular_list(object const&) -> bool;
 
   auto is_dotted_list(object const&) -> bool;
