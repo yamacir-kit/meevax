@@ -14,9 +14,9 @@ auto main() -> int
 
   // make-vector
   {
-    let const v = make_vector_from_list(list(make<symbol>("a"),
-                                             make<symbol>("b"),
-                                             make<symbol>("c")));
+    let const v = make<vector>(list(make<symbol>("a"),
+                                    make<symbol>("b"),
+                                    make<symbol>("c")) | as_proper_list);
     collect();
 
     assert(v.is<vector>());
@@ -52,9 +52,9 @@ auto main() -> int
 
   // list->vector
   {
-    let const v = make_vector_from_list(list(make<symbol>("a"),
-                                             make<symbol>("b"),
-                                             make<symbol>("c")));
+    let const v = make<vector>(list(make<symbol>("a"),
+                                    make<symbol>("b"),
+                                    make<symbol>("c")) | as_proper_list);
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -91,7 +91,7 @@ auto main() -> int
   {
     auto const gc_count = count();
 
-    let const v = make_vector_from_list(input_string_port("(a b c)").read());
+    let const v = make<vector>(input_string_port("(a b c)").read() | as_proper_list);
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -177,7 +177,7 @@ auto main() -> int
 
     module.define(make_symbol("vector"), make<procedure>("vector", [](let const& xs)
     {
-      return make_vector_from_list(xs);
+      return make<vector>(xs | as_proper_list);
     }));
 
     module.evaluate(input_string_port("(vector 1 2 3)").read());

@@ -27,11 +27,10 @@ namespace meevax::inline kernel
       : std::pair<object, object> { nullptr, nullptr }
     {}
 
-    template <typename T,
-              typename U = std::nullptr_t,
-              typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
-    explicit pair(T&& x, U&& y)
-      : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
+    template <typename... Ts>
+    requires std::constructible_from<std::pair<object, object>, Ts...>
+    explicit pair(Ts&&... xs)
+      : std::pair<object, object> { std::forward<decltype(xs)>(xs)... }
     {}
 
     virtual ~pair() = default;

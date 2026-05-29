@@ -466,7 +466,7 @@ namespace meevax::inline kernel
           }
 
         case '(':
-          return make_vector_from_list(read(c2));
+          return make<vector>(read(c2) | as_proper_list);
 
         case '\\':
           if (auto c3 = take_character(); is_special_character(peek_character())) // #\<character>

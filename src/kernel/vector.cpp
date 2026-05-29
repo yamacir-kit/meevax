@@ -16,10 +16,7 @@
 
 #include <numeric>
 
-#include <meevax/kernel/error.hpp>
-#include <meevax/kernel/large_integer.hpp>
-#include <meevax/kernel/proper_list.hpp>
-#include <meevax/kernel/string.hpp>
+#include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/vector.hpp>
 
 namespace meevax::inline kernel
@@ -41,14 +38,5 @@ namespace meevax::inline kernel
     }
 
     return output << magenta(")");
-  }
-
-  auto make_vector_from_list(object const& xs) -> object
-  {
-    let v = make<vector>();
-
-    std::ranges::copy(xs | as_proper_list, std::back_inserter(v.as<vector>().objects));
-
-    return v;
   }
 } // namespace meevax::kernel
