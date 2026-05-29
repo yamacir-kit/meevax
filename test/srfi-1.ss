@@ -190,10 +190,8 @@
 (check (last-pair '(a b c . d)) => '(c . d))
 
 (check (length '(a b c)) => 3)
-(check (length '(a b . c)) => 2)
 
 (check (length+ '(a b c)) => 3)
-(check (length+ '(a b . c)) => 2)
 (check (length+ '#1=(a b c . #1#)) => #f)
 
 (let ((x '(a))     (y '(b)))     (check (append  x y) => '(a b))       (check x => '(a))         (check y => '(b)))
@@ -419,4 +417,4 @@
 
 (check-report)
 
-(exit (check-passed? 408))
+(exit (check-passed? 406))

@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
@@ -43,7 +44,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto is_list(object const& x0, object const& y0) -> bool
+  auto is_proper_list(object const& x0, object const& y0) -> bool
   {
     if (x0.is<pair>())
     {
@@ -52,7 +53,7 @@ namespace meevax::inline kernel
         let const& x2 = cdr(x1);
         let const& y1 = cdr(y0);
 
-        return not eq(x2, y1) and is_list(x2, y1);
+        return not eq(x2, y1) and is_proper_list(x2, y1);
       }
       else
       {
@@ -65,9 +66,9 @@ namespace meevax::inline kernel
     }
   }
 
-  auto is_list(object const& xs) -> bool
+  auto is_proper_list(object const& xs) -> bool
   {
-    return is_list(xs, xs);
+    return is_proper_list(xs, xs);
   }
 
   auto is_circular_list(object const& x0, object const& y0) -> bool
@@ -246,7 +247,7 @@ namespace meevax::inline kernel
 
   auto length(object const& x) -> std::ptrdiff_t
   {
-    return std::distance(x.begin(), x.end());
+    return std::ranges::distance(x | as_proper_list);
   }
 
   auto append(object const& x, object const& y) -> object

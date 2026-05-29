@@ -21,7 +21,7 @@ namespace meevax::inline kernel::number
   #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
   auto CMATH(object const&, object const&) -> object                           \
   {                                                                            \
-    throw error(make<string>("The mathematical special function std::" #CMATH " is not provided in this environment.")); \
+    throw error(make<string>("The mathematical special function std::" #CMATH " is not provided in this environment."), unit); \
   }
 
   #if __cpp_lib_math_special_functions

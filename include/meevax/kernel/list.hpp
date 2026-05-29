@@ -21,9 +21,16 @@
 
 namespace meevax::inline kernel
 {
-  inline auto list = [](auto&&... xs) constexpr
+  auto list(auto&& x, auto&&... xs)
   {
-    return (std::forward<decltype(xs)>(xs) | ... | nullptr);
+    if constexpr (0 < sizeof...(xs))
+    {
+      return cons(std::forward<decltype(x)>(x), list(std::forward<decltype(xs)>(xs)...));
+    }
+    else
+    {
+      return cons(std::forward<decltype(x)>(x), nullptr);
+    }
   };
 
   auto make_list(std::size_t, object const& = nullptr) -> object;
@@ -51,8 +58,6 @@ namespace meevax::inline kernel
     circulate(x);
     return x;
   }
-
-  auto is_list(object const&) -> bool;
 
   auto is_circular_list(object const&) -> bool;
 

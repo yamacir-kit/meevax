@@ -3,6 +3,7 @@
 #include <bitset>
 #include <cassert>
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -130,8 +131,8 @@ auto main() -> int
   }
 
   {
-    let x = make(static_cast<small_integer>(1)),
-        y = make(static_cast<small_integer>(2));
+    let x = make<small_integer>(1),
+        y = make<small_integer>(2);
 
     // PRINT(demangle(x.type()));
     // PRINT(demangle(y.type()));

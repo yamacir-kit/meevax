@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
@@ -57,7 +57,7 @@ namespace meevax::inline kernel
 
     auto make() const -> object override
     {
-      return meevax::make(*this);
+      return meevax::make<file_error>(*this);
     }
 
     auto raise() const -> void override
@@ -72,7 +72,7 @@ namespace meevax::inline kernel
 
     auto make() const -> object override
     {
-      return meevax::make(*this);
+      return meevax::make<read_error>(*this);
     }
 
     auto raise() const -> void override
@@ -99,7 +99,7 @@ namespace meevax::inline kernel
     }
     catch (std::exception const& exception)
     {
-      error(make<string>(exception.what())).report(std::cerr);
+      error(make<string>(exception.what()), unit).report(std::cerr);
       return EXIT_FAILURE;
     }
   }

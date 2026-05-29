@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INCLUDE_HPP
 #define INCLUDED_MEEVAX_KERNEL_INCLUDE_HPP
 
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/list.hpp>
 

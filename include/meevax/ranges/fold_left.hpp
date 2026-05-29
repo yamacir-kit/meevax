@@ -14,19 +14,23 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EOF_HPP
-#define INCLUDED_MEEVAX_KERNEL_EOF_HPP
+#ifndef INCLUDED_MEEVAX_RANGES_FOLD_LEFT_HPP
+#define INCLUDED_MEEVAX_RANGES_FOLD_LEFT_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <ranges>
 
-namespace meevax::inline kernel
+namespace meevax::inline ranges
 {
-  struct eof
-  {};
+  template <std::ranges::input_range R>
+  constexpr auto fold_left(R&& range, auto init, auto f)
+  {
+    for (auto&& x : range)
+    {
+      init = std::invoke(f, std::move(init), x);
+    }
 
-  let extern const eof_object;
+    return init;
+  }
+} // namespace meevax::ranges
 
-  auto operator <<(std::ostream &, eof const&) -> std::ostream &;
-} // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_EOF_HPP
+#endif // INCLUDED_MEEVAX_RANGES_FOLD_LEFT_HPP

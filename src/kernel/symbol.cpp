@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <algorithm>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>

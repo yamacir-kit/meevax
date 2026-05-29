@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/eof.hpp>
 
 namespace meevax::inline kernel

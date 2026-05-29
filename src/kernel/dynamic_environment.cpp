@@ -23,6 +23,7 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
@@ -142,7 +143,7 @@ namespace meevax::inline kernel
         *  where <closure> = (c' . e)
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<closure, allocator<void>>(cadr(c), e), s);
+        s = cons(make<closure, segregated_storage_allocator<void>>(cadr(c), e), s);
         c = cddr(c);
         goto fetch;
 
@@ -153,7 +154,7 @@ namespace meevax::inline kernel
         *  where <continuation> = (s e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list(make<continuation, allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
+        s = cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
         c = cddr(c);
         goto fetch;
 
@@ -497,7 +498,7 @@ namespace meevax::inline kernel
     }
     catch (std::exception const& exception) // by the system.
     {
-      if (auto thrown = error(make<string>(exception.what())); exception_handler)
+      if (auto thrown = error(make<string>(exception.what()), unit); exception_handler)
       {
         return apply(exception_handler, thrown.make());
       }

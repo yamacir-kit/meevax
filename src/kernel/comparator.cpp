@@ -72,7 +72,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        let const b = make<box>(make<small_integer>(1));
+        let const b = make<box>(make<small_integer>(1), unit);
         forest.emplace(x, b);
         forest.emplace(y, b);
       }

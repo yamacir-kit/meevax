@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/large_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/utility/combination.hpp>
 
@@ -27,8 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
-
   auto operator * (widen_integer, large_integer const&) -> large_integer;
   auto operator + (widen_integer, large_integer const&) -> large_integer;
   auto operator - (widen_integer, large_integer const&) -> large_integer;
@@ -436,7 +433,7 @@ namespace number
 
   auto number_to_string(object const&, int) -> object;
 
-  auto canonicalize(auto&& x)
+  auto canonicalize(auto&& x) -> object
   {
     if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object> or
                   std::is_same_v<std::decay_t<decltype(x)>, object::pointer>)
@@ -451,25 +448,25 @@ namespace number
       }
       else
       {
-        return make(std::forward<decltype(x)>(x));
+        return make<complex>(std::forward<decltype(x)>(x));
       }
     }
     else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ratio>)
     {
       if (x.denominator() == 1_i64)
       {
-        return make(x.numerator());
+        return make<large_integer>(x.numerator());
       }
       else
       {
-        return make(std::forward<decltype(x)>(x));
+        return make<ratio>(std::forward<decltype(x)>(x));
       }
     }
     else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, widen_integer>)
     {
       if (std::numeric_limits<small_integer>::min() <= x and x <= std::numeric_limits<small_integer>::max())
       {
-        return make(static_cast<small_integer>(x));
+        return make<small_integer>(static_cast<small_integer>(x));
       }
       else
       {
@@ -478,7 +475,7 @@ namespace number
     }
     else
     {
-      return make(std::forward<decltype(x)>(x));
+      return make<std::decay_t<decltype(x)>>(std::forward<decltype(x)>(x));
     }
   }
 
@@ -512,7 +509,7 @@ namespace number
     }
     else
     {
-      throw error(make<string>("not an number"));
+      throw error(make<string>("not an number"), unit);
     }
   }
 
@@ -536,7 +533,7 @@ namespace number
     }
     else
     {
-      throw error(make<string>("not an number"));
+      throw error(make<string>("not an number"), unit);
     }
   }
 
@@ -607,8 +604,8 @@ namespace number
       {                                                                        \
         auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
                                                                                \
-        return complex(make(z.real()),                                         \
-                       make(z.imag()));                                        \
+        return complex(z.real(),                                               \
+                       z.imag());                                              \
       }                                                                        \
       else                                                                     \
       {                                                                        \

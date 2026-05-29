@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_OUTPUT_STRING_PORT_HPP
 
 #include <meevax/kernel/textual_output_port.hpp>
+#include <sstream>
 
 namespace meevax::inline kernel
 {

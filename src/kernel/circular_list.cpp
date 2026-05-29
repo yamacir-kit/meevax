@@ -14,29 +14,13 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_OUTPUT_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_TEXTUAL_OUTPUT_PORT_HPP
-
-#include <meevax/kernel/output_port.hpp>
-#include <meevax/kernel/string.hpp>
-#include <meevax/kernel/textual_port.hpp>
+#include <meevax/kernel/circular_list.hpp>
 
 namespace meevax::inline kernel
 {
-  struct textual_output_port : public virtual textual_port, public virtual output_port
-  {
-    auto flush() -> void override;
+  static_assert(std::ranges::range<circular_list_view<pair>>);
+  static_assert(std::ranges::range<circular_list_view<pair const>>);
 
-    auto put(character const&) -> void;
-
-    auto put(string const&) -> void;
-
-    auto write(object const&) -> void;
-
-    auto write_simple(object const&) -> void;
-
-    explicit virtual operator std::ostream &() = 0;
-  };
+  static_assert(std::ranges::input_range<circular_list_view<pair>>);
+  static_assert(std::ranges::input_range<circular_list_view<pair const>>);
 } // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_TEXTUAL_OUTPUT_PORT_HPP

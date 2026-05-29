@@ -14,8 +14,10 @@
    limitations under the License.
 */
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/string.hpp>
@@ -25,6 +27,11 @@
 
 namespace meevax::inline kernel
 {
+  textual_input_port::iterator::iterator()
+    : input { nullptr }
+    , value { eof_object }
+  {}
+
   textual_input_port::iterator::iterator(textual_input_port & input)
     : input { std::addressof(input) }
     , value { input.read() }
@@ -135,14 +142,14 @@ namespace meevax::inline kernel
     }
     else
     {
-      auto s = string();
+      let s = make<string>();
 
       while (size-- and not peek_character().is_eof())
       {
-        s.characters.push_back(take_character());
+        s.as<string>().characters.push_back(take_character());
       }
 
-      return make(s);
+      return s;
     }
   }
 
@@ -237,7 +244,7 @@ namespace meevax::inline kernel
         }
       }
 
-      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"), unit);
     };
 
     auto take_token = [this](character c)
@@ -271,7 +278,7 @@ namespace meevax::inline kernel
         break;
 
       case '"':  // 0x22
-        return make(take_quoted(c1));
+        return make<string>(take_quoted(c1));
 
       case '#':  // 0x23
         switch (auto const c2 = take_character())
@@ -381,10 +388,10 @@ namespace meevax::inline kernel
           switch (std::stoi(take_character_while(is_digit, character('0'))))
           {
           case 32:
-            return make_homogeneous_vector_from_list_of<f32>(read());
+            return make<f32vector>(read() | as_proper_list);
 
           case 64:
-            return make_homogeneous_vector_from_list_of<f64>(read());
+            return make<f64vector>(read() | as_proper_list);
 
           default:
             take_token(c2);
@@ -408,16 +415,16 @@ namespace meevax::inline kernel
           switch (auto n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make_homogeneous_vector_from_list_of<s8>(read());
+            return make<s8vector>(read() | as_proper_list);
 
           case 16:
-            return make_homogeneous_vector_from_list_of<s16>(read());
+            return make<s16vector>(read() | as_proper_list);
 
           case 32:
-            return make_homogeneous_vector_from_list_of<s32>(read());
+            return make<s32vector>(read() | as_proper_list);
 
           case 64:
-            return make_homogeneous_vector_from_list_of<s64>(read());
+            return make<s64vector>(read() | as_proper_list);
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -432,16 +439,16 @@ namespace meevax::inline kernel
           switch (auto const n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make_homogeneous_vector_from_list_of<u8>(read());
+            return make<u8vector>(read() | as_proper_list);
 
           case 16:
-            return make_homogeneous_vector_from_list_of<u16>(read());
+            return make<u16vector>(read() | as_proper_list);
 
           case 32:
-            return make_homogeneous_vector_from_list_of<u32>(read());
+            return make<u32vector>(read() | as_proper_list);
 
           case 64:
-            return make_homogeneous_vector_from_list_of<u64>(read());
+            return make<u64vector>(read() | as_proper_list);
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -459,12 +466,12 @@ namespace meevax::inline kernel
           }
 
         case '(':
-          return make_vector(read(c2));
+          return make<vector>(read(c2) | as_proper_list);
 
         case '\\':
           if (auto c3 = take_character(); is_special_character(peek_character())) // #\<character>
           {
-            return make(c3);
+            return make<character>(c3);
           }
           else if (c3 == 'x') // #\x<hex scalar value>
           {
@@ -503,7 +510,7 @@ namespace meevax::inline kernel
             switch (auto c1 = take_character())
             {
             case EOF:
-              throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+              throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"), unit);
 
             case '#':
               switch (peek_character())
@@ -607,7 +614,7 @@ namespace meevax::inline kernel
       }
     }
 
-    throw read_error(make<string>("underlying input stream went into a not good state"));
+    throw read_error(make<string>("underlying input stream went into a not good state"), unit);
   }
 
   auto textual_input_port::take_character() -> character
@@ -644,7 +651,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"), unit);
     }
   }
 } // namespace meevax::kernel

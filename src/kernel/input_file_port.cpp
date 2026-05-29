@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/input_file_port.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
 {

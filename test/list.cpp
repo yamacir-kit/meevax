@@ -1,7 +1,10 @@
 #undef NDEBUG
 
+#include <algorithm>
 #include <cassert>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 auto main() -> int
@@ -25,30 +28,50 @@ auto main() -> int
 
   assert(lexical_cast(list(a, make<small_integer>(3 + 4), c)) == "(a 7 c)");
 
-  assert(lexical_cast(list()) == "nullptr");
-
-  assert(lexical_cast(object(list())) == "()");
+  assert(lexical_cast(unit) == "()");
 
   assert(lexical_cast(xcons(list(b, c), a)) == "(a b c)");
 
   assert(lexical_cast(make_list(4, c)) == "(c c c c)");
 
   {
-    let x = list(a, b, c);
+    let xs = list(a, b, c);
 
-    for (auto iter = x.begin(); iter != x.end(); ++iter)
+    auto v = xs | as_proper_list;
+
+    for (auto iter = v.begin(); iter != v.end(); ++iter)
     {
       assert((*iter).template is<symbol>());
     }
   }
 
   {
-    let x = list(a, b, c);
+    let const xs = list(a, b, c);
 
-    for (auto iter = x.begin(); iter != x.end(); ++iter)
+    auto v = xs | as_proper_list;
+
+    for (auto iter = v.begin(); iter != v.end(); ++iter)
     {
       assert(iter->template is<symbol>());
     }
+  }
+
+  {
+    let xs = list(a, b, c);
+
+    for (auto x : xs | as_proper_list)
+    {
+      assert(x.template is<symbol>());
+    }
+  }
+
+  {
+    let xs = list(a, b, c);
+
+    std::ranges::for_each(xs | as_proper_list, [](let const& x)
+    {
+      assert(x.is<symbol>());
+    });
   }
 
   {
