@@ -27,24 +27,18 @@
 
 namespace meevax::inline kernel
 {
-  auto dynamic_environment::execute(object const& control) -> object
+  auto dynamic_environment::execute(object const& c) -> object
   {
-    assert(s.is<null>());
-
-    c = control;
-
     assert(last(c).is<instruction>());
     assert(last(c).as<instruction>() == instruction::secd_stop);
 
-    return run();
+    return execute(nullptr, nullptr, c, nullptr);
   }
 
-  auto dynamic_environment::run() -> object
+  auto dynamic_environment::execute(object s, object e, object c, object d) -> object
   {
     assert(last(c).template is<instruction>());
     assert(last(c).template as<instruction>() == instruction::secd_stop);
-
-    let const control = c;
 
     try
     {
@@ -453,23 +447,11 @@ namespace meevax::inline kernel
         *  (x) e (%stop) d => () e () d
         *
         * ------------------------------------------------------------------- */
-        return [this]()
-        {
-          assert(cdr(s).template is<null>());
-          assert(cdr(c).template is<null>());
-
-          let const x = car(s);
-
-          s = cdr(s);
-          c = cdr(c);
-
-          assert(s.is<null>());
-          assert(e.is<null>());
-          assert(c.is<null>());
-          assert(d.is<null>());
-
-          return x;
-        }();
+        assert(cdr(s).template is<null>());
+        assert(e.is<null>());
+        assert(cdr(c).template is<null>());
+        assert(d.is<null>());
+        return car(s);
       }
     }
     catch (object const& thrown) // by the procedure `throw`.

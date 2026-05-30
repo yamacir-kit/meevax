@@ -24,24 +24,6 @@ namespace meevax::inline kernel
   struct dynamic_environment
   {
     /*
-       The SECD machine, which in its original form was invented by Landin,
-       derives its name from the designation of its four pricipal registers:
-
-       s   the stack          Used to hold intermediate results when computing
-                              the values of expressions.
-
-       e   the environment    Used to hold the values bound to variables during
-                              evaluation.
-
-       c   the control list   Used to hold the machine-language program being
-                              executed.
-
-       d   the dump           Used as a stack to save values of other registers
-                              on calling a new function.
-    */
-    let s, e, c, d;
-
-    /*
        Auxiliary register.
 
        a[0] is used for current-dynamic-extents (dynamic-wind).
@@ -67,18 +49,16 @@ namespace meevax::inline kernel
 
     auto apply(object const& procedure, auto&&... xs) -> decltype(auto)
     {
-      s = list(procedure, list(std::forward<decltype(xs)>(xs)...));
-      e = nullptr;
-      c = list(make<instruction>(instruction::secd_call),
-               make<instruction>(instruction::secd_stop));
-      d = nullptr;
-
-      return run();
+      return execute(list(procedure, list(std::forward<decltype(xs)>(xs)...)),
+                     nullptr,
+                     list(make<instruction>(instruction::secd_call),
+                          make<instruction>(instruction::secd_stop)),
+                     nullptr);
     }
 
-    auto execute(object const& control) -> object;
+    auto execute(object const&) -> object;
 
-    auto run() -> object;
+    auto execute(object, object, object, object) -> object;
   };
 } // namespace meevax::kernel
 

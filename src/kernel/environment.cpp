@@ -65,52 +65,6 @@ namespace meevax::inline kernel
       }
     }
 
-    /*
-       In most cases, the s, e, c, and d registers are all null when evaluate
-       is called. However, if environment::evaluate of the same environment is
-       called during the execution of environment::evaluate, this is not the
-       case, so it is necessary to save the registers. For example, situations
-       like evaluating
-
-         (eval <expression> (interaction-environment))
-
-       in the REPL.
-    */
-    struct dump
-    {
-      environment * context;
-
-      let s, e, c, d;
-
-      explicit dump(environment * context)
-        : context { context }
-        , s { std::exchange(context->s, nullptr) }
-        , e { std::exchange(context->e, nullptr) }
-        , c { std::exchange(context->c, nullptr) }
-        , d { std::exchange(context->d, nullptr) }
-      {}
-
-      ~dump()
-      {
-        undump();
-      }
-
-      auto operator ()() -> void
-      {
-        undump();
-      }
-
-      auto undump() -> void
-      {
-        context->s = s;
-        context->e = e;
-        context->c = c;
-        context->d = d;
-      }
-    };
-
-    auto undump = dump(this);
-
     return execute(compile(expression));
   }
 
