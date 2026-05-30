@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/circular_list.hpp>
 #include <meevax/kernel/list.hpp>
+#include <unordered_map>
 
 namespace meevax::inline kernel
 {

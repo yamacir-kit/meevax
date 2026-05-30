@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
 
+#include <array>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax::inline kernel

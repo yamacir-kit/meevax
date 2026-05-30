@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/object.hpp>
+#include <unordered_map>
 
 namespace meevax::inline kernel
 {

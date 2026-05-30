@@ -15,10 +15,6 @@
 */
 
 #include <charconv>
-#include <memory> // std::unique_ptr
-#include <regex>
-#include <string_view>
-
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
@@ -26,6 +22,10 @@
 #include <meevax/kernel/number/power.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/string.hpp>
+#include <memory> // std::unique_ptr
+#include <regex>
+#include <string_view>
+#include <unordered_map>
 
 namespace meevax::inline kernel
 {

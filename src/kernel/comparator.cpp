@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/box.hpp>
 #include <meevax/kernel/list.hpp>
+#include <unordered_map>
 
 namespace meevax::inline kernel
 {
