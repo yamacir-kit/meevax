@@ -271,7 +271,7 @@ namespace meevax::inline kernel
       { "not-pair?",                     [](let const& xs) { return make<bool>(not car(xs).is<pair>()); } },
       { "cons",                          [](let const& xs) { return cons(car(xs), cadr(xs)); } },
       { "xcons",                         [](let const& xs) { return cons(cadr(xs), car(xs)); } },
-      { "cons*",                         [](let const& xs) { if (xs.is<null>()) { throw error(make<string>("procedure cons* takes at least one arugments, but got"), xs); } else if (cdr(xs).is<null>()) { return car(xs); } else { auto node = xs.get(); while (not cddr(*node).is<null>()) { node = cdr(*node).get(); } cdr(*node) = cadr(*node); return xs; } } },
+      { "cons*",                         [](let const& xs) { if (xs.is<null>()) { throw error(make<string>("procedure cons* takes at least one arugments, but got"), xs); } else if (cdr(xs).is<null>()) { return car(xs); } else { auto node = xs.get(); while (not cdr(node->second).is<null>()) { node = node->second.get(); } node->second = car(node->second); return xs; } } },
       { "car",                           [](let const& xs) { return car(car(xs)); } },
       { "cdr",                           [](let const& xs) { return cdr(car(xs)); } },
       { "caar",                          [](let const& xs) { return caar(car(xs)); } },

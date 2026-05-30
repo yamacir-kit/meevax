@@ -77,7 +77,7 @@ namespace meevax::inline kernel
   {
     auto _ = datum_labels(os);
 
-    if (is_circular_list(cdr(datum)))
+    if (is_circular_list(datum.second))
     {
       if (auto [iterator, success] = datum_labels::of(os)->emplace(&datum, datum_labels::of(os)->size() + 1); success)
       {
@@ -97,9 +97,9 @@ namespace meevax::inline kernel
     }
     else
     {
-      os << magenta("(") << car(datum);
+      os << magenta("(") << datum.first;
 
-      for (let xs = cdr(datum); not xs.is<null>(); xs = cdr(xs))
+      for (let xs = datum.second; not xs.is<null>(); xs = cdr(xs))
       {
         if (xs.is<pair>())
         {
