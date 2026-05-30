@@ -221,14 +221,14 @@ namespace meevax::inline kernel
 
       while (not stack.empty())
       {
-        auto [base, size_] = stack.back()->extent();
+        auto [lower, upper] = stack.back()->extent();
+
+        size += stack.back()->extent_;
 
         stack.pop_back();
 
-        size += size_;
-
-        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(base)),
-                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(lower)),
+                      objects.lower_bound(reinterpret_cast<object const*>(upper)),
                       mark);
       }
     }
@@ -273,7 +273,13 @@ namespace meevax::inline kernel
     */
     auto iterator = data.lower_bound(reinterpret_cast<pair const*>(x));
 
-    return not ((iterator and (*iterator)->contains(x)) or (--iterator and (*iterator)->contains(x)));
+    auto contains = [&]()
+    {
+      auto const [lower, upper] = (*iterator)->extent();
+      return lower <= x and x < upper;
+    };
+
+    return not ((iterator and contains()) or (--iterator and contains()));
   }
 
   auto request(std::size_t n) -> void

@@ -83,11 +83,15 @@ namespace meevax::inline kernel
 
     explicit binder(auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
-    {}
+    {
+      pair::extent_ = sizeof(binder);
+    }
 
     explicit binder(with_braces_tag, auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
-    {}
+    {
+      pair::extent_ = sizeof(binder);
+    }
 
     ~binder() override = default;
 
@@ -108,17 +112,6 @@ namespace meevax::inline kernel
       {
         return false;
       }
-    }
-
-    auto extent() const noexcept -> std::pair<void const*, std::size_t> override
-    {
-      return { static_cast<Bound const*>(this), sizeof(Bound) };
-    }
-
-    auto contains(void const* p) const noexcept -> bool override
-    {
-      auto base = static_cast<Bound const*>(this);
-      return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(Bound));
     }
 
     auto type() const noexcept -> std::type_info const& override
@@ -156,7 +149,11 @@ namespace meevax::inline kernel
 
     auto static inline a = allocator();
 
-    using pair::pair;
+    explicit binder(auto&&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
+    {
+      extent_ = sizeof(binder);
+    }
 
     ~binder() override = default;
 
