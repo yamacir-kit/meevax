@@ -17,11 +17,11 @@
 #ifndef INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 
+#include <iostream>
 #include <tuple>
 #include <type_traits>
+#include <unistd.h>
 #include <utility>
-
-#include <meevax/iostream/is_console.hpp>
 
 namespace meevax::inline iostream
 {
@@ -43,6 +43,22 @@ namespace meevax::inline iostream
       , references { std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto static colorable(std::ostream & os) -> bool
+    {
+      if (os.rdbuf() == std::cout.rdbuf())
+      {
+        return ::isatty(STDOUT_FILENO);
+      }
+      else if (os.rdbuf() == std::cerr.rdbuf())
+      {
+        return ::isatty(STDERR_FILENO);
+      }
+      else
+      {
+        return false;
+      }
+    }
+
     auto static unwrap(auto&& x) -> decltype(auto)
     {
       return std::forward<decltype(x)>(x);
@@ -54,14 +70,14 @@ namespace meevax::inline iostream
       return x.get();
     }
 
-    friend auto operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
+    auto friend operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
     {
       auto write = [&](auto&&... xs)
       {
         (os << ... << unwrap(xs));
       };
 
-      if (is_console(os))
+      if (colorable(os))
       {
         os << "\x1b[" << sequence.command;
         std::apply(write, sequence.references);
