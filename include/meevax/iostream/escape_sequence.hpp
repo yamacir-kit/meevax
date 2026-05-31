@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 
+#include <functional> // std::reference_wrapper
 #include <iostream>
 #include <tuple>
 #include <type_traits>

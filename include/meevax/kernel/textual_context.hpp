@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_CONTEXT_HPP
 
 #include <filesystem>
-#include <functional>
 #include <set>
 
 #include <meevax/kernel/pair.hpp>
