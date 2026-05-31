@@ -20,9 +20,28 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
+#include <regex>
 
 namespace meevax::inline kernel
 {
+  struct option
+  {
+    std::regex const pattern;
+
+    std::function<auto (std::function<auto () -> object> const&) -> void> evaluate;
+
+    explicit option(auto&& s, auto&& f)
+      : pattern  { std::forward<decltype(s)>(s) }
+      , evaluate { std::forward<decltype(f)>(f) }
+    {}
+  };
+
+  auto configurator::color() -> object &
+  {
+    let static color = unspecified;
+    return color;
+  }
+
   auto configurator::command_line() -> std::vector<std::string> &
   {
     auto static command_line = std::vector<std::string>();
@@ -43,7 +62,7 @@ namespace meevax::inline kernel
   {
     auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-    auto const static options = std::array<option, 10>
+    auto const static options = std::array<option, 11>
     {
       option("(A)", [](auto read) // SRFI 138
       {
@@ -60,9 +79,16 @@ namespace meevax::inline kernel
         directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
-      option("(i|interactive)", [](auto)
+      option("(color)", [](auto read)
       {
-        interactive() = true;
+        if (let const x = read(); x.is<bool>())
+        {
+          color() = x;
+        }
+        else
+        {
+          throw error(make<string>("invalid argument for option '--color'"), x);
+        }
       }),
 
       option("(e|evaluate)", [](auto read)
@@ -73,6 +99,11 @@ namespace meevax::inline kernel
       option("(h|help)", [](auto)
       {
         std::cout << help() << std::endl;
+      }),
+
+      option("(i|interactive)", [](auto)
+      {
+        interactive() = true;
       }),
 
       option("(l|load)", [](auto read)

@@ -21,11 +21,12 @@
 #include <iostream>
 #include <tuple>
 #include <type_traits>
-#include <unistd.h>
 #include <utility>
 
 namespace meevax::inline iostream
 {
+  auto colorable(std::ostream &) -> bool;
+
   template <typename... Ts>
   struct escape_sequence
   {
@@ -43,22 +44,6 @@ namespace meevax::inline iostream
       : command { std::forward<decltype(x)>(x) }
       , references { std::forward<decltype(xs)>(xs)... }
     {}
-
-    auto static colorable(std::ostream & os) -> bool
-    {
-      if (os.rdbuf() == std::cout.rdbuf())
-      {
-        return ::isatty(STDOUT_FILENO);
-      }
-      else if (os.rdbuf() == std::cerr.rdbuf())
-      {
-        return ::isatty(STDERR_FILENO);
-      }
-      else
-      {
-        return false;
-      }
-    }
 
     auto static unwrap(auto&& x) -> decltype(auto)
     {

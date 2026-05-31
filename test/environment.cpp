@@ -5,6 +5,7 @@
 #include <typeindex>
 
 #include <meevax/kernel/boot.hpp>
+#include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
@@ -72,12 +73,12 @@ auto main() -> int
 
     std::cout << status << std::endl;
 
-    assert(status.root_count == 1431);
+    assert(status.root_count == 1432);
     assert(status.root_count_of.size() == 6);
     assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
     assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(status.root_count_of[typeid(eof                               )] ==   1);
-    assert(status.root_count_of[typeid(ghost                             )] ==   2);
+    assert(status.root_count_of[typeid(ghost                             )] ==   3);
     assert(status.root_count_of[typeid(library                           )] ==  76);
     assert(status.root_count_of[typeid(symbol                            )] >= 482);
   }
@@ -93,7 +94,7 @@ auto main() -> int
     assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
     assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(status.root_count_of[typeid(eof                               )] ==   1);
-    assert(status.root_count_of[typeid(ghost                             )] ==   2);
+    assert(status.root_count_of[typeid(ghost                             )] ==   3);
     assert(status.root_count_of[typeid(library                           )] ==  76);
     assert(status.root_count_of[typeid(symbol                            )] >= 483); // There are 483 builtin definitions
   }
@@ -108,6 +109,8 @@ auto main() -> int
 
   const_cast<object &>(core_syntactic_environment()).reset(); // DIRTY HACK!
 
+  configurator::color().reset(); // DIRTY HACK!!!
+
   collect();
 
   {
@@ -118,6 +121,7 @@ auto main() -> int
     assert(status.root_count_of.size() == 2);
     assert(status.root_count_of[typeid(eof  )] == 1);
     assert(status.root_count_of[typeid(ghost)] == 2);
+    assert(status.non_root_count == 0);
   }
 
   assert(count() == 3); // -1 is interaction_environment

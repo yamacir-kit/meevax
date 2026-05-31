@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <list>
-#include <regex>
 
 #include <meevax/kernel/system.hpp>
 
@@ -26,17 +25,7 @@ namespace meevax::inline kernel
 {
   struct configurator
   {
-    struct option
-    {
-      std::regex const pattern;
-
-      std::function<auto (std::function<auto () -> object> const&) -> void> evaluate;
-
-      explicit option(auto&& s, auto&& f)
-        : pattern  { std::forward<decltype(s)>(s) }
-        , evaluate { std::forward<decltype(f)>(f) }
-      {}
-    };
+    auto static color() -> object &;
 
     auto static command_line() -> std::vector<std::string> &;
 
