@@ -29,8 +29,6 @@ namespace meevax::inline kernel
 
   auto features() -> object &;
 
-  auto help() noexcept -> std::string_view;
-
   auto home_directory() -> std::filesystem::path;
 
   auto shared_library_prefix() -> std::string;

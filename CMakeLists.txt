@@ -63,13 +63,6 @@ file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/downcase.
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/property.hpp    "${${PROJECT_NAME}_UNICODE_PROPERTY}")
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hpp      "${${PROJECT_NAME}_UNICODE_UPCASE}")
 
-execute_process(
-  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
-  COMMAND tr \n \r
-  COMMAND sed s/\r$//
-  COMMAND tr \r \n
-  OUTPUT_VARIABLE ${PROJECT_NAME}_HELP)
-
 string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
 file(GLOB ${PROJECT_NAME}_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/library/*.ss)
