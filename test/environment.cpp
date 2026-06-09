@@ -5,7 +5,7 @@
 #include <typeindex>
 
 #include <meevax/kernel/boot.hpp>
-#include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
@@ -109,7 +109,7 @@ auto main() -> int
 
   const_cast<object &>(core_syntactic_environment()).reset(); // DIRTY HACK!
 
-  configurator::color().reset(); // DIRTY HACK!!!
+  color().reset(); // DIRTY HACK!!!
 
   collect();
 

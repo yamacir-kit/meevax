@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATION_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONFIGURATION_HPP
 
 #include <list>
 
@@ -23,20 +23,17 @@
 
 namespace meevax::inline kernel
 {
-  struct configurator
-  {
-    auto static color() -> object &;
+  auto color() -> object &;
 
-    auto static command_line() -> std::vector<std::string> &;
+  auto command_line() -> std::vector<std::string> &;
 
-    auto static configure(int const, char const* const* const) -> void;
+  auto configure(int const, char const* const* const) -> void;
 
-    auto static configure(std::vector<std::string> const&) -> void;
+  auto configure(std::vector<std::string> const&) -> void;
 
-    auto static directories() -> std::list<std::filesystem::path> &;
+  auto directories() -> std::list<std::filesystem::path> &;
 
-    auto static interactive() -> bool &;
-  };
+  auto interactive() -> bool &;
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATION_HPP

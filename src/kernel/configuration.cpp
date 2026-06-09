@@ -15,7 +15,7 @@
 */
 
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
@@ -91,7 +91,7 @@ namespace meevax::inline kernel
              "Append <directory> to the list of directories that are searched in order to locate imported libraries. [SRFI 138]",
       [](auto read)
       {
-        configurator::directories().emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
+        directories().emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option('D', "add-feature-identifier", "<name>",
@@ -105,7 +105,7 @@ namespace meevax::inline kernel
              "Prepend <directory> to the list of directories that are searched in order to locate imported libraries. [SRFI 138]",
       [](auto read)
       {
-        configurator::directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
+        directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option('\0', "color", "<boolean>",
@@ -116,7 +116,7 @@ namespace meevax::inline kernel
       {
         if (let const x = read(); x.is<bool>())
         {
-          configurator::color() = x;
+          color() = x;
         }
         else
         {
@@ -177,7 +177,7 @@ namespace meevax::inline kernel
              "Enter the REPL session after evaluating any <file>s given as command-line arguments.",
       [](auto)
       {
-        configurator::interactive() = true;
+        interactive() = true;
       }),
 
       option('l', "load", "<file>",
@@ -191,7 +191,7 @@ namespace meevax::inline kernel
              "Display the list of directories that are searched in order to locate imported libraries.",
       [](auto)
       {
-        for (auto const& directory : configurator::directories())
+        for (auto const& directory : directories())
         {
           std::cout << directory.native() << std::endl;
         }
@@ -215,19 +215,19 @@ namespace meevax::inline kernel
     return options;
   }
 
-  auto configurator::color() -> object &
+  auto color() -> object &
   {
     let static color = unspecified;
     return color;
   }
 
-  auto configurator::command_line() -> std::vector<std::string> &
+  auto command_line() -> std::vector<std::string> &
   {
     auto static command_line = std::vector<std::string>();
     return command_line;
   }
 
-  auto configurator::configure(int const argc, char const* const* const argv) -> void
+  auto configure(int const argc, char const* const* const argv) -> void
   {
     for (auto i = 0; i < argc; ++i)
     {
@@ -237,7 +237,7 @@ namespace meevax::inline kernel
     return configure(command_line());
   }
 
-  auto configurator::configure(std::vector<std::string> const& args) -> void
+  auto configure(std::vector<std::string> const& args) -> void
   {
     auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
@@ -302,13 +302,13 @@ namespace meevax::inline kernel
     }
   }
 
-  auto configurator::directories() -> std::list<std::filesystem::path> &
+  auto directories() -> std::list<std::filesystem::path> &
   {
     auto static directories = std::list<std::filesystem::path> { user_library_directory(), system_library_directory() };
     return directories;
   }
 
-  auto configurator::interactive() -> bool &
+  auto interactive() -> bool &
   {
     auto static interactive = false;
     return interactive;

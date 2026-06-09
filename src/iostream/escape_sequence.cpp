@@ -15,7 +15,7 @@
 */
 
 #include <meevax/iostream/escape_sequence.hpp>
-#include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <unistd.h> // isatty
 
@@ -23,11 +23,11 @@ namespace meevax::inline iostream
 {
   auto colorable(std::ostream & os) -> bool
   {
-    if (let const& color = configurator::color(); color.is<bool>())
+    if (let const& x = color(); x.is<bool>())
     {
-      return color.as<bool>();
+      return x.as<bool>();
     }
-    else if (color == unspecified)
+    else if (x == unspecified)
     {
       return (os.rdbuf() == std::cout.rdbuf() and isatty(STDOUT_FILENO)) or (os.rdbuf() == std::cerr.rdbuf() and isatty(STDERR_FILENO));
     }

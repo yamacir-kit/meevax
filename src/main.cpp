@@ -15,7 +15,7 @@
 */
 
 #include <meevax/kernel/boot.hpp>
-#include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
@@ -29,7 +29,7 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     e.load_scheme_libraries();
 
-    if (configurator::configure(argc, argv); configurator::interactive())
+    if (configure(argc, argv); interactive())
     {
       e.import("(scheme base)"_r);
       e.import("(scheme bitwise)"_r);
