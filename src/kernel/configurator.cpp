@@ -26,15 +26,194 @@ namespace meevax::inline kernel
 {
   struct option
   {
+    char c;
+
+    std::string s;
+
+    std::string operand;
+
+    std::string description;
+
     std::regex const pattern;
 
     std::function<auto (std::function<auto () -> object> const&) -> void> evaluate;
 
-    explicit option(auto&& s, auto&& f)
-      : pattern  { std::forward<decltype(s)>(s) }
-      , evaluate { std::forward<decltype(f)>(f) }
-    {}
+    explicit option(char c, std::string const& s, std::string const& operand, std::string const& description, auto&& f)
+      : c           { c }
+      , s           { s }
+      , operand     { operand }
+      , description { description }
+      , pattern     { not c ? s : std::string("(") + c + '|' + s + ')' }
+      , evaluate    { std::forward<decltype(f)>(f) }
+    {
+      assert(not s.empty());
+    }
   };
+
+  auto format(std::string const& text, std::string indent = std::string(10, ' '), std::size_t column_max = 80)
+  {
+    auto input = std::istringstream(text);
+
+    auto output = std::ostringstream(indent, std::ios_base::ate);
+
+    auto column = indent.size();
+
+    for (auto word = std::string(); input >> word; )
+    {
+      if (indent.size() < column)
+      {
+        if (column_max < column + 1 + word.size())
+        {
+          output << '\n' << indent << word;
+          column = indent.size() + word.size();
+        }
+        else
+        {
+          output << ' ' << word;
+          column += 1 + word.size();
+        }
+      }
+      else
+      {
+        output << word;
+        column += word.size();
+      }
+    }
+
+    return output.str();
+  }
+
+  auto options() -> std::vector<option> const&
+  {
+    auto const static options = std::vector<option>
+    {
+      option('A', "append-library-directory", "<directory>",
+             "Append <directory> to the list of directories that are searched in order to locate imported libraries. [SRFI 138]",
+      [](auto read)
+      {
+        configurator::directories().emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
+      }),
+
+      option('D', "add-feature-identifier", "<name>",
+             "Add <name> to the list of feature identifiers. [SRFI 138]",
+      [](auto read)
+      {
+        features() = cons(read(), features());
+      }),
+
+      option('I', "prepend-library-directory", "<directory>",
+             "Prepend <directory> to the list of directories that are searched in order to locate imported libraries. [SRFI 138]",
+      [](auto read)
+      {
+        configurator::directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
+      }),
+
+      option('\0', "color", "<boolean>",
+             "Colorize external representations. "
+             "By default, colorization is enabled automatically for terminal output. "
+             "#t always enables colorization; #f always disables it.",
+      [](auto read)
+      {
+        if (let const x = read(); x.is<bool>())
+        {
+          configurator::color() = x;
+        }
+        else
+        {
+          throw error(make<string>("invalid argument for option '--color'"), x);
+        }
+      }),
+
+      option('e', "evaluate", "<datum>",
+             "Read and evaluate <datum> in the interaction environment.",
+      [](auto read)
+      {
+        interaction_environment().as<environment>().evaluate(read());
+      }),
+
+      option('h', "help", "",
+             "Display this help message and exit.",
+      [](auto)
+      {
+        std::cout << bold("Usage:") << "\n"
+                  << "  meevax [" << underline("options") << "...] [" << underline("files") << "...]\n"
+                  << "\n"
+                  << bold("Options:") << "\n";
+
+        for (auto const& option : meevax::options())
+        {
+          if (option.c)
+          {
+            std::cout << "  " << bold('-', option.c) << ", " << bold("--", option.s);
+          }
+          else
+          {
+            std::cout << "      " << bold("--", option.s);
+          }
+
+          if (not option.operand.empty())
+          {
+            std::cout << ' ' << underline(option.operand);
+          }
+
+          std::cout << '\n' << format(option.description) << "\n\n";
+        }
+
+        std::cout << bold("Examples:") << "\n"
+                     "  " << bold("Normalize the first datum from a file:") << "\n"
+                     "\n"
+                     "    $ meevax --color=#f -w \"$(cat ./path/to/file.ss)\"\n"
+                     "\n"
+                     "  " << bold("Write the feature identifiers:") << "\n"
+                     "\n"
+                     "    $ meevax -e '(import (scheme base) (scheme write))' \\\n"
+                     "             -e '(write (features))'\n"
+                     ;
+
+        std::cout << std::flush;
+      }),
+
+      option('i', "interactive", "",
+             "Enter the REPL session after evaluating any <file>s given as command-line arguments.",
+      [](auto)
+      {
+        configurator::interactive() = true;
+      }),
+
+      option('l', "load", "<file>",
+             "Load <file> into the interaction environment.",
+      [](auto read)
+      {
+        interaction_environment().as<environment>().load(lexical_cast(read()));
+      }),
+
+      option('\0', "library-directories", "",
+             "Display the list of directories that are searched in order to locate imported libraries.",
+      [](auto)
+      {
+        for (auto const& directory : configurator::directories())
+        {
+          std::cout << directory.native() << std::endl;
+        }
+      }),
+
+      option('v', "version", "",
+             "Display version and exit.",
+      [](auto)
+      {
+        std::cout << version() << std::endl;
+      }),
+
+      option('w', "write", "<datum>",
+             "Read <datum> and write it to standard output.",
+      [](auto read)
+      {
+        std::cout << read() << std::endl;
+      }),
+    };
+
+    return options;
+  }
 
   auto configurator::color() -> object &
   {
@@ -62,81 +241,13 @@ namespace meevax::inline kernel
   {
     auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-    auto const static options = std::array<option, 11>
-    {
-      option("(A)", [](auto read) // SRFI 138
-      {
-        directories().emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
-      }),
-
-      option("(D)", [](auto read) // SRFI 138
-      {
-        features() = cons(read(), features());
-      }),
-
-      option("(I)", [](auto read) // SRFI 138
-      {
-        directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
-      }),
-
-      option("(color)", [](auto read)
-      {
-        if (let const x = read(); x.is<bool>())
-        {
-          color() = x;
-        }
-        else
-        {
-          throw error(make<string>("invalid argument for option '--color'"), x);
-        }
-      }),
-
-      option("(e|evaluate)", [](auto read)
-      {
-        interaction_environment().as<environment>().evaluate(read());
-      }),
-
-      option("(h|help)", [](auto)
-      {
-        std::cout << help() << std::endl;
-      }),
-
-      option("(i|interactive)", [](auto)
-      {
-        interactive() = true;
-      }),
-
-      option("(l|load)", [](auto read)
-      {
-        interaction_environment().as<environment>().load(read().template as<string>().utf8());
-      }),
-
-      option("(library-directories)", [](auto)
-      {
-        for (auto const& directory : directories())
-        {
-          std::cout << directory.native() << std::endl;
-        }
-      }),
-
-      option("(v|version)", [](auto)
-      {
-        std::cout << version() << std::endl;
-      }),
-
-      option("(w|write)", [](auto read)
-      {
-        std::cout << read() << std::endl;
-      }),
-    };
-
     auto evaluator = [&](auto&& name) -> decltype(auto)
     {
-      if (auto iter = std::find_if(options.begin(), options.end(), [&](auto&& option)
+      if (auto iter = std::find_if(options().begin(), options().end(), [&](auto&& option)
                       {
                         return std::regex_match(name, option.pattern);
                       });
-          iter != options.end())
+          iter != options().end())
       {
         return iter->evaluate;
       }
