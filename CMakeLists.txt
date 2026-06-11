@@ -100,7 +100,7 @@ target_link_libraries(kernel
   PUBLIC gmp)
 
 set_target_properties(kernel PROPERTIES
-  OUTPUT_NAME ${PROJECT_NAME}-kernel # Rename libkernel => libmeevax-kernel
+  OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
   VERSION     ${PROJECT_VERSION}
   SOVERSION   ${PROJECT_VERSION_MAJOR}
   LINK_FLAGS_RELEASE -s)
