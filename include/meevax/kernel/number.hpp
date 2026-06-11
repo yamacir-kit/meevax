@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
+#include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ratio.hpp>

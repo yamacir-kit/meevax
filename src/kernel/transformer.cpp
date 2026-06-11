@@ -41,7 +41,7 @@ namespace meevax::inline kernel
     assert(first.is<closure>());
     assert(second.is<syntactic_environment>());
 
-    return environment().apply(first, form, use_environment, second);
+    return environment().apply(first, list(form, use_environment, second));
   }
 
   auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &

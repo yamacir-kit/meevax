@@ -145,4 +145,24 @@ namespace meevax::inline kernel
 
     return os << magenta(")");
   }
+
+  auto file_error::make() const -> object
+  {
+    return meevax::make<file_error>(*this);
+  }
+
+  auto file_error::raise() const -> void
+  {
+    throw *this;
+  }
+
+  auto read_error::make() const -> object
+  {
+    return meevax::make<read_error>(*this);
+  }
+
+  auto read_error::raise() const -> void
+  {
+    throw *this;
+  }
 } // namespace meevax::kernel

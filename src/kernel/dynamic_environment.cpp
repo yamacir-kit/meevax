@@ -27,6 +27,15 @@
 
 namespace meevax::inline kernel
 {
+  auto dynamic_environment::apply(object const& f, object const& xs) -> object
+  {
+    return execute(list(f, xs),
+                   nullptr,
+                   list(make<instruction>(instruction::secd_call),
+                        make<instruction>(instruction::secd_stop)),
+                   nullptr);
+  }
+
   auto dynamic_environment::execute(object const& c) -> object
   {
     assert(last(c).is<instruction>());
@@ -470,7 +479,7 @@ namespace meevax::inline kernel
     {
       if (exception_handler)
       {
-        return apply(exception_handler, thrown.make());
+        return apply(exception_handler, list(thrown.make()));
       }
       else // In most cases, this clause will never be called.
       {
@@ -482,7 +491,7 @@ namespace meevax::inline kernel
     {
       if (auto thrown = error(make<string>(exception.what()), unit); exception_handler)
       {
-        return apply(exception_handler, thrown.make());
+        return apply(exception_handler, list(thrown.make()));
       }
       else // In most cases, this clause will never be called.
       {

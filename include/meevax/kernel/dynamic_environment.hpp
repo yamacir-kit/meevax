@@ -48,14 +48,7 @@ namespace meevax::inline kernel
     */
     let static inline exception_handler = nullptr;
 
-    auto apply(object const& procedure, auto&&... xs) -> decltype(auto)
-    {
-      return execute(list(procedure, list(std::forward<decltype(xs)>(xs)...)),
-                     nullptr,
-                     list(make<instruction>(instruction::secd_call),
-                          make<instruction>(instruction::secd_stop)),
-                     nullptr);
-    }
+    auto apply(object const&, object const&) -> object;
 
     auto execute(object const&) -> object;
 
