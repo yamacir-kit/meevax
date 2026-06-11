@@ -80,29 +80,6 @@ namespace meevax::inline kernel
       throw *this;
     }
   };
-
-  auto with_exception_handler(auto&& thunk)
-  {
-    try
-    {
-      thunk();
-      return EXIT_SUCCESS;
-    }
-    catch (int const status) // NOTE: emergency-exit
-    {
-      return status;
-    }
-    catch (error const& error)
-    {
-      error.report(std::cerr);
-      return EXIT_FAILURE;
-    }
-    catch (std::exception const& exception)
-    {
-      error(make<string>(exception.what()), unit).report(std::cerr);
-      return EXIT_FAILURE;
-    }
-  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_ERROR_HPP

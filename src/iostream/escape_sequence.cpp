@@ -14,32 +14,26 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP
-#define INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP
-
-#include <iostream>
-
-#include <unistd.h>
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/kernel/configuration.hpp>
+#include <meevax/kernel/ghost.hpp>
+#include <unistd.h> // isatty
 
 namespace meevax::inline iostream
 {
-  inline auto is_console = [](std::ostream & os)
+  auto colorable(std::ostream & os) -> bool
   {
-    if (os.rdbuf() == std::cout.rdbuf())
+    if (let const& x = color(); x.is<bool>())
     {
-      static auto const result = static_cast<bool>(::isatty(STDOUT_FILENO));
-      return result;
+      return x.as<bool>();
     }
-    else if (os.rdbuf() == std::cerr.rdbuf())
+    else if (x == unspecified)
     {
-      static auto const result = static_cast<bool>(::isatty(STDERR_FILENO));
-      return result;
+      return (os.rdbuf() == std::cout.rdbuf() and isatty(STDOUT_FILENO)) or (os.rdbuf() == std::cerr.rdbuf() and isatty(STDERR_FILENO));
     }
     else
     {
       return false;
     }
-  };
+  }
 } // namespace meevax::iostream
-
-#endif // INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP

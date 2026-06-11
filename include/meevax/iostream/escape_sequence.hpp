@@ -17,14 +17,16 @@
 #ifndef INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 
+#include <functional> // std::reference_wrapper
+#include <iostream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
-#include <meevax/iostream/is_console.hpp>
-
 namespace meevax::inline iostream
 {
+  auto colorable(std::ostream &) -> bool;
+
   template <typename... Ts>
   struct escape_sequence
   {
@@ -54,14 +56,14 @@ namespace meevax::inline iostream
       return x.get();
     }
 
-    friend auto operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
+    auto friend operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
     {
       auto write = [&](auto&&... xs)
       {
         (os << ... << unwrap(xs));
       };
 
-      if (is_console(os))
+      if (colorable(os))
       {
         os << "\x1b[" << sequence.command;
         std::apply(write, sequence.references);

@@ -14,32 +14,26 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATION_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONFIGURATION_HPP
 
-#include <filesystem>
-#include <string_view>
+#include <list>
 
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/symbol.hpp>
+#include <meevax/kernel/system.hpp>
 
 namespace meevax::inline kernel
 {
-  auto extensions() -> std::vector<std::string_view> const&;
+  auto color() -> object &;
 
-  auto features() -> object &;
+  auto command_line() -> std::vector<std::string> &;
 
-  auto home_directory() -> std::filesystem::path;
+  auto configure(int const, char const* const* const) -> void;
 
-  auto shared_library_prefix() -> std::string;
+  auto configure(std::vector<std::string> const&) -> void;
 
-  auto shared_library_suffix() -> std::string;
+  auto directories() -> std::list<std::filesystem::path> &;
 
-  auto system_library_directory() -> std::filesystem::path;
-
-  auto user_library_directory() -> std::filesystem::path;
-
-  auto version() -> object const&;
+  auto interactive() -> bool &;
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATION_HPP

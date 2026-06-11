@@ -15,6 +15,7 @@
 */
 
 #include <pwd.h>
+#include <unistd.h>
 
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
@@ -56,11 +57,6 @@ namespace meevax::inline kernel
       );
 
     return features;
-  }
-
-  auto help() noexcept -> std::string_view
-  {
-    return R"(${${PROJECT_NAME}_HELP})";
   }
 
   auto home_directory() -> std::filesystem::path

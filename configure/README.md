@@ -108,12 +108,6 @@ Then, select one of the following targets and `make` it according to your purpos
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `${CMAKE_INSTALL_PREFIX}` directly by target `install`.
 
-## Usage
-
-```
-${${PROJECT_NAME}_HELP}
-```
-
 ## License
 
 See [LICENSE](./LICENSE).

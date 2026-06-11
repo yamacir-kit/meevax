@@ -24,7 +24,7 @@
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/box.hpp>
 #include <meevax/kernel/closure.hpp>
-#include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
@@ -110,7 +110,7 @@ namespace meevax::inline kernel
       { "char-downcase",                 [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); } },
 
       { "emergency-exit",                [](let const& xs) -> object { if (xs.is<null>()) { throw EXIT_SUCCESS; } else if (let const& status = car(xs); status.is<bool>()) { throw status != f ? EXIT_SUCCESS : EXIT_FAILURE; } else { throw exact_integer_cast<int>(status); } } },
-      { "command-line",                  [](let const&   ) { let xs = unit; for (auto&& each : configurator::command_line()) { xs = cons(make<string>(each), xs); } return reverse(xs); } },
+      { "command-line",                  [](let const&   ) { let xs = unit; for (auto&& each : command_line()) { xs = cons(make<string>(each), xs); } return reverse(xs); } },
 
       { "eq?",                           [](let const& xs) { return make<bool>(eq(car(xs), cadr(xs))); } },
       { "eqv?",                          [](let const& xs) { return make<bool>(eqv(car(xs), cadr(xs))); } },
@@ -131,7 +131,7 @@ namespace meevax::inline kernel
 
       { "file-exists?",                  [](let const& xs) { return make<bool>(std::filesystem::exists(car(xs).as<string>().utf8())); } },
       { "delete-file",                   [](let const& xs) { try { if (not std::filesystem::remove(car(xs).as<string>().utf8())) { throw file_error(make<string>("failed to remove file"), car(xs)); } else { return unspecified; } } catch (std::filesystem::filesystem_error const& e) { throw file_error(make<string>(e.what()), car(xs)); } } },
-      { "library-directories",           [](let const&   ) { let directories = unit; for (auto iterator = configurator::directories().rbegin(); iterator != configurator::directories().rend(); ++iterator) { directories = cons(make<string>(iterator->native()), directories); } return directories; } },
+      { "library-directories",           [](let const&   ) { let directories = unit; for (auto iterator = meevax::directories().rbegin(); iterator != meevax::directories().rend(); ++iterator) { directories = cons(make<string>(iterator->native()), directories); } return directories; } },
 
       { "integer32?",                    [](let const& xs) { return make<bool>(car(xs).is<small_integer>()); } },
 
