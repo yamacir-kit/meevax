@@ -65,7 +65,7 @@ namespace meevax::inline memory
     auto static constexpr mask_payload   = std::uintptr_t(0b0000'0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111);
 
     template <typename Tn>
-    auto static constexpr signature_of = []() consteval -> std::uintptr_t
+    auto static constexpr signature_of = []() constexpr -> std::uintptr_t
     {
            if constexpr (std::is_same_v<Tn, double>) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
       else if constexpr (std::is_same_v<Tn, T1    >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }

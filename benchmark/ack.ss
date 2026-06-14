@@ -7,7 +7,7 @@
         ((= n 0) (ack (- m 1) 1))
         (else (ack (- m 1) (ack m (- n 1))))))
 
-(display (ack 3 8))
+(display (ack 3 7))
 (newline)
 
 (exit)

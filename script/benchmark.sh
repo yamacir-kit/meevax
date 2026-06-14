@@ -12,7 +12,12 @@ implementations()
 scripts()
 {
   echo ack
+  echo cpstak
+  echo ctak
+  echo deriv
   echo fib
+  echo tak
+  echo takl
   echo tarai
 }
 
