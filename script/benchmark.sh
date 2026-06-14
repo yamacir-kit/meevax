@@ -2,6 +2,13 @@
 
 root="$(git rev-parse --show-toplevel)"
 
+implementations()
+{
+  echo Meevax
+  echo Chibi # sudo apt install chibi-scheme
+  echo Guile # sudo apt install guile-3.0
+}
+
 scripts()
 {
   echo ack
@@ -11,30 +18,42 @@ scripts()
 
 real()
 {
-  (command time -p "$@") 2>&1 | grep -e 'real' | sed -e 's/real[ ]*//'
+  (command time -p "$@") 2>&1 | grep -e real | tr -s ' ' | cut -d ' ' -f 2
 }
 
-quotient()
+run()
 {
-  echo "scale = 1; $1 / $2" | bc -s
+  case $1 in
+    Meevax)  real meevax "$2" ;;
+    Chibi)   real chibi-scheme "$2" ;;
+    Guile)   real guile "$2" ;;
+    *) exit 1 ;;
+  esac
 }
 
-tsv()
-{
-  printf "\tMeevax\tChibi-Scheme\tGauche\n"
+for implementation in $(implementations)
+do
+  printf "\t%s" "$implementation"
+done
 
-  for script in $(scripts)
+printf "\n"
+
+for script in $(scripts)
+do
+  printf "%s" "$script"
+
+  for implementation in $(implementations)
   do
-    t0=$(real meevax       "$root/benchmark/$script.ss")
-    t1=$(real chibi-scheme "$root/benchmark/$script.ss")
-    t2=$(real gosh         "$root/benchmark/$script.ss")
-
-    printf "%s\t%s\t%s\t%s\n" \
-      "$script" \
-      "$t0" \
-      "$t1 (x$(quotient "$t0" "$t1"))" \
-      "$t2 (x$(quotient "$t0" "$t2"))"
+    printf "\t%s" "$(run "$implementation" "$root/benchmark/$script.ss")"
   done
-}
 
-tsv | column -t -s "$(printf '\t')"
+  printf "\n"
+done
+
+# for script in $(scripts)
+# do
+#   for implementation in $(implementations)
+#   do
+#     printf "%s\t%s\t%s\n" "$script" "$implementation" "$(run "$implementation" "$root/benchmark/$script.ss")"
+#   done
+# done

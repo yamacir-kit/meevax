@@ -65,16 +65,20 @@ namespace meevax::inline memory
     auto static constexpr mask_payload   = std::uintptr_t(0b0000'0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111);
 
     template <typename Tn>
-    auto static constexpr signature_of = []() constexpr -> std::uintptr_t
+    auto static constexpr signature_of = []() consteval -> std::uintptr_t
     {
-      if constexpr (std::is_same_v<Tn, double>) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T1    >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T2    >) { return 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T3    >) { return 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T4    >) { return 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T5    >) { return 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T6    >) { return 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      if constexpr (std::is_same_v<Tn, T*    >) { return 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+           if constexpr (std::is_same_v<Tn, double>) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T1    >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T2    >) { return 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T3    >) { return 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T4    >) { return 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T5    >) { return 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T6    >) { return 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T*    >) { return 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else
+      {
+        static_assert([]() { return false; });
+      }
     }();
 
     constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
