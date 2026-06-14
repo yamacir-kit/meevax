@@ -119,10 +119,7 @@ auto main() -> int
     assert(z.is<small_integer>());
 
     assert(x == y);
-    assert(x.compare(y));
-
     assert(x != z);
-    assert(not x.compare(z));
   }
 
   {

@@ -91,7 +91,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return pointer::compare(rhs);
+      return static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
     }
   }
 

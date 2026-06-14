@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
 #include <cassert>
-#include <meevax/concepts/any_of.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>

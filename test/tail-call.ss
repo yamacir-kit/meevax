@@ -233,6 +233,73 @@
        load-absolute call-with-current-continuation
        tail-call))
 
+(define (ack m n)
+  (cond ((= m 0) (+ n 1))
+        ((= n 0) (ack (- m 1) 1))
+        (else (ack (- m 1) (ack m (- n 1))))))
+
+(check (disassemble ack)
+  => '(load-constant ()
+       load-constant 0
+       cons
+       load-relative (0 . 0)
+       cons
+       load-absolute =
+       call
+       tail-select (load-constant ()
+                    load-constant 1
+                    cons
+                    load-relative (0 . 1)
+                    cons
+                    load-absolute +
+                    tail-call)
+                   (load-constant ()
+                    load-constant 0
+                    cons
+                    load-relative (0 . 1)
+                    cons
+                    load-absolute =
+                    call
+                    tail-select (load-constant ()
+                                 load-constant 1
+                                 cons
+                                 load-constant ()
+                                 load-constant 1
+                                 cons
+                                 load-relative (0 . 0)
+                                 cons
+                                 load-absolute -
+                                 call
+                                 cons
+                                 load-absolute ack
+                                 tail-call)
+                                (load-constant ()
+                                 load-constant ()
+                                 load-constant ()
+                                 load-constant 1
+                                 cons
+                                 load-relative (0 . 1)
+                                 cons
+                                 load-absolute -
+                                 call
+                                 cons
+                                 load-relative (0 . 0)
+                                 cons
+                                 load-absolute ack
+                                 call
+                                 cons
+                                 load-constant ()
+                                 load-constant 1
+                                 cons
+                                 load-relative (0 . 0)
+                                 cons
+                                 load-absolute -
+                                 call
+                                 cons
+                                 load-absolute ack
+                                 tail-call))))
+
+
 (check-report)
 
-(exit (check-passed? 11))
+(exit (check-passed? 12))
