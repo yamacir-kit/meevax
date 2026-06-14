@@ -26,28 +26,6 @@ namespace meevax::inline kernel
 
   auto constexpr operator ""_i64(unsigned long long int value) { return static_cast<std:: int64_t>(value); }
   auto constexpr operator ""_u64(unsigned long long int value) { return static_cast<std::uint64_t>(value); }
-
-  template <std::size_t>
-  struct int8n;
-
-  template <> struct int8n<1> { using type = std::int8_t; };
-  template <> struct int8n<2> { using type = std::int16_t; };
-  template <> struct int8n<4> { using type = std::int32_t; };
-  template <> struct int8n<8> { using type = std::int64_t; };
-
-  template <auto N>
-  using int8n_t = typename int8n<N>::type;
-
-  template <std::size_t>
-  struct uint8n;
-
-  template <> struct uint8n<1> { using type = std::uint8_t; };
-  template <> struct uint8n<2> { using type = std::uint16_t; };
-  template <> struct uint8n<4> { using type = std::uint32_t; };
-  template <> struct uint8n<8> { using type = std::uint64_t; };
-
-  template <auto N>
-  using uint8n_t = typename uint8n<N>::type;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SMALL_INTEGER_HPP
