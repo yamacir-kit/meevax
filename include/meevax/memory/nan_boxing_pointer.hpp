@@ -65,7 +65,7 @@ namespace meevax::inline memory
     auto static constexpr mask_payload   = std::uintptr_t(0b0000'0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111);
 
     template <typename Tn>
-    auto static constexpr signature_of = []() constexpr -> std::uintptr_t
+    auto static constexpr signature_of() noexcept -> std::uintptr_t
     {
            if constexpr (std::is_same_v<Tn, double>) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
       else if constexpr (std::is_same_v<Tn, T1    >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
@@ -79,7 +79,7 @@ namespace meevax::inline memory
       {
         static_assert([]() { return false; });
       }
-    }();
+    }
 
     constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
@@ -89,11 +89,11 @@ namespace meevax::inline memory
 
     template <any_of<T1, T2, T3, T4, T5, T6> Tn>
     explicit constexpr nan_boxing_pointer(Tn x) noexcept
-      : data { signature_of<Tn> | std::bit_cast<payload_t<Tn>>(x) }
+      : data { signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x) }
     {}
 
     explicit constexpr nan_boxing_pointer(pointer x = nullptr) noexcept
-      : data { signature_of<T*> | std::bit_cast<payload_t<T*>>(x) }
+      : data { signature_of<T*>() | std::bit_cast<payload_t<T*>>(x) }
     {}
 
     auto operator =(auto x) noexcept -> auto &
@@ -142,7 +142,7 @@ namespace meevax::inline memory
 
     auto constexpr dereferenceable() const noexcept
     {
-      return signature() == signature_of<pointer>;
+      return signature() == signature_of<pointer>();
     }
 
     auto constexpr get() const noexcept -> pointer
@@ -155,13 +155,13 @@ namespace meevax::inline memory
     {
       switch (signature())
       {
-      case signature_of<T1>: return std::is_same_v<std::decay_t<U>, T1>;
-      case signature_of<T2>: return std::is_same_v<std::decay_t<U>, T2>;
-      case signature_of<T3>: return std::is_same_v<std::decay_t<U>, T3>;
-      case signature_of<T4>: return std::is_same_v<std::decay_t<U>, T4>;
-      case signature_of<T5>: return std::is_same_v<std::decay_t<U>, T5>;
-      case signature_of<T6>: return std::is_same_v<std::decay_t<U>, T6>;
-      case signature_of<T*>: return std::is_same_v<std::decay_t<U>, T*>;
+      case signature_of<T1>(): return std::is_same_v<std::decay_t<U>, T1>;
+      case signature_of<T2>(): return std::is_same_v<std::decay_t<U>, T2>;
+      case signature_of<T3>(): return std::is_same_v<std::decay_t<U>, T3>;
+      case signature_of<T4>(): return std::is_same_v<std::decay_t<U>, T4>;
+      case signature_of<T5>(): return std::is_same_v<std::decay_t<U>, T5>;
+      case signature_of<T6>(): return std::is_same_v<std::decay_t<U>, T6>;
+      case signature_of<T*>(): return std::is_same_v<std::decay_t<U>, T*>;
 
       default:
         return std::is_same_v<std::decay_t<U>, double>;
@@ -181,12 +181,12 @@ namespace meevax::inline memory
     template <any_of<T1, T2, T3, T4, T5, T6> Tn>
     auto reset(Tn x) noexcept -> void
     {
-      data = signature_of<Tn> | std::bit_cast<payload_t<Tn>>(x);
+      data = signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x);
     }
 
     auto reset(pointer x = nullptr) noexcept -> void
     {
-      data = signature_of<T*> | std::bit_cast<payload_t<T*>>(x);
+      data = signature_of<T*>() | std::bit_cast<payload_t<T*>>(x);
     }
 
     auto constexpr payload() const noexcept
@@ -203,13 +203,13 @@ namespace meevax::inline memory
     {
       switch (signature())
       {
-      case signature_of<T1>: return typeid(T1);
-      case signature_of<T2>: return typeid(T2);
-      case signature_of<T3>: return typeid(T3);
-      case signature_of<T4>: return typeid(T4);
-      case signature_of<T5>: return typeid(T5);
-      case signature_of<T6>: return typeid(T6);
-      case signature_of<T*>: return typeid(T*);
+      case signature_of<T1>(): return typeid(T1);
+      case signature_of<T2>(): return typeid(T2);
+      case signature_of<T3>(): return typeid(T3);
+      case signature_of<T4>(): return typeid(T4);
+      case signature_of<T5>(): return typeid(T5);
+      case signature_of<T6>(): return typeid(T6);
+      case signature_of<T*>(): return typeid(T*);
 
       default:
         return typeid(double);
@@ -242,13 +242,13 @@ namespace meevax::inline memory
     {
       switch (signature())
       {
-      case signature_of<T1>: return write(os, as<T1>());
-      case signature_of<T2>: return write(os, as<T2>());
-      case signature_of<T3>: return write(os, as<T3>());
-      case signature_of<T4>: return write(os, as<T4>());
-      case signature_of<T5>: return write(os, as<T5>());
-      case signature_of<T6>: return write(os, as<T6>());
-      case signature_of<T*>: return write(os, as<T*>());
+      case signature_of<T1>(): return write(os, as<T1>());
+      case signature_of<T2>(): return write(os, as<T2>());
+      case signature_of<T3>(): return write(os, as<T3>());
+      case signature_of<T4>(): return write(os, as<T4>());
+      case signature_of<T5>(): return write(os, as<T5>());
+      case signature_of<T6>(): return write(os, as<T6>());
+      case signature_of<T*>(): return write(os, as<T*>());
 
       default:
         if (auto value = as<double>(); std::isnan(value))
