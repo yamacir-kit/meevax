@@ -198,7 +198,7 @@ namespace meevax::inline kernel
 
     size = 0;
 
-    auto reachables = canonical_pointer_set<pair>();
+    auto new_data = canonical_pointer_set<pair>();
 
     for (auto root : roots)
     {
@@ -209,9 +209,9 @@ namespace meevax::inline kernel
         assert(m);
         assert(m->unsafe_get());
 
-        if (auto datum = m->unsafe_get(); not reachables.contains(datum))
+        if (auto datum = m->unsafe_get(); not new_data.contains(datum))
         {
-          reachables.insert(datum);
+          new_data.insert(datum);
           data.erase(datum);
           stack.push_back(datum);
         }
@@ -223,7 +223,7 @@ namespace meevax::inline kernel
       {
         auto [lower, upper] = stack.back()->extent();
 
-        size += stack.back()->extent_;
+        size += stack.back()->size;
 
         stack.pop_back();
 
@@ -238,7 +238,7 @@ namespace meevax::inline kernel
       delete datum;
     }
 
-    data.swap(reachables);
+    data.swap(new_data);
 
     capacity = std::max(capacity, size + (size / 2));
   }

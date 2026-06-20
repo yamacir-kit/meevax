@@ -28,7 +28,7 @@ namespace meevax::inline kernel
   auto pair::extent() const noexcept -> std::pair<void const*, void const*>
   {
     auto const base = dynamic_cast<void const*>(this);
-    return { base, reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + extent_) };
+    return { base, reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + size) };
   }
 
   auto pair::type() const noexcept -> std::type_info const&
