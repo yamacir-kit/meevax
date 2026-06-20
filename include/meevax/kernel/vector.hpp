@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_VECTOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_VECTOR_HPP
 
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
@@ -28,6 +28,12 @@ namespace meevax::inline kernel
     explicit heterogeneous_vector(auto&&... xs)
       : objects { std::forward<decltype(xs)>(xs)... }
     {}
+
+    template <typename Pair>
+    explicit heterogeneous_vector(proper_list_view<Pair> view)
+    {
+      std::ranges::copy(view, std::back_inserter(objects));
+    }
   };
 
   auto operator ==(heterogeneous_vector const&, heterogeneous_vector const&) -> bool;
@@ -35,8 +41,6 @@ namespace meevax::inline kernel
   auto operator <<(std::ostream &, heterogeneous_vector const&) -> std::ostream &;
 
   using vector = heterogeneous_vector;
-
-  auto make_vector(object const&) -> object; // list->vector
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_VECTOR_HPP

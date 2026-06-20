@@ -17,8 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
-#include <gmp.h>
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/large_integer.hpp>
 
 namespace meevax::inline kernel
 {

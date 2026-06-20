@@ -14,22 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
-#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
+#ifndef INCLUDED_MEEVAX_CONCEPTS_ANY_OF_HPP
+#define INCLUDED_MEEVAX_CONCEPTS_ANY_OF_HPP
 
-#include <type_traits>
+#include <concepts>
 
-namespace meevax::inline type_traits
+namespace meevax::inline concepts
 {
-  template <typename T>
-  struct is_reference_wrapper
-    : public std::false_type
-  {};
-
-  template <typename T>
-  struct is_reference_wrapper<std::reference_wrapper<T>>
-    : public std::true_type
-  {};
+  template<typename T, typename... Ts>
+  concept any_of = (std::same_as<T, Ts> or ...);
 } // namespace meevax::type_traits
 
-#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
+#endif // INCLUDED_MEEVAX_CONCEPTS_ANY_OF_HPP

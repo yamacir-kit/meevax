@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/textual_context.hpp>
 
@@ -66,7 +66,7 @@ namespace meevax::inline kernel
 
     LOCATE(std::filesystem::current_path());
 
-    for (auto const& directory : configurator::directories())
+    for (auto const& directory : directories())
     {
       LOCATE(directory);
     }

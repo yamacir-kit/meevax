@@ -17,6 +17,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
@@ -42,18 +43,6 @@ namespace meevax::inline kernel
     }
 
     return result;
-  }
-
-  auto make_string_from_list_of_character(let const& xs) -> object
-  {
-    let s = make<string>();
-
-    for (let const& x : xs)
-    {
-      s.as<string>().characters.push_back(x.as<character>());
-    }
-
-    return s;
   }
 
   auto operator ==(string const& a, string const& b) -> bool { return a.characters == b.characters; }

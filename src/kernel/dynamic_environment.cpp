@@ -23,27 +23,31 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
-  auto dynamic_environment::execute(object const& control) -> object
+  auto dynamic_environment::apply(object const& f, object const& xs) -> object
   {
-    assert(s.is<null>());
+    return execute(list(f, xs),
+                   nullptr,
+                   list(make<instruction>(instruction::secd_call),
+                        make<instruction>(instruction::secd_stop)),
+                   nullptr);
+  }
 
-    c = control;
-
+  auto dynamic_environment::execute(object const& c) -> object
+  {
     assert(last(c).is<instruction>());
     assert(last(c).as<instruction>() == instruction::secd_stop);
 
-    return run();
+    return execute(nullptr, nullptr, c, nullptr);
   }
 
-  auto dynamic_environment::run() -> object
+  auto dynamic_environment::execute(object s, object e, object c, object d) -> object
   {
     assert(last(c).template is<instruction>());
     assert(last(c).template as<instruction>() == instruction::secd_stop);
-
-    let const control = c;
 
     try
     {
@@ -142,7 +146,7 @@ namespace meevax::inline kernel
         *  where <closure> = (c' . e)
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<closure, allocator<void>>(cadr(c), e), s);
+        s = cons(make<closure, segregated_storage_allocator<void>>(cadr(c), e), s);
         c = cddr(c);
         goto fetch;
 
@@ -153,7 +157,7 @@ namespace meevax::inline kernel
         *  where <continuation> = (s e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list(make<continuation, allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
+        s = cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
         c = cddr(c);
         goto fetch;
 
@@ -452,23 +456,11 @@ namespace meevax::inline kernel
         *  (x) e (%stop) d => () e () d
         *
         * ------------------------------------------------------------------- */
-        return [this]()
-        {
-          assert(cdr(s).template is<null>());
-          assert(cdr(c).template is<null>());
-
-          let const x = car(s);
-
-          s = cdr(s);
-          c = cdr(c);
-
-          assert(s.is<null>());
-          assert(e.is<null>());
-          assert(c.is<null>());
-          assert(d.is<null>());
-
-          return x;
-        }();
+        assert(cdr(s).template is<null>());
+        assert(e.is<null>());
+        assert(cdr(c).template is<null>());
+        assert(d.is<null>());
+        return car(s);
       }
     }
     catch (object const& thrown) // by the procedure `throw`.
@@ -487,7 +479,7 @@ namespace meevax::inline kernel
     {
       if (exception_handler)
       {
-        return apply(exception_handler, thrown.make());
+        return apply(exception_handler, list(thrown.make()));
       }
       else // In most cases, this clause will never be called.
       {
@@ -497,9 +489,9 @@ namespace meevax::inline kernel
     }
     catch (std::exception const& exception) // by the system.
     {
-      if (auto thrown = error(make<string>(exception.what())); exception_handler)
+      if (auto thrown = error(make<string>(exception.what()), unit); exception_handler)
       {
-        return apply(exception_handler, thrown.make());
+        return apply(exception_handler, list(thrown.make()));
       }
       else // In most cases, this clause will never be called.
       {

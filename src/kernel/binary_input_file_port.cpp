@@ -34,7 +34,7 @@ namespace meevax::inline kernel
   {
     if (std::uint8_t buffer = 0; ifstream.read(reinterpret_cast<char *>(&buffer), 1))
     {
-      return make(static_cast<small_integer>(buffer));
+      return make<small_integer>(static_cast<small_integer>(buffer));
     }
     else
     {

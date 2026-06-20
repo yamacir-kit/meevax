@@ -16,9 +16,7 @@
 
 #include <numeric>
 
-#include <meevax/kernel/error.hpp>
-#include <meevax/kernel/large_integer.hpp>
-#include <meevax/kernel/string.hpp>
+#include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/vector.hpp>
 
 namespace meevax::inline kernel
@@ -40,10 +38,5 @@ namespace meevax::inline kernel
     }
 
     return output << magenta(")");
-  }
-
-  auto make_vector(object const& xs) -> object
-  {
-    return make<vector>(xs.begin(), xs.end());
   }
 } // namespace meevax::kernel

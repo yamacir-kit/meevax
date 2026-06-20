@@ -118,7 +118,7 @@ namespace meevax::inline kernel::number
           {
             auto i = large_integer();
             mpz_mul_2exp(i.value, large_integer(x).value, c);
-            return make(i);
+            return make<large_integer>(i);
           }
           else
           {

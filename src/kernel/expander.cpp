@@ -19,6 +19,7 @@
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/transformer.hpp>
 
 namespace meevax::inline kernel
@@ -104,7 +105,7 @@ namespace meevax::inline kernel
       */
       let & formals = caar(current_environment);
 
-      for (let const& binding_spec : reversed_binding_specs)
+      for (let const& binding_spec : reversed_binding_specs | as_proper_list)
       {
         if (not car(binding_spec).is<macro>()) // The binding-spec is not an internal syntax definition.
         {
@@ -112,7 +113,7 @@ namespace meevax::inline kernel
         }
       }
 
-      for (let & formal : formals)
+      for (let & formal : formals | as_proper_list)
       {
         if (formal.is<macro>()) // is internal-sytnax-definition
         {

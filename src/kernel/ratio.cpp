@@ -99,7 +99,7 @@ namespace meevax::inline kernel
     {
       void (*free)(void *, std::size_t);
       mp_get_memory_functions(nullptr, nullptr, &free);
-      std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
+      free(static_cast<void *>(data), std::strlen(data) + 1);
     };
 
     return os << cyan(std::unique_ptr<char, decltype(free)>(mpq_get_str(nullptr, 10, datum.value), free).get());

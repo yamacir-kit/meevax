@@ -1,3 +1,4 @@
+#include <array>
 #include <chrono>
 #include <list>
 #include <map>
@@ -103,15 +104,15 @@ struct hoge
 auto main() -> int
 {
   std::cout << measure<int, std::allocator<int>>() << std::endl;
-  std::cout << measure<int, meevax::allocator<int>>() << std::endl;
+  std::cout << measure<int, meevax::segregated_storage_allocator<int>>() << std::endl;
 
-  std::cout << measure<meevax::pair, meevax::allocator<meevax::pair>>() << std::endl;
+  std::cout << measure<meevax::pair, meevax::segregated_storage_allocator<meevax::pair>>() << std::endl;
 
-  std::cout << measure<std::array<std::uint8_t,  1>, meevax::allocator<std::array<std::uint8_t,  1>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t,  2>, meevax::allocator<std::array<std::uint8_t,  2>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t,  4>, meevax::allocator<std::array<std::uint8_t,  4>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t,  8>, meevax::allocator<std::array<std::uint8_t,  8>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t, 16>, meevax::allocator<std::array<std::uint8_t, 16>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  1>, meevax::segregated_storage_allocator<std::array<std::uint8_t,  1>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  2>, meevax::segregated_storage_allocator<std::array<std::uint8_t,  2>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  4>, meevax::segregated_storage_allocator<std::array<std::uint8_t,  4>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  8>, meevax::segregated_storage_allocator<std::array<std::uint8_t,  8>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t, 16>, meevax::segregated_storage_allocator<std::array<std::uint8_t, 16>>>() << std::endl;
 
   return EXIT_SUCCESS;
 }

@@ -14,11 +14,13 @@
    limitations under the License.
 */
 
+#include <algorithm>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 #include <meevax/kernel/syntax.hpp>
@@ -97,21 +99,21 @@ namespace meevax::inline kernel
 
         if (let const& identity = identify(form, bound_variables); identity.is<relative>())
         {
-          return cons(make(instruction::secd_load_relative), identity, continuation);
+          return cons(make<instruction>(instruction::secd_load_relative), identity, continuation);
         }
         else if (identity.is<variadic>())
         {
-          return cons(make(instruction::secd_load_variadic), identity, continuation);
+          return cons(make<instruction>(instruction::secd_load_variadic), identity, continuation);
         }
         else
         {
           assert(identity.is_also<absolute>());
-          return cons(make(instruction::secd_load_absolute), identity, continuation);
+          return cons(make<instruction>(instruction::secd_load_absolute), identity, continuation);
         }
       }
       else // is <self-evaluating>
       {
-        return cons(make(instruction::secd_load_constant), form, continuation);
+        return cons(make<instruction>(instruction::secd_load_constant), form, continuation);
       }
     }
     else if (car(form).is_also<identifier>())
@@ -130,7 +132,7 @@ namespace meevax::inline kernel
   {
     assert(variable.is_also<identifier>());
 
-    for (auto i = 0; let formals : bound_variables)
+    for (auto i = 0; let formals : bound_variables | as_proper_list)
     {
       for (auto j = 0; not formals.is<null>(); formals = cdr(formals))
       {
@@ -300,11 +302,11 @@ namespace meevax::inline kernel
             }
             else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
             {
-              if (auto iter = std::find_if(formals.begin(), formals.end(), [&](let const& formal)
-                                           {
-                                             return formal.is<macro>() and eq(car(formal), cadar(sequence));
-                                           });
-                  iter != formals.end())
+              if (auto iter = std::ranges::find_if(formals | as_proper_list, [&](let const& formal)
+                                                   {
+                                                     return formal.is<macro>() and eq(car(formal), cadar(sequence));
+                                                   });
+                  iter != std::ranges::end(formals | as_proper_list))
               {
                 return sweep(form,
                              cdr(sequence),

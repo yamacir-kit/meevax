@@ -1,11 +1,12 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline example
 {
   auto argument_length(object const& xs)
   {
-    return make(static_cast<small_integer>(length(xs)));
+    return make<small_integer>(static_cast<small_integer>(length(xs)));
   }
 
   auto dummy_procedure(object const& xs)
@@ -14,18 +15,18 @@ namespace meevax::inline example
 
     std::size_t count = 0;
 
-    for (let const& each : xs)
+    for (let const& each : xs | as_proper_list)
     {
       std::cout << "; [" << count++ << "] is " << each << " (C++ typename " << each.type().name() << ")" << std::endl;
     }
 
-    for (let const& x : xs)
+    for (let const& x : xs | as_proper_list)
     {
       if (x.is<small_integer>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
 
-        return make(x.as<small_integer>() + 1);
+        return make<small_integer>(x.as<small_integer>() + 1);
       }
     }
 
@@ -65,7 +66,7 @@ namespace meevax::inline example
         { "argument_length", argument_length },
         { "dummy_procedure", dummy_procedure },
         { "make_hoge", make_hoge },
-        { "is_hoge", [](object const& xs) { return make(car(xs).is<hoge>()); } },
+        { "is_hoge", [](object const& xs) { return make<bool>(car(xs).is<hoge>()); } },
         { "hoge_value", hoge_value }
       };
 

@@ -14,12 +14,14 @@
    limitations under the License.
 */
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
@@ -36,7 +38,7 @@ namespace meevax::inline kernel
       }
       else if (name == "import")
       {
-        for (let const& import_set : cdr(expression))
+        for (let const& import_set : cdr(expression) | as_proper_list)
         {
           import(import_set);
         }
@@ -45,7 +47,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include")
       {
-        for (let const& command_or_definition : include(cdr(expression)))
+        for (let const& command_or_definition : include(cdr(expression)) | as_proper_list)
         {
           evaluate(command_or_definition);
         }
@@ -54,7 +56,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include-ci")
       {
-        for (let const& command_or_definition : include<case_insensitive>(cdr(expression)))
+        for (let const& command_or_definition : include<case_insensitive>(cdr(expression)) | as_proper_list)
         {
           evaluate(command_or_definition);
         }
@@ -62,52 +64,6 @@ namespace meevax::inline kernel
         return unspecified;
       }
     }
-
-    /*
-       In most cases, the s, e, c, and d registers are all null when evaluate
-       is called. However, if environment::evaluate of the same environment is
-       called during the execution of environment::evaluate, this is not the
-       case, so it is necessary to save the registers. For example, situations
-       like evaluating
-
-         (eval <expression> (interaction-environment))
-
-       in the REPL.
-    */
-    struct dump
-    {
-      environment * context;
-
-      let s, e, c, d;
-
-      explicit dump(environment * context)
-        : context { context }
-        , s { std::exchange(context->s, nullptr) }
-        , e { std::exchange(context->e, nullptr) }
-        , c { std::exchange(context->c, nullptr) }
-        , d { std::exchange(context->d, nullptr) }
-      {}
-
-      ~dump()
-      {
-        undump();
-      }
-
-      auto operator ()() -> void
-      {
-        undump();
-      }
-
-      auto undump() -> void
-      {
-        context->s = s;
-        context->e = e;
-        context->c = c;
-        context->d = d;
-      }
-    };
-
-    auto undump = dump(this);
 
     return execute(compile(expression));
   }
@@ -193,7 +149,7 @@ namespace meevax::inline kernel
     {
       auto pathname = std::filesystem::path();
 
-      for (let const& each : form)
+      for (let const& each : form | as_proper_list)
       {
         pathname /= lexical_cast(each);
       }
@@ -213,7 +169,7 @@ namespace meevax::inline kernel
 
   auto environment::import(object const& form) -> void
   {
-    for (let const& x : import_set(form))
+    for (let const& x : import_set(form) | as_proper_list)
     {
       assert(x.is<absolute>());
 

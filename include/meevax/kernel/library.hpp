@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
-#include <map>
-
 #include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax::inline kernel
@@ -33,8 +31,8 @@ namespace meevax::inline kernel
 
     template <typename F>
     requires std::invocable<F, std::function<auto (object const&, object const&) -> object>>
-    explicit library(F body)
-      : export_specs { std::invoke(body, [this](auto&&... xs) { return evaluator.define(std::forward<decltype(xs)>(xs)...); }) }
+    explicit library(F f)
+      : export_specs { f([this](auto&&... xs) { return evaluator.define(std::forward<decltype(xs)>(xs)...); }) }
     {}
 
     explicit library(object const&);

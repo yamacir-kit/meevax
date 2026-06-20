@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 
   auto error::make() const -> object
   {
-    return meevax::make(*this);
+    return meevax::make<error>(*this);
   }
 
   auto error::message() const noexcept -> object const&
@@ -144,5 +144,25 @@ namespace meevax::inline kernel
     }
 
     return os << magenta(")");
+  }
+
+  auto file_error::make() const -> object
+  {
+    return meevax::make<file_error>(*this);
+  }
+
+  auto file_error::raise() const -> void
+  {
+    throw *this;
+  }
+
+  auto read_error::make() const -> object
+  {
+    return meevax::make<read_error>(*this);
+  }
+
+  auto read_error::raise() const -> void
+  {
+    throw *this;
   }
 } // namespace meevax::kernel

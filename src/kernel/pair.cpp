@@ -14,16 +14,32 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/circular_list.hpp>
 #include <meevax/kernel/list.hpp>
-
-namespace meevax::inline memory
-{
-  template struct collector<pair, bool, small_integer, float, character, instruction>;
-}
+#include <unordered_map>
 
 namespace meevax::inline kernel
 {
-  let unit = nullptr;
+  auto pair::eqv(pair const* x) const -> bool
+  {
+    return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
+  }
+
+  auto pair::extent() const noexcept -> std::pair<void const*, void const*>
+  {
+    auto const base = dynamic_cast<void const*>(this);
+    return { base, reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + extent_) };
+  }
+
+  auto pair::type() const noexcept -> std::type_info const&
+  {
+    return typeid(pair);
+  }
+
+  auto pair::write(std::ostream & o) const -> std::ostream &
+  {
+    return o << static_cast<pair const&>(*this);
+  }
 
   struct datum_labels
   {
@@ -62,13 +78,13 @@ namespace meevax::inline kernel
   {
     auto _ = datum_labels(os);
 
-    if (is_circular_list(cdr(datum)))
+    if (is_circular_list(datum.second))
     {
       if (auto [iterator, success] = datum_labels::of(os)->emplace(&datum, datum_labels::of(os)->size() + 1); success)
       {
         os << magenta("#", iterator->second, "=(");
 
-        for (auto&& x : datum)
+        for (auto&& x : datum | as_circular_list)
         {
           os << x << " ";
         }
@@ -82,9 +98,9 @@ namespace meevax::inline kernel
     }
     else
     {
-      os << magenta("(") << car(datum);
+      os << magenta("(") << datum.first;
 
-      for (let xs = cdr(datum); not xs.is<null>(); xs = cdr(xs))
+      for (let xs = datum.second; not xs.is<null>(); xs = cdr(xs))
       {
         if (xs.is<pair>())
         {

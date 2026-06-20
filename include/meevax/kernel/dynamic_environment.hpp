@@ -17,30 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
 
+#include <array>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax::inline kernel
 {
   struct dynamic_environment
   {
-    /*
-       The SECD machine, which in its original form was invented by Landin,
-       derives its name from the designation of its four pricipal registers:
-
-       s   the stack          Used to hold intermediate results when computing
-                              the values of expressions.
-
-       e   the environment    Used to hold the values bound to variables during
-                              evaluation.
-
-       c   the control list   Used to hold the machine-language program being
-                              executed.
-
-       d   the dump           Used as a stack to save values of other registers
-                              on calling a new function.
-    */
-    let s, e, c, d;
-
     /*
        Auxiliary register.
 
@@ -65,20 +48,11 @@ namespace meevax::inline kernel
     */
     let static inline exception_handler = nullptr;
 
-    auto apply(object const& procedure, auto&&... xs) -> decltype(auto)
-    {
-      s = list(procedure, list(std::forward<decltype(xs)>(xs)...));
-      e = nullptr;
-      c = list(make(instruction::secd_call),
-               make(instruction::secd_stop));
-      d = nullptr;
+    auto apply(object const&, object const&) -> object;
 
-      return run();
-    }
+    auto execute(object const&) -> object;
 
-    auto execute(object const& control) -> object;
-
-    auto run() -> object;
+    auto execute(object, object, object, object) -> object;
   };
 } // namespace meevax::kernel
 

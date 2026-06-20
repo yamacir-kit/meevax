@@ -22,18 +22,15 @@
 #include <bit>
 #include <cassert>
 #include <climits> // CHAR_BIT
-#include <cstdint>
 #include <iterator>
 #include <limits>
+#include <meevax/kernel/small_integer.hpp>
 #include <type_traits>
 
 namespace meevax::inline memory
 {
   template <typename T>
   auto constexpr compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
-
-  auto constexpr operator ""_i64(unsigned long long int value) { return static_cast<std:: int64_t>(value); }
-  auto constexpr operator ""_u64(unsigned long long int value) { return static_cast<std::uint64_t>(value); }
 
   auto constexpr qr64(auto i)
   {

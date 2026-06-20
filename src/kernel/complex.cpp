@@ -16,6 +16,7 @@
 
 #include <regex>
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>

@@ -25,7 +25,9 @@
 #include <limits>
 #include <ostream>
 
-#include <meevax/type_traits/integer.hpp>
+#include <meevax/concepts/any_of.hpp>
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/kernel/small_integer.hpp>
 
 namespace meevax::inline memory
 {
@@ -47,81 +49,81 @@ namespace meevax::inline memory
     static_assert(sizeof(T5) <= 6 or std::is_pointer_v<T5>);
     static_assert(sizeof(T6) <= 6 or std::is_pointer_v<T6>);
 
-    using element_type = std::decay_t<T>;
+    template <typename U>
+    using payload_t = std::conditional_t<sizeof(U) <= 1, std::uint8_t, std::conditional_t<sizeof(U) <= 2, std::uint16_t, std::conditional_t<sizeof(U) <= 4, std::uint32_t, std::uint64_t>>>;
 
-    using pointer = std::add_pointer_t<element_type>;
+    using pointer = T *;
 
-    pointer data;
+    std::uintptr_t data;
 
-    static constexpr std::uintptr_t mask_sign         = 0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t mask_exponent     = 0b0111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t mask_fraction     = 0b0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111;
-    static constexpr std::uintptr_t mask_quiet        = 0b0000'0000'0000'1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t mask_type         = 0b0000'0000'0000'0111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    auto static constexpr mask_sign      = std::uintptr_t(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+    auto static constexpr mask_exponent  = std::uintptr_t(0b0111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+    auto static constexpr mask_fraction  = std::uintptr_t(0b0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111);
+    auto static constexpr mask_quiet     = std::uintptr_t(0b0000'0000'0000'1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+    auto static constexpr mask_type      = std::uintptr_t(0b0000'0000'0000'0111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+    auto static constexpr mask_signature = std::uintptr_t(0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+    auto static constexpr mask_payload   = std::uintptr_t(0b0000'0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111);
 
-    static constexpr std::uintptr_t mask_signature    = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t mask_payload      = 0b0000'0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111;
-
-    static constexpr std::uintptr_t signature_double  = 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T1      = 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T2      = 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T3      = 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T4      = 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T5      = 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T6      = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_pointer = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    template <typename Tn>
+    auto static constexpr signature_of() noexcept -> std::uintptr_t
+    {
+           if constexpr (std::is_same_v<Tn, double>) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T1    >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T2    >) { return 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T3    >) { return 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T4    >) { return 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T5    >) { return 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T6    >) { return 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T*    >) { return 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else
+      {
+        static_assert([]() { return false; });
+      }
+    }
 
     constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
-    #define DEFINE(TYPE, ...)                                                  \
-    explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
-      : data { reinterpret_cast<pointer>(signature_##TYPE | std::bit_cast<uint8n_t<sizeof(TYPE)>>(value)) } \
-    {}                                                                         \
-                                                                               \
-    auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
-    {                                                                          \
-      data = reinterpret_cast<pointer>(signature_##TYPE | std::bit_cast<uint8n_t<sizeof(TYPE)>>(value)); \
-    }
+    explicit constexpr nan_boxing_pointer(double x) noexcept
+      : data { std::bit_cast<std::uintptr_t>(canonicalize(x)) }
+    {}
 
-    DEFINE(double,           )
-    DEFINE(T1,               )
-    DEFINE(T2,               )
-    DEFINE(T3,               )
-    DEFINE(T4,               )
-    DEFINE(T5,               )
-    DEFINE(T6,               )
-    DEFINE(pointer, = nullptr)
+    template <any_of<T1, T2, T3, T4, T5, T6> Tn>
+    explicit constexpr nan_boxing_pointer(Tn x) noexcept
+      : data { signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x) }
+    {}
 
-    #undef DEFINE
+    explicit constexpr nan_boxing_pointer(pointer x = nullptr) noexcept
+      : data { signature_of<T*>() | std::bit_cast<payload_t<T*>>(x) }
+    {}
 
-    auto operator =(auto&&... xs) -> auto &
+    auto operator =(auto x) noexcept -> auto &
     {
-      reset(std::forward<decltype(xs)>(xs)...);
+      reset(std::forward<decltype(x)>(x));
       return *this;
     }
 
-    auto operator ->() const
+    auto constexpr operator ->() const noexcept
     {
       return unsafe_get();
     }
 
-    auto operator *() const -> auto const&
+    auto constexpr operator *() const noexcept -> auto const&
     {
       return *unsafe_get();
     }
 
-    auto operator *() -> auto &
+    auto constexpr operator *() noexcept -> auto &
     {
       return *unsafe_get();
     }
 
-    explicit operator bool() const noexcept
+    explicit constexpr operator bool() const noexcept
     {
       return dereferenceable() ? unsafe_get() != nullptr : false;
     }
 
     template <typename U>
-    auto as() const
+    auto constexpr as() const noexcept
     {
       if constexpr (std::is_same_v<std::decay_t<U>, double>)
       {
@@ -129,101 +131,124 @@ namespace meevax::inline memory
       }
       else
       {
-        return std::bit_cast<std::decay_t<U>>(static_cast<uint8n_t<sizeof(std::decay_t<U>)>>(payload()));
+        return std::bit_cast<std::decay_t<U>>(static_cast<payload_t<std::decay_t<U>>>(payload()));
       }
     }
 
-    auto dereferenceable() const noexcept
+    auto static constexpr canonicalize(double x) noexcept -> double
     {
-      return signature() == signature_pointer;
+      return std::isnan(x) ? std::bit_cast<double>(mask_exponent | mask_quiet) : x;
     }
 
-    auto compare(nan_boxing_pointer const& nbp) const noexcept
+    auto constexpr dereferenceable() const noexcept
     {
-      return data == nbp.data;
+      return signature() == signature_of<pointer>();
     }
 
-    auto get() const noexcept -> pointer
+    auto constexpr get() const noexcept -> pointer
     {
       return dereferenceable() ? unsafe_get() : nullptr;
     }
 
     template <typename U>
-    auto is() const noexcept
-    {
-      return type() == typeid(std::decay_t<U>);
-    }
-
-    auto reset(nan_boxing_pointer const& value) -> void
-    {
-      data = value.data;
-    }
-
-    auto payload() const noexcept
-    {
-      return reinterpret_cast<std::uintptr_t>(data) & mask_payload;
-    }
-
-    auto signature() const noexcept
-    {
-      return reinterpret_cast<std::uintptr_t>(data) & mask_signature;
-    }
-
-    auto type() const noexcept -> decltype(auto)
+    auto constexpr is() const noexcept
     {
       switch (signature())
       {
-      #define DEFINE(TYPE) case signature_##TYPE: return typeid(TYPE)
+      case signature_of<T1>(): return std::is_same_v<std::decay_t<U>, T1>;
+      case signature_of<T2>(): return std::is_same_v<std::decay_t<U>, T2>;
+      case signature_of<T3>(): return std::is_same_v<std::decay_t<U>, T3>;
+      case signature_of<T4>(): return std::is_same_v<std::decay_t<U>, T4>;
+      case signature_of<T5>(): return std::is_same_v<std::decay_t<U>, T5>;
+      case signature_of<T6>(): return std::is_same_v<std::decay_t<U>, T6>;
+      case signature_of<T*>(): return std::is_same_v<std::decay_t<U>, T*>;
 
-      DEFINE(T1);
-      DEFINE(T2);
-      DEFINE(T3);
-      DEFINE(T4);
-      DEFINE(T5);
-      DEFINE(T6);
-      DEFINE(pointer);
+      default:
+        return std::is_same_v<std::decay_t<U>, double>;
+      }
+    }
 
-      #undef DEFINE
+    auto reset(nan_boxing_pointer const& other) noexcept -> void
+    {
+      data = other.data;
+    }
+
+    auto reset(double x) noexcept -> void
+    {
+      data = std::bit_cast<std::uintptr_t>(canonicalize(x));
+    }
+
+    template <any_of<T1, T2, T3, T4, T5, T6> Tn>
+    auto reset(Tn x) noexcept -> void
+    {
+      data = signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x);
+    }
+
+    auto reset(pointer x = nullptr) noexcept -> void
+    {
+      data = signature_of<T*>() | std::bit_cast<payload_t<T*>>(x);
+    }
+
+    auto constexpr payload() const noexcept
+    {
+      return data & mask_payload;
+    }
+
+    auto constexpr signature() const noexcept
+    {
+      return data & mask_signature;
+    }
+
+    auto constexpr type() const noexcept -> std::type_info const&
+    {
+      switch (signature())
+      {
+      case signature_of<T1>(): return typeid(T1);
+      case signature_of<T2>(): return typeid(T2);
+      case signature_of<T3>(): return typeid(T3);
+      case signature_of<T4>(): return typeid(T4);
+      case signature_of<T5>(): return typeid(T5);
+      case signature_of<T6>(): return typeid(T6);
+      case signature_of<T*>(): return typeid(T*);
 
       default:
         return typeid(double);
       }
     }
 
-    auto unsafe_get() const noexcept
+    auto constexpr unsafe_get() const noexcept
     {
       return reinterpret_cast<pointer>(payload());
+    }
+
+    template <any_of<T1, T2, T3, T4, T5, T6, T*> Tn>
+    auto static write(std::ostream & os, Tn x) -> std::ostream &
+    {
+      if constexpr (std::is_same_v<decltype(x), bool>)
+      {
+        return os << cyan('#', x ? 't' : 'f');
+      }
+      else if constexpr (std::is_arithmetic_v<decltype(x)>)
+      {
+        return os << std::dec << cyan(x);
+      }
+      else
+      {
+        return os << cyan(x);
+      }
     }
 
     auto write(std::ostream & os) const -> std::ostream &
     {
       switch (signature())
       {
-      #define CASE(TYPE)                                                       \
-      case signature_##TYPE:                                                   \
-        if constexpr (std::is_same_v<TYPE, bool>)                              \
-        {                                                                      \
-          return os << cyan('#', as<TYPE>() ? 't' : 'f');                      \
-        }                                                                      \
-        else if constexpr (std::is_arithmetic_v<TYPE>)                         \
-        {                                                                      \
-          return os << std::dec << cyan(as<TYPE>());                           \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return os << cyan(as<TYPE>());                                       \
-        }                                                                      \
-        static_assert(true)
-
-      CASE(T1);
-      CASE(T2);
-      CASE(T3);
-      CASE(T4);
-      CASE(T5);
-      CASE(T6);
-      CASE(pointer);
-
-      #undef CASE
+      case signature_of<T1>(): return write(os, as<T1>());
+      case signature_of<T2>(): return write(os, as<T2>());
+      case signature_of<T3>(): return write(os, as<T3>());
+      case signature_of<T4>(): return write(os, as<T4>());
+      case signature_of<T5>(): return write(os, as<T5>());
+      case signature_of<T6>(): return write(os, as<T6>());
+      case signature_of<T*>(): return write(os, as<T*>());
 
       default:
         if (auto value = as<double>(); std::isnan(value))
@@ -244,19 +269,8 @@ namespace meevax::inline memory
     }
   };
 
-  template <typename... Ts>
-  constexpr auto operator ==(nan_boxing_pointer<Ts...> const& x,
-                             nan_boxing_pointer<Ts...> const& y)
-  {
-    return x.compare(y);
-  }
-
-  template <typename... Ts>
-  constexpr auto operator !=(nan_boxing_pointer<Ts...> const& x,
-                             nan_boxing_pointer<Ts...> const& y)
-  {
-    return not x.compare(y);
-  }
+  template <typename... Ts> auto constexpr operator ==(nan_boxing_pointer<Ts...> const& x, nan_boxing_pointer<Ts...> const& y) { return x.data == y.data; }
+  template <typename... Ts> auto constexpr operator !=(nan_boxing_pointer<Ts...> const& x, nan_boxing_pointer<Ts...> const& y) { return x.data != y.data; }
 } // namespace meevax::memory
 
 template <typename... Ts>
@@ -265,4 +279,3 @@ struct std::hash<meevax::memory::nan_boxing_pointer<Ts...>>
 {};
 
 #endif // INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
-

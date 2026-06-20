@@ -14,9 +14,12 @@
    limitations under the License.
 */
 
+#include <algorithm>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/system.hpp> // features
 
 namespace meevax::inline kernel
@@ -31,13 +34,11 @@ namespace meevax::inline kernel
       }
       else if (car(requirement).as<symbol>().name == "and")
       {
-        return std::all_of(cdr(requirement).begin(),
-                           cdr(requirement).end(), conditional_expand_test);
+        return std::ranges::all_of(cdr(requirement) | as_proper_list, conditional_expand_test);
       }
       else if (car(requirement).as<symbol>().name == "or")
       {
-        return std::any_of(cdr(requirement).begin(),
-                           cdr(requirement).end(), conditional_expand_test);
+        return std::ranges::any_of(cdr(requirement) | as_proper_list, conditional_expand_test);
       }
       else if (car(requirement).as<symbol>().name == "not")
       {
@@ -56,7 +57,7 @@ namespace meevax::inline kernel
 
   auto conditional_expand(object const& clauses) -> object
   {
-    for (let const& clause : clauses)
+    for (let const& clause : clauses | as_proper_list)
     {
       if (not clause.is<pair>())
       {

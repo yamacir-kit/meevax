@@ -17,13 +17,16 @@
 #ifndef INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 
+#include <functional> // std::reference_wrapper
+#include <iostream>
 #include <tuple>
-
-#include <meevax/iostream/is_console.hpp>
-#include <meevax/utility/unwrap_reference_wrapper.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace meevax::inline iostream
 {
+  auto colorable(std::ostream &) -> bool;
+
   template <typename... Ts>
   struct escape_sequence
   {
@@ -37,20 +40,30 @@ namespace meevax::inline iostream
       >...
     > references;
 
-    template <typename T>
-    explicit constexpr escape_sequence(T&& x, Ts&&... xs)
+    explicit constexpr escape_sequence(auto&& x, Ts&&... xs)
       : command { std::forward<decltype(x)>(x) }
       , references { std::forward<decltype(xs)>(xs)... }
     {}
 
-    friend auto operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
+    auto static unwrap(auto&& x) -> decltype(auto)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+
+    template <typename T>
+    auto static unwrap(std::reference_wrapper<T> x) -> decltype(auto)
+    {
+      return x.get();
+    }
+
+    auto friend operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
     {
       auto write = [&](auto&&... xs)
       {
-        (os << ... << unwrap_reference_wrapper(xs));
+        (os << ... << unwrap(xs));
       };
 
-      if (is_console(os))
+      if (colorable(os))
       {
         os << "\x1b[" << sequence.command;
         std::apply(write, sequence.references);
@@ -64,8 +77,8 @@ namespace meevax::inline iostream
     }
   };
 
-  template <typename T, typename... Ts>
-  escape_sequence(T&&, Ts&&...) -> escape_sequence<Ts...>;
+  template <typename... Ts>
+  escape_sequence(auto&&, Ts&&...) -> escape_sequence<Ts...>;
 
   #define DEFINE(COMMAND, NAME)                                                \
   inline auto NAME = [](auto&&... xs)                                          \

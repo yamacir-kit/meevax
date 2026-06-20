@@ -15,10 +15,6 @@
 */
 
 #include <charconv>
-#include <memory> // std::unique_ptr
-#include <regex>
-#include <string_view>
-
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
@@ -26,6 +22,10 @@
 #include <meevax/kernel/number/power.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/string.hpp>
+#include <memory> // std::unique_ptr
+#include <regex>
+#include <string_view>
+#include <unordered_map>
 
 namespace meevax::inline kernel
 {
@@ -53,12 +53,12 @@ namespace meevax::inline kernel
   auto operator > (widen_integer a, ratio const& b) -> bool  { return 0 >  mpq_cmp_si(b.value, a, 1); }
   auto operator >=(widen_integer a, ratio const& b) -> bool  { return 0 >= mpq_cmp_si(b.value, a, 1); }
 
-  auto operator + (widen_integer a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) +  b; }
-  auto operator - (widen_integer a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) -  b; }
-  auto operator * (widen_integer a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) *  b; }
-  auto operator / (widen_integer a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) /  b; }
-  auto operator ==(widen_integer a, complex const& b) -> bool    { return complex(make(static_cast<small_integer>(a)), e0) == b; }
-  auto operator !=(widen_integer a, complex const& b) -> bool    { return complex(make(static_cast<small_integer>(a)), e0) != b; }
+  auto operator + (widen_integer a, complex const& b) -> complex { return complex(make<small_integer>(static_cast<small_integer>(a)), e0) +  b; }
+  auto operator - (widen_integer a, complex const& b) -> complex { return complex(make<small_integer>(static_cast<small_integer>(a)), e0) -  b; }
+  auto operator * (widen_integer a, complex const& b) -> complex { return complex(make<small_integer>(static_cast<small_integer>(a)), e0) *  b; }
+  auto operator / (widen_integer a, complex const& b) -> complex { return complex(make<small_integer>(static_cast<small_integer>(a)), e0) /  b; }
+  auto operator ==(widen_integer a, complex const& b) -> bool    { return complex(make<small_integer>(static_cast<small_integer>(a)), e0) == b; }
+  auto operator !=(widen_integer a, complex const& b) -> bool    { return complex(make<small_integer>(static_cast<small_integer>(a)), e0) != b; }
 
   auto operator + (large_integer const& a, widen_integer b) -> large_integer { return a + large_integer(b); }
   auto operator - (large_integer const& a, widen_integer b) -> large_integer { return a - large_integer(b); }
@@ -120,12 +120,12 @@ namespace meevax::inline kernel
   auto operator > (large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >  0; }
   auto operator >=(large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >= 0; }
 
-  auto operator + (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
-  auto operator - (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
-  auto operator * (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
-  auto operator / (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator ==(large_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
-  auto operator !=(large_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator + (large_integer const& a, complex const& b) -> complex { return complex(make<large_integer>(a), e0) +  b; }
+  auto operator - (large_integer const& a, complex const& b) -> complex { return complex(make<large_integer>(a), e0) -  b; }
+  auto operator * (large_integer const& a, complex const& b) -> complex { return complex(make<large_integer>(a), e0) *  b; }
+  auto operator / (large_integer const& a, complex const& b) -> complex { return complex(make<large_integer>(a), e0) /  b; }
+  auto operator ==(large_integer const& a, complex const& b) -> bool    { return complex(make<large_integer>(a), e0) == b; }
+  auto operator !=(large_integer const& a, complex const& b) -> bool    { return complex(make<large_integer>(a), e0) != b; }
 
   auto operator + (ratio const& a, widen_integer b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
   auto operator - (ratio const& a, widen_integer b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
@@ -187,12 +187,12 @@ namespace meevax::inline kernel
   auto operator > (ratio const& a, double b) -> bool   { return static_cast<double>(a) >  b; }
   auto operator >=(ratio const& a, double b) -> bool   { return static_cast<double>(a) >= b; }
 
-  auto operator + (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
-  auto operator - (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
-  auto operator * (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
-  auto operator / (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator ==(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
-  auto operator !=(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator + (ratio const& a, complex const& b) -> complex { return complex(make<ratio>(a), e0) +  b; }
+  auto operator - (ratio const& a, complex const& b) -> complex { return complex(make<ratio>(a), e0) -  b; }
+  auto operator * (ratio const& a, complex const& b) -> complex { return complex(make<ratio>(a), e0) *  b; }
+  auto operator / (ratio const& a, complex const& b) -> complex { return complex(make<ratio>(a), e0) /  b; }
+  auto operator ==(ratio const& a, complex const& b) -> bool    { return complex(make<ratio>(a), e0) == b; }
+  auto operator !=(ratio const& a, complex const& b) -> bool    { return complex(make<ratio>(a), e0) != b; }
 
   auto operator + (float a, large_integer const& b) -> float { return a +  static_cast<float>(b); }
   auto operator - (float a, large_integer const& b) -> float { return a -  static_cast<float>(b); }
@@ -218,12 +218,12 @@ namespace meevax::inline kernel
   auto operator > (float a, ratio const& b) -> bool  { return a >  static_cast<float>(b); }
   auto operator >=(float a, ratio const& b) -> bool  { return a >= static_cast<float>(b); }
 
-  auto operator + (float a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
-  auto operator - (float a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
-  auto operator * (float a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
-  auto operator / (float a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator ==(float a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
-  auto operator !=(float a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator + (float a, complex const& b) -> complex { return complex(make<float>(a), e0) +  b; }
+  auto operator - (float a, complex const& b) -> complex { return complex(make<float>(a), e0) -  b; }
+  auto operator * (float a, complex const& b) -> complex { return complex(make<float>(a), e0) *  b; }
+  auto operator / (float a, complex const& b) -> complex { return complex(make<float>(a), e0) /  b; }
+  auto operator ==(float a, complex const& b) -> bool    { return complex(make<float>(a), e0) == b; }
+  auto operator !=(float a, complex const& b) -> bool    { return complex(make<float>(a), e0) != b; }
 
   auto operator + (double a, large_integer const& b) -> double { return a + static_cast<double>(b); }
   auto operator - (double a, large_integer const& b) -> double { return a - static_cast<double>(b); }
@@ -249,47 +249,47 @@ namespace meevax::inline kernel
   auto operator > (double a, ratio const& b) -> bool   { return a >  static_cast<double>(b); }
   auto operator >=(double a, ratio const& b) -> bool   { return a >= static_cast<double>(b); }
 
-  auto operator + (double a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
-  auto operator - (double a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
-  auto operator * (double a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
-  auto operator / (double a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
-  auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator + (double a, complex const& b) -> complex { return complex(make<double>(a), e0) +  b; }
+  auto operator - (double a, complex const& b) -> complex { return complex(make<double>(a), e0) -  b; }
+  auto operator * (double a, complex const& b) -> complex { return complex(make<double>(a), e0) *  b; }
+  auto operator / (double a, complex const& b) -> complex { return complex(make<double>(a), e0) /  b; }
+  auto operator ==(double a, complex const& b) -> bool    { return complex(make<double>(a), e0) == b; }
+  auto operator !=(double a, complex const& b) -> bool    { return complex(make<double>(a), e0) != b; }
 
-  auto operator + (complex const& a, widen_integer b) -> complex { return a +  complex(make(static_cast<small_integer>(b)), e0); }
-  auto operator - (complex const& a, widen_integer b) -> complex { return a -  complex(make(static_cast<small_integer>(b)), e0); }
-  auto operator * (complex const& a, widen_integer b) -> complex { return a *  complex(make(static_cast<small_integer>(b)), e0); }
-  auto operator / (complex const& a, widen_integer b) -> complex { return a /  complex(make(static_cast<small_integer>(b)), e0); }
-  auto operator ==(complex const& a, widen_integer b) -> bool    { return a == complex(make(static_cast<small_integer>(b)), e0); }
-  auto operator !=(complex const& a, widen_integer b) -> bool    { return a != complex(make(static_cast<small_integer>(b)), e0); }
+  auto operator + (complex const& a, widen_integer b) -> complex { return a +  complex(make<small_integer>(static_cast<small_integer>(b)), e0); }
+  auto operator - (complex const& a, widen_integer b) -> complex { return a -  complex(make<small_integer>(static_cast<small_integer>(b)), e0); }
+  auto operator * (complex const& a, widen_integer b) -> complex { return a *  complex(make<small_integer>(static_cast<small_integer>(b)), e0); }
+  auto operator / (complex const& a, widen_integer b) -> complex { return a /  complex(make<small_integer>(static_cast<small_integer>(b)), e0); }
+  auto operator ==(complex const& a, widen_integer b) -> bool    { return a == complex(make<small_integer>(static_cast<small_integer>(b)), e0); }
+  auto operator !=(complex const& a, widen_integer b) -> bool    { return a != complex(make<small_integer>(static_cast<small_integer>(b)), e0); }
 
-  auto operator + (complex const& a, large_integer const& b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, large_integer const& b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, large_integer const& b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, large_integer const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, large_integer const& b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, large_integer const& b) -> bool    { return a != complex(make(b), e0); }
+  auto operator + (complex const& a, large_integer const& b) -> complex { return a +  complex(make<large_integer>(b), e0); }
+  auto operator - (complex const& a, large_integer const& b) -> complex { return a -  complex(make<large_integer>(b), e0); }
+  auto operator * (complex const& a, large_integer const& b) -> complex { return a *  complex(make<large_integer>(b), e0); }
+  auto operator / (complex const& a, large_integer const& b) -> complex { return a /  complex(make<large_integer>(b), e0); }
+  auto operator ==(complex const& a, large_integer const& b) -> bool    { return a == complex(make<large_integer>(b), e0); }
+  auto operator !=(complex const& a, large_integer const& b) -> bool    { return a != complex(make<large_integer>(b), e0); }
 
-  auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, ratio const& b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, ratio const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, ratio const& b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, ratio const& b) -> bool    { return a != complex(make(b), e0); }
+  auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make<ratio>(b), e0); }
+  auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make<ratio>(b), e0); }
+  auto operator * (complex const& a, ratio const& b) -> complex { return a *  complex(make<ratio>(b), e0); }
+  auto operator / (complex const& a, ratio const& b) -> complex { return a /  complex(make<ratio>(b), e0); }
+  auto operator ==(complex const& a, ratio const& b) -> bool    { return a == complex(make<ratio>(b), e0); }
+  auto operator !=(complex const& a, ratio const& b) -> bool    { return a != complex(make<ratio>(b), e0); }
 
-  auto operator + (complex const& a, float b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, float b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, float b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, float b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, float b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, float b) -> bool    { return a != complex(make(b), e0); }
+  auto operator + (complex const& a, float b) -> complex { return a +  complex(make<float>(b), e0); }
+  auto operator - (complex const& a, float b) -> complex { return a -  complex(make<float>(b), e0); }
+  auto operator * (complex const& a, float b) -> complex { return a *  complex(make<float>(b), e0); }
+  auto operator / (complex const& a, float b) -> complex { return a /  complex(make<float>(b), e0); }
+  auto operator ==(complex const& a, float b) -> bool    { return a == complex(make<float>(b), e0); }
+  auto operator !=(complex const& a, float b) -> bool    { return a != complex(make<float>(b), e0); }
 
-  auto operator + (complex const& a, double b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, double b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, double b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, double b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, double b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, double b) -> bool    { return a != complex(make(b), e0); }
+  auto operator + (complex const& a, double b) -> complex { return a +  complex(make<double>(b), e0); }
+  auto operator - (complex const& a, double b) -> complex { return a -  complex(make<double>(b), e0); }
+  auto operator * (complex const& a, double b) -> complex { return a *  complex(make<double>(b), e0); }
+  auto operator / (complex const& a, double b) -> complex { return a /  complex(make<double>(b), e0); }
+  auto operator ==(complex const& a, double b) -> bool    { return a == complex(make<double>(b), e0); }
+  auto operator !=(complex const& a, double b) -> bool    { return a != complex(make<double>(b), e0); }
 
   auto operator + (complex const& a, complex const& b) -> complex { return complex(a.real() + b.real(), a.imag() + b.imag()); }
   auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
@@ -369,7 +369,7 @@ namespace meevax::inline kernel
       }
       else if (std::numeric_limits<small_integer>::min() <= value and value <= std::numeric_limits<small_integer>::max())
       {
-        return make(static_cast<small_integer>(value));
+        return make<small_integer>(static_cast<small_integer>(value));
       }
       else
       {
@@ -423,7 +423,7 @@ namespace meevax::inline kernel
 
       if (auto iter = constants.find(literal); iter != constants.end())
       {
-        return make(iter->second);
+        return make<double>(iter->second);
       }
       else if (auto result = std::smatch(); std::regex_match(literal, result, pattern))
       {
@@ -452,15 +452,15 @@ namespace meevax::inline kernel
           case 'D': case 'd':
           case 'E': case 'e':
           default:
-            return make(std::stod(literal));
+            return make<double>(std::stod(literal));
 
           case 'F': case 'f':
-            return make(std::stof(literal.substr().replace(result.position(1), 1, "e")));
+            return make<float>(std::stof(literal.substr().replace(result.position(1), 1, "e")));
           }
         }
         else
         {
-          return make(std::stod(literal));
+          return make<double>(std::stod(literal));
         }
       }
       else
@@ -866,7 +866,7 @@ namespace number
   {
     if (x.is<ratio>())
     {
-      return make(x.as<ratio>().numerator());
+      return make<large_integer>(x.as<ratio>().numerator());
     }
     else if (is_exact(x))
     {
@@ -882,7 +882,7 @@ namespace number
   {
     if (x.is<ratio>())
     {
-      return make(x.as<ratio>().denominator());
+      return make<large_integer>(x.as<ratio>().denominator());
     }
     else if (is_exact(x))
     {
@@ -890,7 +890,7 @@ namespace number
     }
     else if (is_integer(x))
     {
-      return make(1.0);
+      return make<double>(1.0);
     }
     else
     {

@@ -17,6 +17,7 @@
 #include <cstring> // std::strlen
 #include <memory> // std::unique_ptr
 
+#include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/large_integer.hpp>
 

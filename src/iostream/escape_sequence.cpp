@@ -14,27 +14,26 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_UNWRAP_REFERENCE_WRAPPER_HPP
-#define INCLUDED_MEEVAX_TYPE_TRAITS_UNWRAP_REFERENCE_WRAPPER_HPP
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/kernel/configuration.hpp>
+#include <meevax/kernel/ghost.hpp>
+#include <unistd.h> // isatty
 
-#include <functional>
-#include <utility>
-
-#include <meevax/type_traits/is_reference_wrapper.hpp>
-
-namespace meevax::inline type_traits
+namespace meevax::inline iostream
 {
-  inline auto unwrap_reference_wrapper = [](auto&& value) -> decltype(auto)
+  auto colorable(std::ostream & os) -> bool
   {
-    if constexpr (is_reference_wrapper<std::decay_t<decltype(value)>>::value)
+    if (let const& x = color(); x.is<bool>())
     {
-      return value.get();
+      return x.as<bool>();
+    }
+    else if (x == unspecified)
+    {
+      return (os.rdbuf() == std::cout.rdbuf() and isatty(STDOUT_FILENO)) or (os.rdbuf() == std::cerr.rdbuf() and isatty(STDERR_FILENO));
     }
     else
     {
-      return std::forward<decltype(value)>(value);
+      return false;
     }
-  };
-} // namespace meevax::type_traits
-
-#endif // INCLUDED_MEEVAX_TYPE_TRAITS_UNWRAP_REFERENCE_WRAPPER_HPP
+  }
+} // namespace meevax::iostream
