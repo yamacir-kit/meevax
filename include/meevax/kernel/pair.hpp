@@ -39,7 +39,7 @@ namespace meevax::inline kernel
 
     auto virtual eqv(pair const*) const -> bool;
 
-    auto extent() const noexcept -> std::pair<void const*, void const*>;
+    auto extent() const noexcept -> std::pair<void const*, std::size_t>;
 
     auto virtual type() const noexcept -> std::type_info const&;
 
