@@ -455,6 +455,11 @@ namespace meevax::inline memory
         increment_unless_truthy();
       }
 
+      explicit const_iterator(pointer_set const* p, std::integral_constant<std::size_t, N>) noexcept
+        : p { p }
+        , i { N }
+      {}
+
       explicit const_iterator(pointer_set const* p) noexcept
         : p { p }
         , i { N - 1 }
@@ -533,7 +538,7 @@ namespace meevax::inline memory
 
     auto end() const noexcept
     {
-      return const_iterator(this, N);
+      return const_iterator(this, std::integral_constant<std::size_t, N>());
     }
 
     auto lower_bound(T value) const noexcept
