@@ -117,7 +117,7 @@ namespace std
   {
     auto operator ()(meevax::object const& x) const noexcept
     {
-      return hash<decltype(x.get())>()(x.get());
+      return hash<decltype(x.data)>()(x.data);
     }
   };
 }

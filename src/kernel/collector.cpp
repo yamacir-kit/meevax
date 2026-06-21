@@ -85,14 +85,7 @@ namespace meevax::inline kernel
 
   auto object::eqv(object const& rhs) const -> bool
   {
-    if (pointer::dereferenceable())
-    {
-      return *this ? pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
-    }
-    else
-    {
-      return static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
-    }
+    return *this ? pointer::unsafe_get()->eqv(rhs.get()) : static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
   }
 
   auto object::reset(object const& after) -> void
@@ -131,12 +124,12 @@ namespace meevax::inline kernel
 
   auto object::type() const -> std::type_info const&
   {
-    return pointer::dereferenceable() ? pointer::unsafe_get()->type() : pointer::type();
+    return *this ? pointer::unsafe_get()->type() : pointer::type();
   }
 
   auto object::write(std::ostream & os) const -> std::ostream &
   {
-    return pointer::dereferenceable() ? pointer::unsafe_get()->write(os) : pointer::write(os);
+    return *this ? pointer::unsafe_get()->write(os) : pointer::write(os);
   }
 
   auto operator <<(std::ostream & os, object const& datum) -> std::ostream &

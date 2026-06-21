@@ -123,7 +123,7 @@ namespace meevax::inline memory
 
     explicit constexpr operator bool() const noexcept
     {
-      return dereferenceable();
+      return signature() == signature_of<pointer>();
     }
 
     template <typename U>
@@ -144,14 +144,16 @@ namespace meevax::inline memory
       return std::isnan(x) ? std::bit_cast<double>(mask_exponent | mask_quiet) : x;
     }
 
-    auto constexpr dereferenceable() const noexcept
-    {
-      return signature() == signature_of<pointer>();
-    }
-
     auto constexpr get() const noexcept -> pointer
     {
-      return dereferenceable() ? unsafe_get() : nullptr;
+      switch (signature())
+      {
+      case signature_of<T*>():
+        return unsafe_get();
+
+      default:
+        return nullptr;
+      }
     }
 
     template <typename U>
