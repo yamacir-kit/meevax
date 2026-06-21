@@ -131,26 +131,12 @@ namespace meevax::inline kernel
 
   auto object::type() const -> std::type_info const&
   {
-    if (pointer::dereferenceable())
-    {
-      return *this ? pointer::unsafe_get()->type() : typeid(std::nullptr_t);
-    }
-    else
-    {
-      return pointer::type();
-    }
+    return pointer::dereferenceable() ? pointer::unsafe_get()->type() : pointer::type();
   }
 
   auto object::write(std::ostream & os) const -> std::ostream &
   {
-    if (pointer::dereferenceable())
-    {
-      return *this ? pointer::unsafe_get()->write(os) : os << magenta("()");
-    }
-    else
-    {
-      return pointer::write(os);
-    }
+    return pointer::dereferenceable() ? pointer::unsafe_get()->write(os) : pointer::write(os);
   }
 
   auto operator <<(std::ostream & os, object const& datum) -> std::ostream &
