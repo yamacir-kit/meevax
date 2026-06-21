@@ -92,8 +92,12 @@ namespace meevax::inline memory
       : data { signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x) }
     {}
 
-    explicit constexpr nan_boxing_pointer(pointer x = nullptr) noexcept
+    explicit constexpr nan_boxing_pointer(pointer x) noexcept
       : data { signature_of<T*>() | std::bit_cast<payload_t<T*>>(x) }
+    {}
+
+    explicit constexpr nan_boxing_pointer(std::nullptr_t = nullptr) noexcept
+      : data { signature_of<T*>() }
     {}
 
     auto operator =(auto x) noexcept -> auto &
@@ -119,7 +123,7 @@ namespace meevax::inline memory
 
     explicit constexpr operator bool() const noexcept
     {
-      return dereferenceable() ? unsafe_get() != nullptr : false;
+      return dereferenceable() and data != nan_boxing_pointer(nullptr).data;
     }
 
     template <typename U>
@@ -184,9 +188,14 @@ namespace meevax::inline memory
       data = signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x);
     }
 
-    auto reset(pointer x = nullptr) noexcept -> void
+    auto reset(pointer x) noexcept -> void
     {
       data = signature_of<T*>() | std::bit_cast<payload_t<T*>>(x);
+    }
+
+    auto reset(std::nullptr_t = nullptr) noexcept -> void
+    {
+      data = signature_of<T*>();
     }
 
     auto constexpr payload() const noexcept

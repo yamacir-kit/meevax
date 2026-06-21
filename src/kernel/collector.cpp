@@ -64,7 +64,7 @@ namespace meevax::inline kernel
 
   object::~object()
   {
-    if (pointer::operator bool() and not cleared)
+    if (*this and not cleared)
     {
       assert(objects.contains(this));
       objects.erase(this);
