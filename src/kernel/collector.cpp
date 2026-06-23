@@ -165,13 +165,15 @@ namespace meevax::inline kernel
        - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
     */
 
-    auto roots = canonical_pointer_set<object>();
+    auto static roots = std::vector<object const*>();
+
+    roots.clear();
 
     for (auto x : objects)
     {
       if (is_root(x))
       {
-        roots.insert(x);
+        roots.push_back(x);
       }
     }
 
