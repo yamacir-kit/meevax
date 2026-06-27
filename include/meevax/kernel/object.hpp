@@ -29,6 +29,24 @@ namespace meevax::inline kernel
 
   struct pair;
 
+  struct truthy
+  {
+    auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
+    {
+      assert(x);
+      return true;
+    }
+  };
+
+  struct falsy
+  {
+    auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
+    {
+      assert(not x);
+      return false;
+    }
+  };
+
   struct object : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
   {
     using pointer = nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
@@ -52,9 +70,46 @@ namespace meevax::inline kernel
 
     auto operator =(std::nullptr_t) -> object &;
 
-    auto reset(object const&) -> void;
+    auto erase() const -> void;
 
-    auto reset(std::nullptr_t = nullptr) -> void;
+    auto insert() const -> void;
+
+    template <typename Precondition = std::identity, typename Postcondition = std::identity>
+    auto reset(object const& x)
+    {
+      if (Precondition()(*this))
+      {
+        pointer::reset(x);
+
+        if (not Postcondition()(*this))
+        {
+          erase();
+        }
+      }
+      else
+      {
+        pointer::reset(x);
+
+        if (Postcondition()(*this))
+        {
+          insert();
+        }
+      }
+    }
+
+    template <typename From = std::identity>
+    auto reset(std::nullptr_t = nullptr) -> void
+    {
+      if (From()(*this))
+      {
+        pointer::reset();
+        erase();
+      }
+      else
+      {
+        pointer::reset();
+      }
+    }
 
     template <typename U>
     auto static as(auto&& x) -> decltype(auto)

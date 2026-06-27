@@ -47,8 +47,7 @@ namespace meevax::inline kernel
   {
     if (*this)
     {
-      assert(not objects.contains(this));
-      objects.insert(this);
+      insert();
     }
   }
 
@@ -57,8 +56,7 @@ namespace meevax::inline kernel
   {
     if (pair)
     {
-      assert(not objects.contains(this));
-      objects.insert(this);
+      insert();
     }
   }
 
@@ -66,8 +64,7 @@ namespace meevax::inline kernel
   {
     if (*this and not cleared)
     {
-      assert(objects.contains(this));
-      objects.erase(this);
+      erase();
     }
   }
 
@@ -88,38 +85,16 @@ namespace meevax::inline kernel
     return *this ? pointer::unsafe_get()->eqv(rhs.get()) : static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
   }
 
-  auto object::reset(object const& after) -> void
+  auto object::erase() const -> void
   {
-    auto const before = pointer::operator bool();
-
-    pointer::reset(after);
-
-    if (before)
-    {
-      if (not after)
-      {
-        assert(objects.contains(this));
-        objects.erase(this);
-      }
-    }
-    else if (after)
-    {
-      assert(not objects.contains(this));
-      objects.insert(this);
-    }
+    assert(objects.contains(this));
+    objects.erase(this);
   }
 
-  auto object::reset(std::nullptr_t) -> void
+  auto object::insert() const -> void
   {
-    auto const before = pointer::operator bool();
-
-    pointer::reset();
-
-    if (before)
-    {
-      assert(objects.contains(this));
-      objects.erase(this);
-    }
+    assert(not objects.contains(this));
+    objects.insert(this);
   }
 
   auto object::type() const -> std::type_info const&
