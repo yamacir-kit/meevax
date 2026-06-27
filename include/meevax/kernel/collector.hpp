@@ -84,12 +84,14 @@ namespace meevax::inline kernel
     explicit binder(auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
     {
+      pair::base = this;
       pair::size = sizeof(binder);
     }
 
     explicit binder(with_braces_tag, auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
     {
+      pair::base = this;
       pair::size = sizeof(binder);
     }
 
@@ -152,6 +154,7 @@ namespace meevax::inline kernel
     explicit binder(auto&&... xs) noexcept
       : pair { std::forward<decltype(xs)>(xs)... }
     {
+      base = this;
       size = sizeof(binder);
     }
 
