@@ -26,21 +26,21 @@
 
 namespace meevax::inline kernel
 {
-  auto clear() -> void;
+  auto clear() noexcept -> void;
 
-  auto clear_once() -> void;
+  auto clear_once() noexcept -> void;
 
-  auto collect() -> void;
+  auto collect() noexcept -> void;
 
-  auto count() -> std::size_t;
+  auto count() noexcept -> std::size_t;
 
-  auto insert(pair const*) -> void;
+  auto insert(pair const*) noexcept -> void;
 
   auto is_root(object const*) noexcept -> bool;
 
-  auto request(std::size_t) -> void;
+  auto request(std::size_t) noexcept -> void;
 
-  auto reserve(std::size_t) -> void;
+  auto reserve(std::size_t) noexcept -> void;
 
   struct status
   {
@@ -60,7 +60,7 @@ namespace meevax::inline kernel
   template <typename A>
   struct stateful_allocator : public A
   {
-    ~stateful_allocator()
+    ~stateful_allocator() noexcept
     {
       /*
          Execute clear before any static allocator is destroyed. Otherwise,
@@ -95,7 +95,7 @@ namespace meevax::inline kernel
 
     ~binder() override = default;
 
-    auto eqv([[maybe_unused]] pair const* other) const -> bool override
+    auto eqv([[maybe_unused]] pair const* other) const noexcept -> bool override
     {
       if constexpr (std::equality_comparable<Bound const&>)
       {
@@ -149,7 +149,7 @@ namespace meevax::inline kernel
 
     auto static inline a = allocator();
 
-    explicit binder(auto&&... xs)
+    explicit binder(auto&&... xs) noexcept
       : pair { std::forward<decltype(xs)>(xs)... }
     {
       size = sizeof(binder);

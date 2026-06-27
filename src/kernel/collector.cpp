@@ -42,7 +42,7 @@ namespace meevax::inline kernel
   object::object(std::nullptr_t) noexcept
   {}
 
-  object::object(object const& other)
+  object::object(object const& other) noexcept
     : pointer { other }
   {
     if (*this)
@@ -51,16 +51,14 @@ namespace meevax::inline kernel
     }
   }
 
-  object::object(pair * pair)
+  object::object(pair * pair) noexcept
     : pointer { pair }
   {
-    if (pair)
-    {
-      insert();
-    }
+    assert(*this);
+    insert();
   }
 
-  object::~object()
+  object::~object() noexcept
   {
     if (*this and not cleared)
     {
@@ -68,36 +66,36 @@ namespace meevax::inline kernel
     }
   }
 
-  auto object::operator =(object const& other) -> object &
+  auto object::operator =(object const& other) noexcept -> object &
   {
     reset(other);
     return *this;
   }
 
-  auto object::operator =(std::nullptr_t) -> object &
+  auto object::operator =(std::nullptr_t) noexcept -> object &
   {
     reset();
     return *this;
   }
 
-  auto object::eqv(object const& rhs) const -> bool
+  auto object::eqv(object const& rhs) const noexcept -> bool
   {
     return *this ? pointer::unsafe_get()->eqv(rhs.get()) : static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
   }
 
-  auto object::erase() const -> void
+  auto object::erase() const noexcept -> void
   {
     assert(objects.contains(this));
     objects.erase(this);
   }
 
-  auto object::insert() const -> void
+  auto object::insert() const noexcept -> void
   {
     assert(not objects.contains(this));
     objects.insert(this);
   }
 
-  auto object::type() const -> std::type_info const&
+  auto object::type() const noexcept -> std::type_info const&
   {
     return *this ? pointer::unsafe_get()->type() : pointer::type();
   }
@@ -112,7 +110,7 @@ namespace meevax::inline kernel
     return datum.write(os);
   }
 
-  auto clear() -> void
+  auto clear() noexcept -> void
   {
     for (auto const& datum : data)
     {
@@ -122,7 +120,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto clear_once() -> void
+  auto clear_once() noexcept -> void
   {
     if (not std::exchange(cleared, true))
     {
@@ -130,7 +128,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collect() -> void
+  auto collect() noexcept -> void
   {
     /*
        This mark-and-sweep garbage collector is based on the `gc_ptr`
@@ -199,12 +197,12 @@ namespace meevax::inline kernel
     capacity = std::max(capacity, size + (size / 2));
   }
 
-  auto count() -> std::size_t
+  auto count() noexcept -> std::size_t
   {
     return data.size();
   }
 
-  auto insert(pair const* datum) -> void
+  auto insert(pair const* datum) noexcept -> void
   {
     data.insert(datum);
   }
@@ -238,7 +236,7 @@ namespace meevax::inline kernel
     return not ((iterator and contains()) or (--iterator and contains()));
   }
 
-  auto request(std::size_t n) -> void
+  auto request(std::size_t n) noexcept -> void
   {
     if (size += n; capacity < size)
     {
@@ -246,7 +244,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto reserve(std::size_t n) -> void
+  auto reserve(std::size_t n) noexcept -> void
   {
     capacity = n;
   }

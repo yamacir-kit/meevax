@@ -53,29 +53,29 @@ namespace meevax::inline kernel
 
     object(std::nullptr_t = nullptr) noexcept;
 
-    object(object const&);
+    object(object const&) noexcept;
 
-    object(pair *);
+    object(pair *) noexcept;
 
     template <any_of<bool, small_integer, float, double, character, instruction> T>
-    object(T const& datum)
+    object(T const& datum) noexcept
       : pointer { datum }
     {
       assert(pointer::get() == nullptr);
     }
 
-    ~object();
+    ~object() noexcept;
 
-    auto operator =(object const&) -> object &;
+    auto operator =(object const&) noexcept -> object &;
 
-    auto operator =(std::nullptr_t) -> object &;
+    auto operator =(std::nullptr_t) noexcept -> object &;
 
-    auto erase() const -> void;
+    auto erase() const noexcept -> void;
 
-    auto insert() const -> void;
+    auto insert() const noexcept -> void;
 
     template <typename Precondition = std::identity, typename Postcondition = std::identity>
-    auto reset(object const& x)
+    auto reset(object const& x) noexcept
     {
       if (Precondition()(*this))
       {
@@ -98,7 +98,7 @@ namespace meevax::inline kernel
     }
 
     template <typename From = std::identity>
-    auto reset(std::nullptr_t = nullptr) -> void
+    auto reset(std::nullptr_t = nullptr) noexcept -> void
     {
       if (From()(*this))
       {
@@ -139,21 +139,21 @@ namespace meevax::inline kernel
     template <typename U> auto as        () const -> decltype(auto) { return as<U>                     (*this) ; }
     template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<object &>(*this)); }
 
-    auto eqv(object const&) const -> bool;
+    auto eqv(object const&) const noexcept -> bool;
 
     template <typename U>
-    auto is() const
+    auto is() const noexcept
     {
       return type() == typeid(std::decay_t<U>);
     }
 
     template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
-    auto is_also() const
+    auto is_also() const noexcept
     {
       return dynamic_cast<std::add_pointer_t<U>>(pointer::get()) != nullptr;
     }
 
-    auto type() const -> std::type_info const&;
+    auto type() const noexcept -> std::type_info const&;
 
     auto write(std::ostream &) const -> std::ostream &;
   };
