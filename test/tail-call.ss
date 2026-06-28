@@ -299,7 +299,50 @@
                                  load-absolute ack
                                  tail-call))))
 
+(define (fib n)
+  (if (< n 2)
+      n
+      (+ (fib (- n 1))
+         (fib (- n 2)))))
+
+(check (disassemble fib)
+  => '(load-constant ()
+       load-constant 2
+       cons
+       load-relative (0 . 0)
+       cons
+       load-absolute <
+       call
+       tail-select (load-relative (0 . 0)
+                    return)
+                   (load-constant ()
+                    load-constant ()
+                    load-constant ()
+                    load-constant 2
+                    cons
+                    load-relative (0 . 0)
+                    cons
+                    load-absolute -
+                    call
+                    cons
+                    load-absolute fib
+                    call
+                    cons
+                    load-constant ()
+                    load-constant ()
+                    load-constant 1
+                    cons
+                    load-relative (0 . 0)
+                    cons
+                    load-absolute -
+                    call
+                    cons
+                    load-absolute fib
+                    call
+                    cons
+                    load-absolute +
+                    tail-call)))
 
 (check-report)
 
-(exit (check-passed? 12))
+(exit (check-passed? 13))

@@ -42,115 +42,67 @@ namespace meevax::inline kernel
   object::object(std::nullptr_t) noexcept
   {}
 
-  object::object(object const& other)
+  object::object(object const& other) noexcept
     : pointer { other }
   {
     if (*this)
     {
-      assert(not objects.contains(this));
-      objects.insert(this);
+      insert();
     }
   }
 
-  object::object(pair * pair)
+  object::object(pair * pair) noexcept
     : pointer { pair }
   {
-    if (pair)
-    {
-      assert(not objects.contains(this));
-      objects.insert(this);
-    }
+    assert(*this);
+    insert();
   }
 
-  object::~object()
+  object::~object() noexcept
   {
-    if (pointer::operator bool() and not cleared)
+    if (*this and not cleared)
     {
-      assert(objects.contains(this));
-      objects.erase(this);
+      erase();
     }
   }
 
-  auto object::operator =(object const& other) -> object &
+  auto object::operator =(object const& other) noexcept -> object &
   {
     reset(other);
     return *this;
   }
 
-  auto object::operator =(std::nullptr_t) -> object &
+  auto object::operator =(std::nullptr_t) noexcept -> object &
   {
     reset();
     return *this;
   }
 
-  auto object::eqv(object const& rhs) const -> bool
+  auto object::eqv(object const& rhs) const noexcept -> bool
   {
-    if (pointer::dereferenceable())
-    {
-      return *this ? pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
-    }
-    else
-    {
-      return static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
-    }
+    return *this ? pointer::unsafe_get()->eqv(rhs.get()) : static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
   }
 
-  auto object::reset(object const& after) -> void
+  auto object::erase() const noexcept -> void
   {
-    auto const before = pointer::operator bool();
-
-    pointer::reset(after);
-
-    if (before)
-    {
-      if (not after)
-      {
-        assert(objects.contains(this));
-        objects.erase(this);
-      }
-    }
-    else if (after)
-    {
-      assert(not objects.contains(this));
-      objects.insert(this);
-    }
+    assert(objects.contains(this));
+    objects.erase(this);
   }
 
-  auto object::reset(std::nullptr_t) -> void
+  auto object::insert() const noexcept -> void
   {
-    auto const before = pointer::operator bool();
-
-    pointer::reset();
-
-    if (before)
-    {
-      assert(objects.contains(this));
-      objects.erase(this);
-    }
+    assert(not objects.contains(this));
+    objects.insert(this);
   }
 
-  auto object::type() const -> std::type_info const&
+  auto object::type() const noexcept -> std::type_info const&
   {
-    if (pointer::dereferenceable())
-    {
-      return *this ? pointer::unsafe_get()->type() : typeid(std::nullptr_t);
-    }
-    else
-    {
-      return pointer::type();
-    }
+    return *this ? pointer::unsafe_get()->type() : pointer::type();
   }
 
   auto object::write(std::ostream & os) const -> std::ostream &
   {
-    if (pointer::dereferenceable())
-    {
-      return *this ? pointer::unsafe_get()->write(os) : os << magenta("()");
-    }
-    else
-    {
-      return pointer::write(os);
-    }
+    return *this ? pointer::unsafe_get()->write(os) : pointer::write(os);
   }
 
   auto operator <<(std::ostream & os, object const& datum) -> std::ostream &
@@ -158,7 +110,7 @@ namespace meevax::inline kernel
     return datum.write(os);
   }
 
-  auto clear() -> void
+  auto clear() noexcept -> void
   {
     for (auto const& datum : data)
     {
@@ -168,7 +120,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto clear_once() -> void
+  auto clear_once() noexcept -> void
   {
     if (not std::exchange(cleared, true))
     {
@@ -176,7 +128,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collect() -> void
+  auto collect() noexcept -> void
   {
     /*
        This mark-and-sweep garbage collector is based on the `gc_ptr`
@@ -186,13 +138,15 @@ namespace meevax::inline kernel
        - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
     */
 
-    auto roots = canonical_pointer_set<object>();
+    auto static roots = std::vector<object const*>();
+
+    roots.clear();
 
     for (auto x : objects)
     {
       if (is_root(x))
       {
-        roots.insert(x);
+        roots.push_back(x);
       }
     }
 
@@ -221,14 +175,14 @@ namespace meevax::inline kernel
 
       while (not stack.empty())
       {
-        auto [base, size_] = stack.back()->extent();
+        auto const datum = stack.back();
 
-        size += size_;
+        size += datum->size;
 
         stack.pop_back();
 
-        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(base)),
-                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base)),
+                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base) + datum->size)),
                       mark);
       }
     }
@@ -243,12 +197,12 @@ namespace meevax::inline kernel
     capacity = std::max(capacity, size + (size / 2));
   }
 
-  auto count() -> std::size_t
+  auto count() noexcept -> std::size_t
   {
     return data.size();
   }
 
-  auto insert(pair const* datum) -> void
+  auto insert(pair const* datum) noexcept -> void
   {
     data.insert(datum);
   }
@@ -273,16 +227,15 @@ namespace meevax::inline kernel
     */
     auto iterator = data.lower_bound(reinterpret_cast<pair const*>(x));
 
-    auto contains = [&]()
+    auto contains = [&](auto datum)
     {
-      auto const [base, size] = (*iterator)->extent();
-      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(base) < size; // NOTE: Same as base <= x and x < base + size
+      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base) < datum->size; // NOTE: Same as base <= x and x < base + size
     };
 
-    return not ((iterator and contains()) or (--iterator and contains()));
+    return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));
   }
 
-  auto request(std::size_t n) -> void
+  auto request(std::size_t n) noexcept -> void
   {
     if (size += n; capacity < size)
     {
@@ -290,7 +243,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto reserve(std::size_t n) -> void
+  auto reserve(std::size_t n) noexcept -> void
   {
     capacity = n;
   }
