@@ -212,18 +212,24 @@ namespace meevax::inline kernel
   {
     if (datum.form.template is_also<identifier>())
     {
-      if (0 < datum.version)
+      switch (datum.version)
       {
-        return os << datum.form << ':' << datum.version;
-      }
-      else
-      {
-        return os << '$' << datum.form;
+      case 0:  return os << "⟦" << datum.form << "₀" << "⟧";
+      case 1:  return os << "⟦" << datum.form << "₁" << "⟧";
+      case 2:  return os << "⟦" << datum.form << "₂" << "⟧";
+      case 3:  return os << "⟦" << datum.form << "₃" << "⟧";
+      case 4:  return os << "⟦" << datum.form << "₄" << "⟧";
+      case 5:  return os << "⟦" << datum.form << "₅" << "⟧";
+      case 6:  return os << "⟦" << datum.form << "₆" << "⟧";
+      case 7:  return os << "⟦" << datum.form << "₇" << "⟧";
+      case 8:  return os << "⟦" << datum.form << "₈" << "⟧";
+      case 9:  return os << "⟦" << datum.form << "₉" << "⟧";
+      default: return os << "⟦" << datum.form << '_' << datum.version << "⟧";
       }
     }
     else
     {
-      return os << datum.form;
+      return os << "⟦" << datum.form << "⟧";
     }
   }
 } // namespace meevax::kernel
