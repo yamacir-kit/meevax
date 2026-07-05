@@ -21,19 +21,28 @@
 
 namespace meevax::inline iostream
 {
+  auto static const index = std::ios_base::xalloc();
+
+  auto operator <<(std::ostream & os, color const& c) -> std::ostream &
+  {
+    os.iword(index) = c.value;
+    return os;
+  }
+
   auto colorable(std::ostream & os) -> bool
   {
-    if (let const& x = color(); x.is<bool>())
+    switch (os.iword(index))
     {
-      return x.as<bool>();
-    }
-    else if (x == unspecified)
-    {
-      return (os.rdbuf() == std::cout.rdbuf() and isatty(STDOUT_FILENO)) or (os.rdbuf() == std::cerr.rdbuf() and isatty(STDERR_FILENO));
-    }
-    else
-    {
+    default:
+    case color::unspecified:
+      return (os.rdbuf() == std::cout.rdbuf() and isatty(STDOUT_FILENO)) or
+             (os.rdbuf() == std::cerr.rdbuf() and isatty(STDERR_FILENO));
+
+    case color::disabled:
       return false;
-    }
+
+    case color::enabled:
+      return true;
+    };
   }
 } // namespace meevax::iostream

@@ -116,7 +116,8 @@ namespace meevax::inline kernel
       {
         if (let const x = read(); x.is<bool>())
         {
-          color() = x;
+          std::cout << color(x.as<bool>());
+          std::cerr << color(x.as<bool>());
         }
         else
         {
@@ -213,12 +214,6 @@ namespace meevax::inline kernel
     };
 
     return options;
-  }
-
-  auto color() -> object &
-  {
-    let static color = unspecified;
-    return color;
   }
 
   auto command_line() -> std::vector<std::string> &

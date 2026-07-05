@@ -25,6 +25,21 @@
 
 namespace meevax::inline iostream
 {
+  struct color
+  {
+    auto static inline constexpr specified = 0b10;
+
+    enum : int { unspecified, disabled = specified | false, enabled = specified | true } value;
+
+    constexpr color() noexcept = default;
+
+    explicit constexpr color(bool value) noexcept
+      : value { specified | value }
+    {}
+  };
+
+  auto operator <<(std::ostream &, color const&) -> std::ostream &;
+
   auto colorable(std::ostream &) -> bool;
 
   template <typename... Ts>
