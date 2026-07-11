@@ -50,7 +50,7 @@ namespace meevax::inline kernel
 
       if (form.is<symbol>() and std::ranges::any_of(bound_variables | as_proper_list, [&](let const& formals)
                                                     {
-                                                      return static_cast<bool>(meevax::memq(form, formals)); // TODO variadic arguments
+                                                      return static_cast<bool>(memq(form, formals)); // TODO variadic arguments
                                                     }))
       {
         return make_syntactic_closure(form, count(form) + 1);
@@ -68,18 +68,6 @@ namespace meevax::inline kernel
     else
     {
       return rename(formals);
-    }
-  }
-
-  auto syntactic_closure::renamer::memq(let const& form) const -> object
-  {
-    if (let const& x = meevax::memq(form, enclosure->free_names); x != f)
-    {
-      return x;
-    }
-    else
-    {
-      return f;
     }
   }
 
@@ -113,7 +101,7 @@ namespace meevax::inline kernel
 
     if (form.is<symbol>())
     {
-      if (memq(form) != f)
+      if (memq(form, enclosure->free_names) != f)
       {
         return inject(form);
       }
