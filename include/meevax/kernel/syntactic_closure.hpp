@@ -32,9 +32,9 @@ namespace meevax::inline kernel
 
       let dictionary;
 
-      explicit renamer(syntactic_closure const* enclosure, renamer * outer);
+      int version_max = 1;
 
-      auto count(let const& form) -> int;
+      explicit renamer(syntactic_closure const* enclosure, renamer * outer);
 
       auto make_syntactic_closure(let const& form) -> object const&;
 

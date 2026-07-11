@@ -31,16 +31,6 @@ namespace meevax::inline kernel
     assert(enclosure);
   }
 
-  auto syntactic_closure::renamer::count(let const& form) -> int
-  {
-    assert(form.is<symbol>());
-
-    return (outer ? outer->count(form) : 0) + std::ranges::count_if(dictionary | as_proper_list, [&](let const& entry)
-                                                                    {
-                                                                      return eq(car(entry), form);
-                                                                    });
-  }
-
   auto syntactic_closure::renamer::unshadow(let const& formals,
                                             let const& bound_variables) -> object
   {
@@ -73,8 +63,15 @@ namespace meevax::inline kernel
 
   auto syntactic_closure::renamer::make_syntactic_closure(let const& form) -> object const&
   {
+    auto outermost = this;
+
+    while (outermost->outer)
+    {
+      outermost = outermost->outer;
+    }
+
     return cdar(dictionary = alist_cons(form,
-                                        make<syntactic_closure>(enclosure->environment, unit, form, count(form)),
+                                        make<syntactic_closure>(enclosure->environment, unit, form, outermost->version_max++),
                                         dictionary));
   }
 
@@ -178,26 +175,13 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
   {
-    if (datum.form.template is_also<identifier>())
+    if (datum.form.template is_also<identifier>() and 0 < datum.version)
     {
-      switch (datum.version)
-      {
-      case 0:  return os << "⟦" << datum.form << "₀" << "⟧";
-      case 1:  return os << "⟦" << datum.form << "₁" << "⟧";
-      case 2:  return os << "⟦" << datum.form << "₂" << "⟧";
-      case 3:  return os << "⟦" << datum.form << "₃" << "⟧";
-      case 4:  return os << "⟦" << datum.form << "₄" << "⟧";
-      case 5:  return os << "⟦" << datum.form << "₅" << "⟧";
-      case 6:  return os << "⟦" << datum.form << "₆" << "⟧";
-      case 7:  return os << "⟦" << datum.form << "₇" << "⟧";
-      case 8:  return os << "⟦" << datum.form << "₈" << "⟧";
-      case 9:  return os << "⟦" << datum.form << "₉" << "⟧";
-      default: return os << "⟦" << datum.form << '_' << datum.version << "⟧";
-      }
+      return os << "<" << datum.form << '%' << datum.version << ">"; // Is automatically introduced by α-conversion.
     }
     else
     {
-      return os << "⟦" << datum.form << "⟧";
+      return os << "<" << datum.form << ">";
     }
   }
 } // namespace meevax::kernel
