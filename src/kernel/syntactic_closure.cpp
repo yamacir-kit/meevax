@@ -71,18 +71,6 @@ namespace meevax::inline kernel
     }
   }
 
-  auto syntactic_closure::renamer::assq(let const& form) const -> object
-  {
-    if (let const& x = meevax::assq(form, dictionary); x != f)
-    {
-      return x;
-    }
-    else
-    {
-      return f;
-    }
-  }
-
   auto syntactic_closure::renamer::make_syntactic_closure(let const& form, int version) -> object const&
   {
     return cdar(dictionary = alist_cons(form,
@@ -105,7 +93,7 @@ namespace meevax::inline kernel
       {
         return inject(form);
       }
-      else if (let const& renaming = assq(form); renaming != f)
+      else if (let const& renaming = assq(form, dictionary); renaming != f)
       {
         return cdr(renaming);
       }
