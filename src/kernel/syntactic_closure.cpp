@@ -53,7 +53,7 @@ namespace meevax::inline kernel
                                                       return static_cast<bool>(memq(form, formals)); // TODO variadic arguments
                                                     }))
       {
-        return make_syntactic_closure(form, count(form) + 1);
+        return make_syntactic_closure(form);
       }
       else
       {
@@ -71,10 +71,10 @@ namespace meevax::inline kernel
     }
   }
 
-  auto syntactic_closure::renamer::make_syntactic_closure(let const& form, int version) -> object const&
+  auto syntactic_closure::renamer::make_syntactic_closure(let const& form) -> object const&
   {
     return cdar(dictionary = alist_cons(form,
-                                        make<syntactic_closure>(enclosure->environment, unit, form, version),
+                                        make<syntactic_closure>(enclosure->environment, unit, form, count(form)),
                                         dictionary));
   }
 
@@ -82,16 +82,11 @@ namespace meevax::inline kernel
   {
     assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
-    auto inject = [this](let const& form)
-    {
-      return outer ? outer->rename(form) : form;
-    };
-
     if (form.is<symbol>())
     {
       if (memq(form, enclosure->free_names) != f)
       {
-        return inject(form);
+        return outer ? outer->rename(form) : form;
       }
       else if (let const& renaming = assq(form, dictionary); renaming != f)
       {

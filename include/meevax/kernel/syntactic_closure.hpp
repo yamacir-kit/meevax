@@ -36,7 +36,7 @@ namespace meevax::inline kernel
 
       auto count(let const& form) -> int;
 
-      auto make_syntactic_closure(let const& form, int version = 0) -> object const&;
+      auto make_syntactic_closure(let const& form) -> object const&;
 
       auto unshadow(let const& formals, let const& bound_variables) -> object;
 
