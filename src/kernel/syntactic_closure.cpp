@@ -108,12 +108,6 @@ namespace meevax::inline kernel
     return rename(form);
   }
 
-  auto syntactic_closure::renamer::operator ()(let const& formals,
-                                               let const& bound_variables) -> object
-  {
-    return unshadow(formals, bound_variables);
-  }
-
   syntactic_closure::syntactic_closure(let const& environment,
                                        let const& free_names,
                                        let const& form,

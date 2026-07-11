@@ -73,7 +73,7 @@ namespace meevax::inline kernel
   {
     auto scoped_rename = rename;
 
-    let const& formals = scoped_rename(cadr(form), bound_variables);
+    let const& formals = scoped_rename.unshadow(cadr(form), bound_variables);
 
     return cons(rename(car(form)) /* lambda */,
                 cons(formals,
@@ -189,7 +189,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::letrec)
   {
-    let const extended_bound_variables = cons(rename(map(car, cadr(form)), bound_variables),
+    let const extended_bound_variables = cons(rename.unshadow(map(car, cadr(form)), bound_variables),
                                               bound_variables);
 
     return cons(car(form),
