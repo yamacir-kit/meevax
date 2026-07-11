@@ -45,7 +45,7 @@ namespace meevax::inline kernel
                                      object const& bound_variables) const -> object
   {
     auto enclosure = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
-    auto rename = syntactic_closure::renamer(&enclosure, nullptr, true);
+    auto rename = syntactic_closure::renamer(&enclosure, nullptr);
     return expand(form, bound_variables, rename);
   }
 

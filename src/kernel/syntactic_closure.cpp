@@ -24,10 +24,9 @@
 
 namespace meevax::inline kernel
 {
-  syntactic_closure::renamer::renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent)
+  syntactic_closure::renamer::renamer(syntactic_closure const* enclosure, renamer * outer)
     : enclosure   { enclosure }
     , outer       { outer }
-    , transparent { transparent }
   {
     assert(enclosure);
   }
@@ -80,7 +79,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return transparent and outer ? outer->memq(form) : f;
+      return f;
     }
   }
 
@@ -92,7 +91,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return transparent and outer ? outer->assq(form) : f;
+      return f;
     }
   }
 
@@ -124,7 +123,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        return transparent ? inject(form) : make_syntactic_closure(form);
+        return outer ? make_syntactic_closure(form) : form;
       }
     }
     else
@@ -158,12 +157,16 @@ namespace meevax::inline kernel
 
   auto syntactic_closure::expand(let const& bound_variables, renamer & outer) -> object
   {
-    auto rename = renamer(this,
-                          &outer,
-                          eq(environment.template as<syntactic_environment>().first,
-                             bound_variables));
+    if (eq(environment.as<syntactic_environment>().first, bound_variables))
+    {
+      return environment.as<syntactic_environment>().expand(form, bound_variables, outer);
+    }
+    else
+    {
+      auto inner = renamer(this, &outer);
 
-    return environment.as<syntactic_environment>().expand(form, bound_variables, rename);
+      return environment.as<syntactic_environment>().expand(form, bound_variables, inner);
+    }
   }
 
   auto syntactic_closure::identify(let const& bound_variables) -> object

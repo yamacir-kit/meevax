@@ -30,11 +30,9 @@ namespace meevax::inline kernel
 
       renamer * outer;
 
-      bool transparent;
-
       let dictionary;
 
-      explicit renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent);
+      explicit renamer(syntactic_closure const* enclosure, renamer * outer);
 
       auto count(let const& form) -> int;
 
