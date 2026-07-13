@@ -32,11 +32,9 @@ namespace meevax::inline kernel
 
       let dictionary;
 
-      int version_max = 1;
-
       explicit renamer(syntactic_closure const* enclosure, renamer * outer);
 
-      auto make_syntactic_closure(let const& form) -> object const&;
+      auto make_syntactic_closure(let const& form, int) -> object const&;
 
       auto unshadow(let const& formals, let const& bound_variables) -> object;
 
@@ -47,12 +45,12 @@ namespace meevax::inline kernel
 
     let environment, free_names, form;
 
-    int version;
+    int level;
 
     explicit syntactic_closure(let const& environment,
                                let const& free_names,
                                let const& form,
-                               int version = 0);
+                               int = 0);
 
     auto expand(let const& bound_variables, renamer & outer) -> object;
 

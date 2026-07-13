@@ -43,7 +43,7 @@ namespace meevax::inline kernel
                                                       return static_cast<bool>(memq(form, formals)); // TODO variadic arguments
                                                     }))
       {
-        return make_syntactic_closure(form);
+        return make_syntactic_closure(form, length(bound_variables));
       }
       else
       {
@@ -61,18 +61,11 @@ namespace meevax::inline kernel
     }
   }
 
-  auto syntactic_closure::renamer::make_syntactic_closure(let const& form) -> object const&
+  auto syntactic_closure::renamer::make_syntactic_closure(let const& form, int level) -> object const&
   {
-    auto outermost = this;
+    assert(form.is<symbol>());
 
-    while (outermost->outer)
-    {
-      outermost = outermost->outer;
-    }
-
-    return cdar(dictionary = alist_cons(form,
-                                        make<syntactic_closure>(enclosure->environment, unit, form, outermost->version_max++),
-                                        dictionary));
+    return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->environment, unit, form, level), dictionary));
   }
 
   auto syntactic_closure::renamer::rename(let const& form) -> object
@@ -91,7 +84,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        return outer ? make_syntactic_closure(form) : form;
+        return outer ? make_syntactic_closure(form, -1) : form;
       }
     }
     else
@@ -108,11 +101,11 @@ namespace meevax::inline kernel
   syntactic_closure::syntactic_closure(let const& environment,
                                        let const& free_names,
                                        let const& form,
-                                       int version)
+                                       int level)
     : environment { environment }
     , free_names  { free_names }
     , form        { form }
-    , version     { version }
+    , level       { level }
   {
     assert(environment.is<syntactic_environment>());
   }
@@ -175,9 +168,9 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
   {
-    if (datum.form.template is_also<identifier>() and 0 < datum.version)
+    if (datum.form.template is_also<identifier>() and datum.level != 0)
     {
-      return os << "<" << datum.form << '%' << datum.version << ">"; // Is automatically introduced by α-conversion.
+      return os << "<" << datum.form << '%' << datum.level << ">"; // Is automatically introduced by α-conversion.
     }
     else
     {
