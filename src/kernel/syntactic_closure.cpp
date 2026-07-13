@@ -24,15 +24,14 @@
 
 namespace meevax::inline kernel
 {
-  syntactic_closure::renamer::renamer(syntactic_closure const* enclosure, renamer * outer)
+  syntactic_closure::alpha::alpha(syntactic_closure const* enclosure, alpha * outer)
     : enclosure   { enclosure }
     , outer       { outer }
   {
     assert(enclosure);
   }
 
-  auto syntactic_closure::renamer::unshadow(let const& formals,
-                                            let const& bound_variables) -> object
+  auto syntactic_closure::alpha::unshadow(let const& formals, let const& bound_variables) -> object
   {
     auto rename = [&](let const& form)
     {
@@ -61,14 +60,14 @@ namespace meevax::inline kernel
     }
   }
 
-  auto syntactic_closure::renamer::make_syntactic_closure(let const& form, int level) -> object const&
+  auto syntactic_closure::alpha::make_syntactic_closure(let const& form, int level) -> object const&
   {
     assert(form.is<symbol>());
 
     return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->environment, unit, form, level), dictionary));
   }
 
-  auto syntactic_closure::renamer::rename(let const& form) -> object
+  auto syntactic_closure::alpha::rename(let const& form) -> object
   {
     assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
@@ -105,7 +104,7 @@ namespace meevax::inline kernel
     assert(environment.is<syntactic_environment>());
   }
 
-  auto syntactic_closure::expand(let const& bound_variables, renamer & outer) -> object
+  auto syntactic_closure::expand(let const& bound_variables, alpha & outer) -> object
   {
     if (eq(environment.as<syntactic_environment>().first, bound_variables))
     {
@@ -113,7 +112,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      auto inner = renamer(this, &outer);
+      auto inner = alpha(this, &outer);
 
       return environment.as<syntactic_environment>().expand(form, bound_variables, inner);
     }
