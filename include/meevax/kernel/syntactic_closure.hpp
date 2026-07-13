@@ -57,6 +57,8 @@ namespace meevax::inline kernel
     auto identify(let const& bound_variables) -> object;
   };
 
+  using syntactic_context = syntactic_closure::renamer;
+
   auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool;
 
   auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &;

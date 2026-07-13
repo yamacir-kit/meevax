@@ -45,26 +45,26 @@ namespace meevax::inline kernel
                                      object const& bound_variables) const -> object
   {
     auto enclosure = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
-    auto rename = syntactic_closure::renamer(&enclosure, nullptr);
-    return expand(form, bound_variables, rename);
+    auto context = syntactic_context(&enclosure, nullptr);
+    return expand(form, bound_variables, context);
   }
 
   auto syntactic_environment::expand(object const& form,
                                      object const& bound_variables,
-                                     syntactic_closure::renamer & rename) const -> object
+                                     syntactic_context & context) const -> object
   {
     if (not form.is<pair>())
     {
       if (form.is<syntactic_closure>() and identify(form, bound_variables) == f)
       {
-        return form.as<syntactic_closure>().expand(bound_variables, rename);
+        return form.as<syntactic_closure>().expand(bound_variables, context);
       }
 
-      return form.is_also<identifier>() ? rename(form) : form;
+      return form.is_also<identifier>() ? context.rename(form) : form;
     }
     else if (car(form).is_also<identifier>())
     {
-      let const identifier = rename(car(form));
+      let const identifier = context.rename(car(form));
 
       if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
                                                                    : identify(car(form), bound_variables);
@@ -74,16 +74,16 @@ namespace meevax::inline kernel
         {
           return expand(value.as<transformer>().transform(form, make<syntactic_environment>(bound_variables, second)),
                         bound_variables,
-                        rename);
+                        context);
         }
         else if (value.is<syntax>())
         {
-          return value.as<syntax>().expand(*this, form, bound_variables, rename);
+          return value.as<syntax>().expand(*this, form, bound_variables, context);
         }
       }
     }
 
-    return expander::call(*this, form, bound_variables, rename);
+    return expander::call(*this, form, bound_variables, context);
   }
 
   auto syntactic_environment::generate(object const& form,
