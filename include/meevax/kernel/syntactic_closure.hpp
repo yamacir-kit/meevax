@@ -24,45 +24,33 @@ namespace meevax::inline kernel
 {
   struct syntactic_closure : public identifier
   {
-    struct renamer
+    struct alpha
     {
       syntactic_closure const* enclosure;
 
-      renamer * outer;
-
-      bool transparent;
+      alpha * outer;
 
       let dictionary;
 
-      explicit renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent);
+      explicit alpha(syntactic_closure const* enclosure, alpha * outer);
 
-      auto count(let const& form) -> int;
+      auto convert(let const& form) -> object;
 
-      auto make_syntactic_closure(let const& form, int version = 0) -> object const&;
+      auto convert_formals(let const& formals, let const& bound_variables) -> object;
 
-      auto unshadow(let const& formals, let const& bound_variables) -> object;
-
-      auto memq(let const& form) const -> object;
-
-      auto assq(let const& form) const -> object;
-
-      auto rename(let const& form) -> object;
-
-      auto operator ()(let const& form) -> object;
-
-      auto operator ()(let const& formals, let const& bound_variables) -> object;
+      auto make_syntactic_closure(let const& form, int) -> object const&;
     };
 
-    let environment, free_names, form;
+    let syntactic_environment, free_names, form;
 
-    int version;
+    int de_bruijn_level;
 
-    explicit syntactic_closure(let const& environment,
+    explicit syntactic_closure(let const& syntactic_environment,
                                let const& free_names,
                                let const& form,
-                               int version = 0);
+                               int = 0);
 
-    auto expand(let const& bound_variables, renamer & outer) -> object;
+    auto expand(let const& bound_variables, alpha & outer) -> object;
 
     auto identify(let const& bound_variables) -> object;
   };

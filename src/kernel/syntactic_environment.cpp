@@ -45,26 +45,26 @@ namespace meevax::inline kernel
                                      object const& bound_variables) const -> object
   {
     auto enclosure = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
-    auto rename = syntactic_closure::renamer(&enclosure, nullptr, true);
-    return expand(form, bound_variables, rename);
+    auto alpha = syntactic_closure::alpha(&enclosure, nullptr);
+    return expand(form, bound_variables, alpha);
   }
 
   auto syntactic_environment::expand(object const& form,
                                      object const& bound_variables,
-                                     syntactic_closure::renamer & rename) const -> object
+                                     syntactic_closure::alpha & alpha) const -> object
   {
     if (not form.is<pair>())
     {
       if (form.is<syntactic_closure>() and identify(form, bound_variables) == f)
       {
-        return form.as<syntactic_closure>().expand(bound_variables, rename);
+        return form.as<syntactic_closure>().expand(bound_variables, alpha);
       }
 
-      return form.is_also<identifier>() ? rename(form) : form;
+      return form.is_also<identifier>() ? alpha.convert(form) : form;
     }
     else if (car(form).is_also<identifier>())
     {
-      let const identifier = rename(car(form));
+      let const identifier = alpha.convert(car(form));
 
       if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
                                                                    : identify(car(form), bound_variables);
@@ -74,16 +74,16 @@ namespace meevax::inline kernel
         {
           return expand(value.as<transformer>().transform(form, make<syntactic_environment>(bound_variables, second)),
                         bound_variables,
-                        rename);
+                        alpha);
         }
         else if (value.is<syntax>())
         {
-          return value.as<syntax>().expand(*this, form, bound_variables, rename);
+          return value.as<syntax>().expand(*this, form, bound_variables, alpha);
         }
       }
     }
 
-    return expander::call(*this, form, bound_variables, rename);
+    return expander::call(*this, form, bound_variables, alpha);
   }
 
   auto syntactic_environment::generate(object const& form,
@@ -95,8 +95,6 @@ namespace meevax::inline kernel
     {
       if (form.is_also<identifier>())
       {
-        assert(form.is_also<identifier>());
-
         if (let const& identity = identify(form, bound_variables); identity.is<relative>())
         {
           return cons(make<instruction>(instruction::secd_load_relative), identity, continuation);
@@ -204,7 +202,7 @@ namespace meevax::inline kernel
                                     let const& sequence,
                                     let const& bound_variables,
                                     let const& current_environment,
-                                    syntactic_closure::renamer & rename,
+                                    syntactic_closure::alpha & alpha,
                                     let const& formals,
                                     let const& reversed_binding_specs) const -> std::tuple<object, object, object>
   {
@@ -214,7 +212,7 @@ namespace meevax::inline kernel
                    form,
                    bound_variables,
                    make<syntactic_environment>(cons(formals, bound_variables), second),
-                   rename,
+                   alpha,
                    formals);
     };
 
@@ -223,11 +221,11 @@ namespace meevax::inline kernel
       if (car(sequence).is<syntactic_closure>() and identify(car(sequence), car(current_environment)) == f)
       {
         return sweep(form,
-                     cons(car(sequence).as<syntactic_closure>().expand(car(current_environment), rename),
+                     cons(car(sequence).as<syntactic_closure>().expand(car(current_environment), alpha),
                           cdr(sequence)),
                      bound_variables,
                      current_environment,
-                     rename,
+                     alpha,
                      formals,
                      reversed_binding_specs);
       }
@@ -242,7 +240,7 @@ namespace meevax::inline kernel
                               cdr(sequence)),
                          bound_variables,
                          current_environment,
-                         rename,
+                         alpha,
                          formals,
                          reversed_binding_specs);
           }
@@ -254,7 +252,7 @@ namespace meevax::inline kernel
                            append(cdar(sequence), cdr(sequence)),
                            bound_variables,
                            current_environment,
-                           rename,
+                           alpha,
                            formals,
                            reversed_binding_specs);
             }
@@ -268,7 +266,7 @@ namespace meevax::inline kernel
                                cdr(sequence),
                                bound_variables,
                                current_environment,
-                               rename,
+                               alpha,
                                formals,
                                cons(list(variable,
                                          cons(default_rename("lambda"),
@@ -289,7 +287,7 @@ namespace meevax::inline kernel
                                cdr(sequence),
                                bound_variables,
                                current_environment,
-                               rename,
+                               alpha,
                                formals,
                                cons(cdar(sequence), // (<variables> <expression>)
                                     reversed_binding_specs));
@@ -312,7 +310,7 @@ namespace meevax::inline kernel
                              cdr(sequence),
                              bound_variables,
                              current_environment,
-                             rename,
+                             alpha,
                              formals,
                              cons(list(*iter), // <transformer spec>
                                   reversed_binding_specs));

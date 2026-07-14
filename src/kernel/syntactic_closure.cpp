@@ -24,37 +24,50 @@
 
 namespace meevax::inline kernel
 {
-  syntactic_closure::renamer::renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent)
+  syntactic_closure::alpha::alpha(syntactic_closure const* enclosure, alpha * outer)
     : enclosure   { enclosure }
     , outer       { outer }
-    , transparent { transparent }
   {
     assert(enclosure);
   }
 
-  auto syntactic_closure::renamer::count(let const& form) -> int
+  auto syntactic_closure::alpha::convert(let const& form) -> object
   {
-    assert(form.is<symbol>());
+    assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
-    return (outer ? outer->count(form) : 0) + std::ranges::count_if(dictionary | as_proper_list, [&](let const& entry)
-                                                                    {
-                                                                      return eq(car(entry), form);
-                                                                    });
+    if (form.is<symbol>())
+    {
+      if (memq(form, enclosure->free_names) != f)
+      {
+        return outer ? outer->convert(form) : form;
+      }
+      else if (let const& renaming = assq(form, dictionary); renaming != f)
+      {
+        return cdr(renaming);
+      }
+      else
+      {
+        return outer ? make_syntactic_closure(form, -1) : form;
+      }
+    }
+    else
+    {
+      return form;
+    }
   }
 
-  auto syntactic_closure::renamer::unshadow(let const& formals,
-                                            let const& bound_variables) -> object
+  auto syntactic_closure::alpha::convert_formals(let const& formals, let const& bound_variables) -> object
   {
-    auto rename = [&](let const& form)
+    auto convert = [&](let const& form)
     {
       assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
       if (form.is<symbol>() and std::ranges::any_of(bound_variables | as_proper_list, [&](let const& formals)
                                                     {
-                                                      return static_cast<bool>(meevax::memq(form, formals)); // TODO variadic arguments
+                                                      return memq(form, formals) != f; // TODO variadic arguments
                                                     }))
       {
-        return make_syntactic_closure(form, count(form) + 1);
+        return make_syntactic_closure(form, length(bound_variables));
       }
       else
       {
@@ -64,120 +77,60 @@ namespace meevax::inline kernel
 
     if (formals.is<pair>())
     {
-      return cons(rename(car(formals)), unshadow(cdr(formals), bound_variables));
+      return cons(convert(car(formals)),
+                  convert_formals(cdr(formals), bound_variables));
     }
     else
     {
-      return rename(formals);
+      return convert(formals);
     }
   }
 
-  auto syntactic_closure::renamer::memq(let const& form) const -> object
+  auto syntactic_closure::alpha::make_syntactic_closure(let const& form, int level) -> object const&
   {
-    if (let const& x = meevax::memq(form, enclosure->free_names); x != f)
-    {
-      return x;
-    }
-    else
-    {
-      return transparent and outer ? outer->memq(form) : f;
-    }
+    assert(form.is<symbol>());
+
+    return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->syntactic_environment, unit, form, level), dictionary));
   }
 
-  auto syntactic_closure::renamer::assq(let const& form) const -> object
-  {
-    if (let const& x = meevax::assq(form, dictionary); x != f)
-    {
-      return x;
-    }
-    else
-    {
-      return transparent and outer ? outer->assq(form) : f;
-    }
-  }
-
-  auto syntactic_closure::renamer::make_syntactic_closure(let const& form, int version) -> object const&
-  {
-    return cdar(dictionary = alist_cons(form,
-                                        make<syntactic_closure>(enclosure->environment, unit, form, version),
-                                        dictionary));
-  }
-
-  auto syntactic_closure::renamer::rename(let const& form) -> object
-  {
-    assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
-
-    auto inject = [this](let const& form)
-    {
-      return outer ? outer->rename(form) : form;
-    };
-
-    if (form.is<symbol>())
-    {
-      if (memq(form) != f)
-      {
-        return inject(form);
-      }
-      else if (let const& renaming = assq(form); renaming != f)
-      {
-        return cdr(renaming);
-      }
-      else
-      {
-        return transparent ? inject(form) : make_syntactic_closure(form);
-      }
-    }
-    else
-    {
-      return form;
-    }
-  }
-
-  auto syntactic_closure::renamer::operator ()(let const& form) -> object
-  {
-    return rename(form);
-  }
-
-  auto syntactic_closure::renamer::operator ()(let const& formals,
-                                               let const& bound_variables) -> object
-  {
-    return unshadow(formals, bound_variables);
-  }
-
-  syntactic_closure::syntactic_closure(let const& environment,
+  syntactic_closure::syntactic_closure(let const& syntactic_environment,
                                        let const& free_names,
                                        let const& form,
-                                       int version)
-    : environment { environment }
-    , free_names  { free_names }
-    , form        { form }
-    , version     { version }
+                                       int de_bruijn_level)
+    : syntactic_environment { syntactic_environment }
+    , free_names            { free_names }
+    , form                  { form }
+    , de_bruijn_level       { de_bruijn_level }
   {
-    assert(environment.is<syntactic_environment>());
+    assert(syntactic_environment.is<struct syntactic_environment>());
   }
 
-  auto syntactic_closure::expand(let const& bound_variables, renamer & outer) -> object
+  auto syntactic_closure::expand(let const& bound_variables, alpha & outer) -> object
   {
-    auto rename = renamer(this,
-                          &outer,
-                          eq(environment.template as<syntactic_environment>().first,
-                             bound_variables));
+    if (eq(syntactic_environment.as<struct syntactic_environment>().first, bound_variables))
+    {
+      return syntactic_environment.as<struct syntactic_environment>().expand(form, bound_variables, outer);
+    }
+    else
+    {
+      auto inner = alpha(this, &outer);
 
-    return environment.as<syntactic_environment>().expand(form, bound_variables, rename);
+      return syntactic_environment.as<struct syntactic_environment>().expand(form, bound_variables, inner);
+    }
   }
 
   auto syntactic_closure::identify(let const& bound_variables) -> object
   {
     auto identify = [&]()
     {
-      let xs = environment.as<syntactic_environment>().first;
+      let xs = syntactic_environment.as<struct syntactic_environment>().first;
 
       for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
       {
         xs = cons(unit, xs);
       }
 
-      return environment.as<syntactic_environment const>().identify(form, xs);
+      return syntactic_environment.as<struct syntactic_environment const>().identify(form, xs);
     };
 
     if (let const& identity = identify(); identity != f)
@@ -186,7 +139,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return environment.as<syntactic_environment const>().identify(form, bound_variables);
+      return syntactic_environment.as<struct syntactic_environment const>().identify(form, bound_variables);
     }
   }
 
@@ -204,32 +157,19 @@ namespace meevax::inline kernel
     */
     return x.form.template is_also<identifier>() and
            y.form.template is_also<identifier>() and
-           eqv(x.environment.template as<syntactic_environment>().identify(x.form, x.environment.template as<syntactic_environment>().first),
-               y.environment.template as<syntactic_environment>().identify(y.form, y.environment.template as<syntactic_environment>().first));
+           eqv(x.syntactic_environment.as<struct syntactic_environment>().identify(x.form, x.syntactic_environment.as<struct syntactic_environment>().first),
+               y.syntactic_environment.as<struct syntactic_environment>().identify(y.form, y.syntactic_environment.as<struct syntactic_environment>().first));
   }
 
   auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
   {
-    if (datum.form.template is_also<identifier>())
+    if (datum.form.template is_also<identifier>() and datum.de_bruijn_level != 0)
     {
-      switch (datum.version)
-      {
-      case 0:  return os << "⟦" << datum.form << "₀" << "⟧";
-      case 1:  return os << "⟦" << datum.form << "₁" << "⟧";
-      case 2:  return os << "⟦" << datum.form << "₂" << "⟧";
-      case 3:  return os << "⟦" << datum.form << "₃" << "⟧";
-      case 4:  return os << "⟦" << datum.form << "₄" << "⟧";
-      case 5:  return os << "⟦" << datum.form << "₅" << "⟧";
-      case 6:  return os << "⟦" << datum.form << "₆" << "⟧";
-      case 7:  return os << "⟦" << datum.form << "₇" << "⟧";
-      case 8:  return os << "⟦" << datum.form << "₈" << "⟧";
-      case 9:  return os << "⟦" << datum.form << "₉" << "⟧";
-      default: return os << "⟦" << datum.form << '_' << datum.version << "⟧";
-      }
+      return os << "<" << datum.form << '%' << datum.de_bruijn_level << ">"; // Is automatically introduced by α-conversion.
     }
     else
     {
-      return os << "⟦" << datum.form << "⟧";
+      return os << "<" << datum.form << ">";
     }
   }
 } // namespace meevax::kernel
