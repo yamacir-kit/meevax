@@ -145,8 +145,6 @@ namespace meevax::inline kernel
       return nullptr;
     }
   }
-
-  auto longest_common_tail(let const&, let const&) -> object const&;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
