@@ -34,11 +34,11 @@ namespace meevax::inline kernel
 
       explicit alpha(syntactic_closure const* enclosure, alpha * outer);
 
-      auto make_syntactic_closure(let const& form, int) -> object const&;
-
-      auto unshadow(let const& formals, let const& bound_variables) -> object;
-
       auto convert(let const& form) -> object;
+
+      auto convert_formals(let const& formals, let const& bound_variables) -> object;
+
+      auto make_syntactic_closure(let const& form, int) -> object const&;
     };
 
     let environment, free_names, form;

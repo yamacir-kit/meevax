@@ -73,7 +73,7 @@ namespace meevax::inline kernel
   {
     auto scoped_alpha = alpha;
 
-    let const& formals = scoped_alpha.unshadow(cadr(form), bound_variables);
+    let const& formals = scoped_alpha.convert_formals(cadr(form), bound_variables);
 
     return cons(alpha.convert(car(form)) /* lambda */,
                 cons(formals,
@@ -189,7 +189,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::letrec)
   {
-    let const extended_bound_variables = cons(alpha.unshadow(map(car, cadr(form)), bound_variables),
+    let const extended_bound_variables = cons(alpha.convert_formals(map(car, cadr(form)), bound_variables),
                                               bound_variables);
 
     return cons(car(form),

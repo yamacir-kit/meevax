@@ -31,42 +31,6 @@ namespace meevax::inline kernel
     assert(enclosure);
   }
 
-  auto syntactic_closure::alpha::unshadow(let const& formals, let const& bound_variables) -> object
-  {
-    auto convert = [&](let const& form)
-    {
-      assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
-
-      if (form.is<symbol>() and std::ranges::any_of(bound_variables | as_proper_list, [&](let const& formals)
-                                                    {
-                                                      return memq(form, formals) != f; // TODO variadic arguments
-                                                    }))
-      {
-        return make_syntactic_closure(form, length(bound_variables));
-      }
-      else
-      {
-        return form;
-      }
-    };
-
-    if (formals.is<pair>())
-    {
-      return cons(convert(car(formals)), unshadow(cdr(formals), bound_variables));
-    }
-    else
-    {
-      return convert(formals);
-    }
-  }
-
-  auto syntactic_closure::alpha::make_syntactic_closure(let const& form, int level) -> object const&
-  {
-    assert(form.is<symbol>());
-
-    return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->environment, unit, form, level), dictionary));
-  }
-
   auto syntactic_closure::alpha::convert(let const& form) -> object
   {
     assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
@@ -90,6 +54,43 @@ namespace meevax::inline kernel
     {
       return form;
     }
+  }
+
+  auto syntactic_closure::alpha::convert_formals(let const& formals, let const& bound_variables) -> object
+  {
+    auto convert = [&](let const& form)
+    {
+      assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
+
+      if (form.is<symbol>() and std::ranges::any_of(bound_variables | as_proper_list, [&](let const& formals)
+                                                    {
+                                                      return memq(form, formals) != f; // TODO variadic arguments
+                                                    }))
+      {
+        return make_syntactic_closure(form, length(bound_variables));
+      }
+      else
+      {
+        return form;
+      }
+    };
+
+    if (formals.is<pair>())
+    {
+      return cons(convert(car(formals)),
+                  convert_formals(cdr(formals), bound_variables));
+    }
+    else
+    {
+      return convert(formals);
+    }
+  }
+
+  auto syntactic_closure::alpha::make_syntactic_closure(let const& form, int level) -> object const&
+  {
+    assert(form.is<symbol>());
+
+    return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->environment, unit, form, level), dictionary));
   }
 
   syntactic_closure::syntactic_closure(let const& environment,
