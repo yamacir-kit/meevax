@@ -90,32 +90,32 @@ namespace meevax::inline kernel
   {
     assert(form.is<symbol>());
 
-    return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->environment, unit, form, level), dictionary));
+    return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->syntactic_environment, unit, form, level), dictionary));
   }
 
-  syntactic_closure::syntactic_closure(let const& environment,
+  syntactic_closure::syntactic_closure(let const& syntactic_environment,
                                        let const& free_names,
                                        let const& form,
-                                       int level)
-    : environment { environment }
-    , free_names  { free_names }
-    , form        { form }
-    , level       { level }
+                                       int de_bruijn_level)
+    : syntactic_environment { syntactic_environment }
+    , free_names            { free_names }
+    , form                  { form }
+    , de_bruijn_level       { de_bruijn_level }
   {
-    assert(environment.is<syntactic_environment>());
+    assert(syntactic_environment.is<struct syntactic_environment>());
   }
 
   auto syntactic_closure::expand(let const& bound_variables, alpha & outer) -> object
   {
-    if (eq(environment.as<syntactic_environment>().first, bound_variables))
+    if (eq(syntactic_environment.as<struct syntactic_environment>().first, bound_variables))
     {
-      return environment.as<syntactic_environment>().expand(form, bound_variables, outer);
+      return syntactic_environment.as<struct syntactic_environment>().expand(form, bound_variables, outer);
     }
     else
     {
       auto inner = alpha(this, &outer);
 
-      return environment.as<syntactic_environment>().expand(form, bound_variables, inner);
+      return syntactic_environment.as<struct syntactic_environment>().expand(form, bound_variables, inner);
     }
   }
 
@@ -123,14 +123,14 @@ namespace meevax::inline kernel
   {
     auto identify = [&]()
     {
-      let xs = environment.as<syntactic_environment>().first;
+      let xs = syntactic_environment.as<struct syntactic_environment>().first;
 
       for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
       {
         xs = cons(unit, xs);
       }
 
-      return environment.as<syntactic_environment const>().identify(form, xs);
+      return syntactic_environment.as<struct syntactic_environment const>().identify(form, xs);
     };
 
     if (let const& identity = identify(); identity != f)
@@ -139,7 +139,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return environment.as<syntactic_environment const>().identify(form, bound_variables);
+      return syntactic_environment.as<struct syntactic_environment const>().identify(form, bound_variables);
     }
   }
 
@@ -157,15 +157,15 @@ namespace meevax::inline kernel
     */
     return x.form.template is_also<identifier>() and
            y.form.template is_also<identifier>() and
-           eqv(x.environment.template as<syntactic_environment>().identify(x.form, x.environment.template as<syntactic_environment>().first),
-               y.environment.template as<syntactic_environment>().identify(y.form, y.environment.template as<syntactic_environment>().first));
+           eqv(x.syntactic_environment.as<struct syntactic_environment>().identify(x.form, x.syntactic_environment.as<struct syntactic_environment>().first),
+               y.syntactic_environment.as<struct syntactic_environment>().identify(y.form, y.syntactic_environment.as<struct syntactic_environment>().first));
   }
 
   auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
   {
-    if (datum.form.template is_also<identifier>() and datum.level != 0)
+    if (datum.form.template is_also<identifier>() and datum.de_bruijn_level != 0)
     {
-      return os << "<" << datum.form << '%' << datum.level << ">"; // Is automatically introduced by α-conversion.
+      return os << "<" << datum.form << '%' << datum.de_bruijn_level << ">"; // Is automatically introduced by α-conversion.
     }
     else
     {

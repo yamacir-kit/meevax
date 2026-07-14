@@ -95,8 +95,6 @@ namespace meevax::inline kernel
     {
       if (form.is_also<identifier>())
       {
-        assert(form.is_also<identifier>());
-
         if (let const& identity = identify(form, bound_variables); identity.is<relative>())
         {
           return cons(make<instruction>(instruction::secd_load_relative), identity, continuation);

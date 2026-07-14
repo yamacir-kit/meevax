@@ -41,11 +41,11 @@ namespace meevax::inline kernel
       auto make_syntactic_closure(let const& form, int) -> object const&;
     };
 
-    let environment, free_names, form;
+    let syntactic_environment, free_names, form;
 
-    int level;
+    int de_bruijn_level;
 
-    explicit syntactic_closure(let const& environment,
+    explicit syntactic_closure(let const& syntactic_environment,
                                let const& free_names,
                                let const& form,
                                int = 0);
