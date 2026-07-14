@@ -38,7 +38,7 @@ namespace meevax::inline kernel
 
       auto unshadow(let const& formals, let const& bound_variables) -> object;
 
-      auto rename(let const& form) -> object;
+      auto convert(let const& form) -> object;
     };
 
     let environment, free_names, form;

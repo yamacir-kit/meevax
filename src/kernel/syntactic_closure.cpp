@@ -33,13 +33,13 @@ namespace meevax::inline kernel
 
   auto syntactic_closure::alpha::unshadow(let const& formals, let const& bound_variables) -> object
   {
-    auto rename = [&](let const& form)
+    auto convert = [&](let const& form)
     {
       assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
       if (form.is<symbol>() and std::ranges::any_of(bound_variables | as_proper_list, [&](let const& formals)
                                                     {
-                                                      return static_cast<bool>(memq(form, formals)); // TODO variadic arguments
+                                                      return memq(form, formals) != f; // TODO variadic arguments
                                                     }))
       {
         return make_syntactic_closure(form, length(bound_variables));
@@ -52,11 +52,11 @@ namespace meevax::inline kernel
 
     if (formals.is<pair>())
     {
-      return cons(rename(car(formals)), unshadow(cdr(formals), bound_variables));
+      return cons(convert(car(formals)), unshadow(cdr(formals), bound_variables));
     }
     else
     {
-      return rename(formals);
+      return convert(formals);
     }
   }
 
@@ -67,7 +67,7 @@ namespace meevax::inline kernel
     return cdar(dictionary = alist_cons(form, make<syntactic_closure>(enclosure->environment, unit, form, level), dictionary));
   }
 
-  auto syntactic_closure::alpha::rename(let const& form) -> object
+  auto syntactic_closure::alpha::convert(let const& form) -> object
   {
     assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
@@ -75,7 +75,7 @@ namespace meevax::inline kernel
     {
       if (memq(form, enclosure->free_names) != f)
       {
-        return outer ? outer->rename(form) : form;
+        return outer ? outer->convert(form) : form;
       }
       else if (let const& renaming = assq(form, dictionary); renaming != f)
       {

@@ -75,7 +75,7 @@ namespace meevax::inline kernel
 
     let const& formals = scoped_alpha.unshadow(cadr(form), bound_variables);
 
-    return cons(alpha.rename(car(form)) /* lambda */,
+    return cons(alpha.convert(car(form)) /* lambda */,
                 cons(formals,
                      body(expander,
                           cddr(form),
@@ -147,7 +147,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::conditional)
   {
-    return cons(alpha.rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
@@ -156,7 +156,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::set)
   {
-    return cons(alpha.rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
@@ -271,7 +271,7 @@ namespace meevax::inline kernel
   {
     if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
     {
-      return list(alpha.rename(car(form)),
+      return list(alpha.convert(car(form)),
                   caadr(form) /* variable */,
                   expander.expand(cons(default_rename("lambda"),
                                        cdadr(form) /* formals */,
@@ -281,7 +281,7 @@ namespace meevax::inline kernel
     }
     else // (define <variable> <expression>)
     {
-      return cons(alpha.rename(car(form)),
+      return cons(alpha.convert(car(form)),
                   cadr(form),
                   cddr(form) ? list(expander.expand(caddr(form),
                                                     bound_variables,
@@ -292,7 +292,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::define_syntax)
   {
-    return list(alpha.rename(car(form)),
+    return list(alpha.convert(car(form)),
                 cadr(form),
                 expander.expand(caddr(form),
                                 bound_variables,
@@ -301,7 +301,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::call_with_current_continuation)
   {
-    return cons(alpha.rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
@@ -310,7 +310,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::current)
   {
-    return cons(alpha.rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
@@ -319,7 +319,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::install)
   {
-    return cons(alpha.rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,

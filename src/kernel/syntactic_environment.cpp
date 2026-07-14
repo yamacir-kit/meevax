@@ -60,11 +60,11 @@ namespace meevax::inline kernel
         return form.as<syntactic_closure>().expand(bound_variables, alpha);
       }
 
-      return form.is_also<identifier>() ? alpha.rename(form) : form;
+      return form.is_also<identifier>() ? alpha.convert(form) : form;
     }
     else if (car(form).is_also<identifier>())
     {
-      let const identifier = alpha.rename(car(form));
+      let const identifier = alpha.convert(car(form));
 
       if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
                                                                    : identify(car(form), bound_variables);
