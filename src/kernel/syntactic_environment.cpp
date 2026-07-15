@@ -59,8 +59,10 @@ namespace meevax::inline kernel
       {
         return form.as<syntactic_closure>().expand(bound_variables, alpha);
       }
-
-      return form.is_also<identifier>() ? alpha.convert(form) : form;
+      else
+      {
+        return form.is_also<identifier>() ? alpha.convert(form) : form;
+      }
     }
     else if (car(form).is_also<identifier>())
     {

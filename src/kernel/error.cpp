@@ -42,66 +42,6 @@ namespace meevax::inline kernel
     throw *this;
   }
 
-  auto disassemble(std::ostream & output, let const& c, std::size_t depth = 0) -> void
-  {
-    assert(c.is<pair>());
-    assert(car(c).is<instruction>());
-
-    switch (car(c).as<instruction>())
-    {
-    case instruction::secd_join:
-    case instruction::secd_tail_call:
-    case instruction::secd_tail_letrec:
-    case instruction::secd_return:
-    case instruction::secd_stop:
-      output << std::string(depth, ' ') << car(c) << '\n';
-      assert(cdr(c).is<null>());
-      break;
-
-    case instruction::secd_call:
-    case instruction::secd_cons:
-    case instruction::secd_drop:
-    case instruction::secd_dummy:
-    case instruction::secd_letrec:
-      output << std::string(depth, ' ') << car(c) << '\n';
-      disassemble(output, cdr(c), depth);
-      break;
-
-    case instruction::secd_current:
-    case instruction::secd_install:
-    case instruction::secd_load_absolute:
-    case instruction::secd_load_constant:
-    case instruction::secd_load_relative:
-    case instruction::secd_load_variadic:
-    case instruction::secd_store_absolute:
-    case instruction::secd_store_relative:
-    case instruction::secd_store_variadic:
-      output << std::string(depth, ' ') << car(c) << ' ' << cadr(c) << '\n';
-      disassemble(output, cddr(c), depth);
-      break;
-
-    case instruction::secd_load_closure:
-    case instruction::secd_load_continuation:
-      output << std::string(depth, ' ') << car(c) << '\n';
-      disassemble(output, cadr(c), depth + 2);
-      disassemble(output, cddr(c), depth);
-      break;
-
-    case instruction::secd_select:
-      output << std::string(depth, ' ') << car(c) << '\n';
-      disassemble(output, cadr(c), depth + 2);
-      disassemble(output, caddr(c), depth + 2);
-      disassemble(output, cdddr(c), depth);
-      break;
-
-    case instruction::secd_tail_select:
-      output << std::string(depth, ' ') << car(c) << '\n';
-      disassemble(output, cadr(c), depth + 2);
-      disassemble(output, caddr(c), depth + 2);
-      break;
-    }
-  }
-
   auto error::report(std::ostream & output) const -> std::ostream &
   {
     return output << red("; error! ", what()) << std::endl;
