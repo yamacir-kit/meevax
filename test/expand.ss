@@ -52,6 +52,21 @@
           4 5))
        1 2 3))
 
+(check (strip '((lambda (x y z)
+                  ((lambda (y z)
+                     ((lambda (z)
+                        (+ x y z))
+                      6))
+                   4 5))
+                1 2 3))
+  => '((lambda (x y z)
+         ((lambda (<y%1> <z%1>)
+            ((lambda (<z%2>)
+               (+ x <y%1> <z%2>))
+             6))
+          4 5))
+       1 2 3))
+
 (check (strip '(cond ((> 3 2) 'greater)
                      ((< 3 2) 'less)))
   => '(<if> (> 3 2)
@@ -440,4 +455,4 @@
 
 (check-report)
 
-(exit (check-passed? 26))
+(exit (check-passed? 27))

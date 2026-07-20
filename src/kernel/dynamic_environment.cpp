@@ -64,17 +64,9 @@ namespace meevax::inline kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is_also<absolute>());
-
-        if (let const& x = cdadr(c); x == undefined)
-        {
-          throw error(make<string>("undefined variable"), caadr(c));
-        }
-        else
-        {
-          s.reset<std::identity, truthy>(cons(x, s));
-          c.reset<truthy, truthy>(cddr(c));
-          goto fetch;
-        }
+        s.reset<std::identity, truthy>(cons(cdadr(c), s));
+        c.reset<truthy, truthy>(cddr(c));
+        goto fetch;
 
       case instruction::secd_load_relative: /* ---------------------------------
         *
@@ -451,6 +443,9 @@ namespace meevax::inline kernel
         goto fetch;
 
       default: // ERROR
+        assert(false);
+        [[fallthrough]];
+
       case instruction::secd_stop: /* ------------------------------------------
         *
         *  (x) e (%stop) d => () e () d
