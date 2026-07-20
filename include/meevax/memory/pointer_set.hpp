@@ -95,13 +95,18 @@ namespace meevax::inline memory
         }
       }
 
-      explicit const_iterator(pointer_set const* p, std::size_t i) noexcept
+      explicit const_iterator(pointer_set const* p, std::integral_constant<std::size_t, 0>) noexcept
         : p { p }
-        , i { std::max(i, p->i_min) }
+        , i { p->i_min }
       {
-        assert(i <= N);
+        assert(i <= N); // i == N only when `pointer_set` is empty.
         increment_unless_truthy();
       }
+
+      explicit const_iterator(pointer_set const* p, std::integral_constant<std::size_t, N>) noexcept
+        : p { p }
+        , i { N }
+      {}
 
       explicit const_iterator(pointer_set const* p) noexcept
         : p { p }
@@ -138,7 +143,7 @@ namespace meevax::inline memory
 
         for (i = seek(i); i <= p->i_max; i = seek(i + 1))
         {
-          if (p->data[i] and (sub = p->data[i]->lower_bound(0)))
+          if (p->data[i] and (sub = p->data[i]->begin()))
           {
             return;
           }
@@ -320,12 +325,12 @@ namespace meevax::inline memory
 
     auto begin() const noexcept
     {
-      return const_iterator(this, 0);
+      return const_iterator(this, std::integral_constant<std::size_t, 0>());
     }
 
     auto end() const noexcept
     {
-      return const_iterator(this, N);
+      return const_iterator(this, std::integral_constant<std::size_t, N>());
     }
 
     auto lower_bound(T value) const noexcept
@@ -450,6 +455,11 @@ namespace meevax::inline memory
         increment_unless_truthy();
       }
 
+      explicit const_iterator(pointer_set const* p, std::integral_constant<std::size_t, N>) noexcept
+        : p { p }
+        , i { N }
+      {}
+
       explicit const_iterator(pointer_set const* p) noexcept
         : p { p }
         , i { N - 1 }
@@ -528,7 +538,7 @@ namespace meevax::inline memory
 
     auto end() const noexcept
     {
-      return const_iterator(this, N);
+      return const_iterator(this, std::integral_constant<std::size_t, N>());
     }
 
     auto lower_bound(T value) const noexcept

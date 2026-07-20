@@ -38,8 +38,7 @@ namespace meevax::inline memory
             typename T2 = std::integral_constant<int, 2>,
             typename T3 = std::integral_constant<int, 3>,
             typename T4 = std::integral_constant<int, 4>,
-            typename T5 = std::integral_constant<int, 5>,
-            typename T6 = std::integral_constant<int, 6>>
+            typename T5 = std::integral_constant<int, 5>>
   struct nan_boxing_pointer
   {
     static_assert(sizeof(T1) <= 6 or std::is_pointer_v<T1>);
@@ -47,7 +46,6 @@ namespace meevax::inline memory
     static_assert(sizeof(T3) <= 6 or std::is_pointer_v<T3>);
     static_assert(sizeof(T4) <= 6 or std::is_pointer_v<T4>);
     static_assert(sizeof(T5) <= 6 or std::is_pointer_v<T5>);
-    static_assert(sizeof(T6) <= 6 or std::is_pointer_v<T6>);
 
     template <typename U>
     using payload_t = std::conditional_t<sizeof(U) <= 1, std::uint8_t, std::conditional_t<sizeof(U) <= 2, std::uint16_t, std::conditional_t<sizeof(U) <= 4, std::uint32_t, std::uint64_t>>>;
@@ -67,14 +65,14 @@ namespace meevax::inline memory
     template <typename Tn>
     auto static constexpr signature_of() noexcept -> std::uintptr_t
     {
-           if constexpr (std::is_same_v<Tn, double>) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T1    >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T2    >) { return 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T3    >) { return 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T4    >) { return 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T5    >) { return 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T6    >) { return 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
-      else if constexpr (std::is_same_v<Tn, T*    >) { return 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+           if constexpr (std::is_same_v<Tn, double        >) { return 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T1            >) { return 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T2            >) { return 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T3            >) { return 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T4            >) { return 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T5            >) { return 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, T*            >) { return 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
+      else if constexpr (std::is_same_v<Tn, std::nullptr_t>) { return 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000; }
       else
       {
         static_assert([]() { return false; });
@@ -87,18 +85,24 @@ namespace meevax::inline memory
       : data { std::bit_cast<std::uintptr_t>(canonicalize(x)) }
     {}
 
-    template <any_of<T1, T2, T3, T4, T5, T6> Tn>
+    template <any_of<T1, T2, T3, T4, T5> Tn>
     explicit constexpr nan_boxing_pointer(Tn x) noexcept
       : data { signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x) }
     {}
 
-    explicit constexpr nan_boxing_pointer(pointer x = nullptr) noexcept
+    explicit constexpr nan_boxing_pointer(pointer x) noexcept
       : data { signature_of<T*>() | std::bit_cast<payload_t<T*>>(x) }
+    {
+      assert(x);
+    }
+
+    explicit constexpr nan_boxing_pointer(std::nullptr_t = nullptr) noexcept
+      : data { signature_of<std::nullptr_t>() }
     {}
 
     auto operator =(auto x) noexcept -> auto &
     {
-      reset(std::forward<decltype(x)>(x));
+      reset(x);
       return *this;
     }
 
@@ -119,7 +123,7 @@ namespace meevax::inline memory
 
     explicit constexpr operator bool() const noexcept
     {
-      return dereferenceable() ? unsafe_get() != nullptr : false;
+      return signature() == signature_of<pointer>();
     }
 
     template <typename U>
@@ -140,14 +144,16 @@ namespace meevax::inline memory
       return std::isnan(x) ? std::bit_cast<double>(mask_exponent | mask_quiet) : x;
     }
 
-    auto constexpr dereferenceable() const noexcept
-    {
-      return signature() == signature_of<pointer>();
-    }
-
     auto constexpr get() const noexcept -> pointer
     {
-      return dereferenceable() ? unsafe_get() : nullptr;
+      switch (signature())
+      {
+      case signature_of<T*>():
+        return unsafe_get();
+
+      default:
+        return nullptr;
+      }
     }
 
     template <typename U>
@@ -160,8 +166,10 @@ namespace meevax::inline memory
       case signature_of<T3>(): return std::is_same_v<std::decay_t<U>, T3>;
       case signature_of<T4>(): return std::is_same_v<std::decay_t<U>, T4>;
       case signature_of<T5>(): return std::is_same_v<std::decay_t<U>, T5>;
-      case signature_of<T6>(): return std::is_same_v<std::decay_t<U>, T6>;
       case signature_of<T*>(): return std::is_same_v<std::decay_t<U>, T*>;
+
+      case signature_of<std::nullptr_t>():
+        return std::is_same_v<std::decay_t<U>, std::nullptr_t>;
 
       default:
         return std::is_same_v<std::decay_t<U>, double>;
@@ -178,15 +186,21 @@ namespace meevax::inline memory
       data = std::bit_cast<std::uintptr_t>(canonicalize(x));
     }
 
-    template <any_of<T1, T2, T3, T4, T5, T6> Tn>
+    template <any_of<T1, T2, T3, T4, T5> Tn>
     auto reset(Tn x) noexcept -> void
     {
       data = signature_of<Tn>() | std::bit_cast<payload_t<Tn>>(x);
     }
 
-    auto reset(pointer x = nullptr) noexcept -> void
+    auto reset(pointer x) noexcept -> void
     {
+      assert(x);
       data = signature_of<T*>() | std::bit_cast<payload_t<T*>>(x);
+    }
+
+    auto reset(std::nullptr_t = nullptr) noexcept -> void
+    {
+      data = signature_of<std::nullptr_t>();
     }
 
     auto constexpr payload() const noexcept
@@ -208,8 +222,10 @@ namespace meevax::inline memory
       case signature_of<T3>(): return typeid(T3);
       case signature_of<T4>(): return typeid(T4);
       case signature_of<T5>(): return typeid(T5);
-      case signature_of<T6>(): return typeid(T6);
       case signature_of<T*>(): return typeid(T*);
+
+      case signature_of<std::nullptr_t>():
+        return typeid(std::nullptr_t);
 
       default:
         return typeid(double);
@@ -221,7 +237,7 @@ namespace meevax::inline memory
       return reinterpret_cast<pointer>(payload());
     }
 
-    template <any_of<T1, T2, T3, T4, T5, T6, T*> Tn>
+    template <any_of<T1, T2, T3, T4, T5, T*> Tn>
     auto static write(std::ostream & os, Tn x) -> std::ostream &
     {
       if constexpr (std::is_same_v<decltype(x), bool>)
@@ -247,8 +263,10 @@ namespace meevax::inline memory
       case signature_of<T3>(): return write(os, as<T3>());
       case signature_of<T4>(): return write(os, as<T4>());
       case signature_of<T5>(): return write(os, as<T5>());
-      case signature_of<T6>(): return write(os, as<T6>());
       case signature_of<T*>(): return write(os, as<T*>());
+
+      case signature_of<std::nullptr_t>():
+        return os << magenta("()");
 
       default:
         if (auto value = as<double>(); std::isnan(value))

@@ -29,8 +29,10 @@ auto main() -> int
   {
     nan_boxing_pointer<structure> nbp { nullptr };
 
-    assert(nbp.type() == typeid(structure *));
-    assert(nbp.is<structure *>());
+    assert(nbp.type() != typeid(structure *));
+    assert(nbp.type() == typeid(std::nullptr_t));
+
+    assert(nbp.is<std::nullptr_t>());
   }
 
   {

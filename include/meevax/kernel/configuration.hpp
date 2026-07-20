@@ -23,8 +23,6 @@
 
 namespace meevax::inline kernel
 {
-  auto color() -> object &;
-
   auto command_line() -> std::vector<std::string> &;
 
   auto configure(int const, char const* const* const) -> void;

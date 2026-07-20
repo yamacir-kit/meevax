@@ -33,7 +33,7 @@ namespace meevax::inline kernel
 
     auto expand(object const& form, object const& bound_variables) const -> object;
 
-    auto expand(object const& form, object const& bound_variables, syntactic_closure::renamer & rename) const -> object;
+    auto expand(object const& form, object const& bound_variables, syntactic_closure::alpha &) const -> object;
 
     auto generate(object const& form,
                   object const& bound_variables,
@@ -48,7 +48,7 @@ namespace meevax::inline kernel
                let const& sequence,
                let const& bound_variables,
                let const& current_environment,
-               syntactic_closure::renamer & rename,
+               syntactic_closure::alpha &,
                let const& formals = unit,
                let const& reversed_binding_specs = unit) const -> std::tuple<object, object, object>;
   };

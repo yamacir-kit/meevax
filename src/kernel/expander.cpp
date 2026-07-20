@@ -28,7 +28,7 @@ namespace meevax::inline kernel
   auto NAME([[maybe_unused]] syntactic_environment const& expander,            \
                              object const& form,                               \
             [[maybe_unused]] object const& bound_variables,                    \
-            [[maybe_unused]] syntactic_closure::renamer & rename) -> object
+            [[maybe_unused]] syntactic_closure::alpha & alpha) -> object
 
   EXPANDER(expander::quote)
   {
@@ -44,11 +44,11 @@ namespace meevax::inline kernel
   {
     return cons(expander.expand(car(form),
                                 bound_variables,
-                                rename),
+                                alpha),
                 operand(expander,
                         cdr(form),
                         bound_variables,
-                        rename));
+                        alpha));
   }
 
   EXPANDER(expander::operand)
@@ -57,30 +57,30 @@ namespace meevax::inline kernel
     {
       return cons(expander.expand(car(form),
                                   bound_variables,
-                                  rename),
+                                  alpha),
                   operand(expander,
                           cdr(form),
                           bound_variables,
-                          rename));
+                          alpha));
     }
     else
     {
-      return expander.expand(form, bound_variables, rename);
+      return expander.expand(form, bound_variables, alpha);
     }
   }
 
   EXPANDER(expander::lambda)
   {
-    auto scoped_rename = rename;
+    auto scoped_alpha = alpha;
 
-    let const& formals = scoped_rename(cadr(form), bound_variables);
+    let const& formals = scoped_alpha.convert_formals(cadr(form), bound_variables);
 
-    return cons(rename(car(form)) /* lambda */,
+    return cons(alpha.convert(car(form)) /* lambda */,
                 cons(formals,
                      body(expander,
                           cddr(form),
                           cons(formals, bound_variables),
-                          scoped_rename)));
+                          scoped_alpha)));
   }
 
   EXPANDER(expander::body)
@@ -91,7 +91,7 @@ namespace meevax::inline kernel
                                                     form,
                                                     bound_variables,
                                                     make<syntactic_environment>(bound_variables, expander.second),
-                                                    rename);
+                                                    alpha);
         reversed_binding_specs)
     {
       /*
@@ -127,40 +127,40 @@ namespace meevax::inline kernel
                                             sequence),
                                        make_list(length(formals), unit))),
                              bound_variables,
-                             rename);
+                             alpha);
     }
     else if (sequence.template is<pair>())
     {
       return cons(expander.expand(car(sequence),
                                   bound_variables,
-                                  rename),
+                                  alpha),
                   body(expander,
                        cdr(sequence),
                        bound_variables,
-                       rename));
+                       alpha));
     }
     else
     {
-      return expander.expand(sequence, bound_variables, rename);
+      return expander.expand(sequence, bound_variables, alpha);
     }
   }
 
   EXPANDER(expander::conditional)
   {
-    return cons(rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
-                        rename));
+                        alpha));
   }
 
   EXPANDER(expander::set)
   {
-    return cons(rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
-                        rename));
+                        alpha));
   }
 
   EXPANDER(expander::include)
@@ -168,7 +168,7 @@ namespace meevax::inline kernel
     return expander.expand(cons(default_rename("begin"),
                                 meevax::include(cadr(form))),
                            bound_variables,
-                           rename);
+                           alpha);
   }
 
   EXPANDER(expander::include_case_insensitive)
@@ -176,7 +176,7 @@ namespace meevax::inline kernel
     return expander.expand(cons(default_rename("begin"),
                                 meevax::include<case_insensitive>(cadr(form))),
                            bound_variables,
-                           rename);
+                           alpha);
   }
 
   EXPANDER(expander::conditional_expand)
@@ -184,12 +184,12 @@ namespace meevax::inline kernel
     return expander.expand(cons(default_rename("begin"),
                                 meevax::conditional_expand(cdr(form))),
                            bound_variables,
-                           rename);
+                           alpha);
   }
 
   EXPANDER(expander::letrec)
   {
-    let const extended_bound_variables = cons(rename(map(car, cadr(form)), bound_variables),
+    let const extended_bound_variables = cons(alpha.convert_formals(map(car, cadr(form)), bound_variables),
                                               bound_variables);
 
     return cons(car(form),
@@ -198,13 +198,13 @@ namespace meevax::inline kernel
                       return list(car(binding),
                                   expander.expand(cadr(binding),
                                                   extended_bound_variables,
-                                                  rename));
+                                                  alpha));
                     },
                     cadr(form)),
                 body(expander,
                      cddr(form),
                      extended_bound_variables,
-                     rename));
+                     alpha));
   }
 
   EXPANDER(expander::sequence)
@@ -213,15 +213,15 @@ namespace meevax::inline kernel
     {
       return cons(expander.expand(car(form),
                                   bound_variables,
-                                  rename),
+                                  alpha),
                   sequence(expander,
                            cdr(form),
                            bound_variables,
-                           rename));
+                           alpha));
     }
     else
     {
-      return expander.expand(form, bound_variables, rename);
+      return expander.expand(form, bound_variables, alpha);
     }
   }
 
@@ -242,7 +242,7 @@ namespace meevax::inline kernel
                                      formals,
                                      cddr(form) /* body */)),
                            bound_variables,
-                           rename);
+                           alpha);
   }
 
   EXPANDER(expander::letrec_syntax)
@@ -264,65 +264,65 @@ namespace meevax::inline kernel
                                      formals,
                                      cddr(form) /* body */)),
                            bound_variables,
-                           rename);
+                           alpha);
   }
 
   EXPANDER(expander::define)
   {
     if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
     {
-      return list(rename(car(form)),
+      return list(alpha.convert(car(form)),
                   caadr(form) /* variable */,
                   expander.expand(cons(default_rename("lambda"),
                                        cdadr(form) /* formals */,
                                        cddr(form) /* body */),
                                   bound_variables,
-                                  rename));
+                                  alpha));
     }
     else // (define <variable> <expression>)
     {
-      return cons(rename(car(form)),
+      return cons(alpha.convert(car(form)),
                   cadr(form),
                   cddr(form) ? list(expander.expand(caddr(form),
-                                                          bound_variables,
-                                                          rename))
+                                                    bound_variables,
+                                                    alpha))
                                    : unit);
     }
   }
 
   EXPANDER(expander::define_syntax)
   {
-    return list(rename(car(form)),
+    return list(alpha.convert(car(form)),
                 cadr(form),
                 expander.expand(caddr(form),
                                 bound_variables,
-                                rename));
+                                alpha));
   }
 
   EXPANDER(expander::call_with_current_continuation)
   {
-    return cons(rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
-                        rename));
+                        alpha));
   }
 
   EXPANDER(expander::current)
   {
-    return cons(rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
-                        rename));
+                        alpha));
   }
 
   EXPANDER(expander::install)
   {
-    return cons(rename(car(form)),
+    return cons(alpha.convert(car(form)),
                 operand(expander,
                         cdr(form),
                         bound_variables,
-                        rename));
+                        alpha));
   }
 } // namespace meevax::kernel

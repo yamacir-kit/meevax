@@ -23,7 +23,9 @@ namespace meevax::inline kernel
 {
   struct pair : public std::pair<object, object>
   {
-    std::uint16_t extent_ = sizeof(pair);
+    void const* base = this;
+
+    std::size_t size = sizeof(pair);
 
     pair()
       : std::pair<object, object> { nullptr, nullptr }
@@ -39,12 +41,14 @@ namespace meevax::inline kernel
 
     auto virtual eqv(pair const*) const -> bool;
 
-    auto extent() const noexcept -> std::pair<void const*, void const*>;
-
     auto virtual type() const noexcept -> std::type_info const&;
 
     auto virtual write(std::ostream &) const -> std::ostream &;
   };
+
+  static_assert(sizeof(pair) == CHAR_BIT * 5);
+
+  static_assert(alignof(pair) == 8);
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 
