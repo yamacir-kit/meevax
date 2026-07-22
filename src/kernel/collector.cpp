@@ -17,6 +17,7 @@
 #include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/object.hpp>
 #include <meevax/memory/pointer_set.hpp>
+#include <sstream>
 #include <vector>
 
 namespace meevax::inline kernel
@@ -85,9 +86,9 @@ namespace meevax::inline kernel
 
   auto object::external_representation() const -> std::string
   {
-    auto ss = std::stringstream();
-    write(ss);
-    return ss.str();
+    auto oss = std::ostringstream();
+    write(oss);
+    return oss.str();
   }
 
   auto object::erase() const noexcept -> void
