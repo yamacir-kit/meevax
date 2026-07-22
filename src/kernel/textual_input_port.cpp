@@ -365,7 +365,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 2);
+            return make_number(read().external_representation(), 2);
 
           default:
             return make_number(take_token(c3), 2);
@@ -375,7 +375,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 10);
+            return make_number(read().external_representation(), 10);
 
           default:
             return make_number(take_token(c3), 10);
@@ -405,7 +405,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 8);
+            return make_number(read().external_representation(), 8);
 
           default:
             return make_number(take_token(c3), 8);
@@ -459,7 +459,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 16);
+            return make_number(read().external_representation(), 16);
 
           default:
             return make_number(take_token(c3), 16);

@@ -83,6 +83,13 @@ namespace meevax::inline kernel
     return *this ? pointer::unsafe_get()->eqv(rhs.get()) : static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
   }
 
+  auto object::external_representation() const -> std::string
+  {
+    auto ss = std::stringstream();
+    write(ss);
+    return ss.str();
+  }
+
   auto object::erase() const noexcept -> void
   {
     assert(objects.contains(this));

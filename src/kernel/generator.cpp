@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
@@ -107,7 +106,7 @@ namespace meevax::inline kernel
   {
     if (tail)
     {
-      assert(lexical_cast(continuation) == "(return)");
+      assert(continuation.external_representation() == "(return)");
 
       return generator.generate(car(form), // <test>
                                 bound_variables,
@@ -171,7 +170,7 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::letrec)
   {
-    assert(not tail or lexical_cast(continuation) == "(return)");
+    assert(not tail or continuation.external_representation() == "(return)");
 
     let const formals = map(car, car(form));
 

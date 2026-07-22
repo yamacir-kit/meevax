@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/configuration.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/error.hpp>
@@ -91,7 +90,7 @@ namespace meevax::inline kernel
              "Append <directory> to the list of directories that are searched in order to locate imported libraries. [SRFI 138]",
       [](auto read)
       {
-        directories().emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
+        directories().emplace_back(std::filesystem::weakly_canonical(read().external_representation()));
       }),
 
       option('D', "add-feature-identifier", "<name>",
@@ -105,7 +104,7 @@ namespace meevax::inline kernel
              "Prepend <directory> to the list of directories that are searched in order to locate imported libraries. [SRFI 138]",
       [](auto read)
       {
-        directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
+        directories().emplace_front(std::filesystem::weakly_canonical(read().external_representation()));
       }),
 
       option('\0', "color", "<boolean>",
@@ -185,7 +184,7 @@ namespace meevax::inline kernel
              "Load <file> into the interaction environment.",
       [](auto read)
       {
-        interaction_environment().as<environment>().load(lexical_cast(read()));
+        interaction_environment().as<environment>().load(read().external_representation());
       }),
 
       option('\0', "library-directories", "",

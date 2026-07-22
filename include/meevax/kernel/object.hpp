@@ -141,6 +141,8 @@ namespace meevax::inline kernel
 
     auto eqv(object const&) const noexcept -> bool;
 
+    auto external_representation() const -> std::string;
+
     template <typename U>
     auto is() const noexcept
     {
