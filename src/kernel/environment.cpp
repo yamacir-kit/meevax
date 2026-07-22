@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/identity.hpp>
@@ -32,7 +31,7 @@ namespace meevax::inline kernel
     {
       if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
-        libraries().emplace(lexical_cast(cadr(expression)), make<library>(cddr(expression)));
+        libraries().emplace(cadr(expression).external_representation(), make<library>(cddr(expression)));
 
         return unspecified;
       }
@@ -109,8 +108,7 @@ namespace meevax::inline kernel
       auto prefix = [prefix = caddr(form)](let const& identity)
       {
         assert(identity.is<absolute>());
-        return make<absolute>(make_symbol(lexical_cast(prefix) +
-                                          lexical_cast(car(identity))),
+        return make<absolute>(make_symbol(prefix.external_representation() + car(identity).external_representation()),
                               cdr(identity));
       };
 
@@ -141,7 +139,7 @@ namespace meevax::inline kernel
 
       return map(rename, import_set(cadr(form)));
     }
-    else if (auto iter = libraries().find(lexical_cast(form)); iter != libraries().end())
+    else if (auto iter = libraries().find(form.external_representation()); iter != libraries().end())
     {
       return std::get<1>(*iter).as<library>().import_set();
     }
@@ -151,12 +149,12 @@ namespace meevax::inline kernel
 
       for (let const& each : form | as_proper_list)
       {
-        pathname /= lexical_cast(each);
+        pathname /= each.external_representation();
       }
 
       environment().load(textual_context::of(form).locate(pathname, is_existing_non_directory));
 
-      if (auto iterator = libraries().find(lexical_cast(form)); iterator != libraries().end())
+      if (auto iterator = libraries().find(form.external_representation()); iterator != libraries().end())
       {
         return std::get<1>(*iterator).as<library>().import_set();
       }

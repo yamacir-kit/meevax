@@ -64,8 +64,8 @@ namespace meevax::inline kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is_also<absolute>());
-        s.reset<std::identity, truthy>(cons(cdadr(c), s));
-        c.reset<truthy, truthy>(cddr(c));
+        s.reset<bx, b1>(cons(cdadr(c), s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_load_relative: /* ---------------------------------
@@ -90,8 +90,8 @@ namespace meevax::inline kernel
 
           assert(i < length(e));
 
-          s.reset<std::identity, truthy>(cons(head(head(e, i), j), s));
-          c.reset<truthy, truthy>(cddr(c));
+          s.reset<bx, b1>(cons(head(head(e, i), j), s));
+          c.reset<b1, b1>(cddr(c));
         }
         goto fetch;
 
@@ -117,8 +117,8 @@ namespace meevax::inline kernel
 
           assert(i < length(e));
 
-          s.reset<std::identity, truthy>(cons(tail(head(e, i), j), s));
-          c.reset<truthy, truthy>(cddr(c));
+          s.reset<bx, b1>(cons(tail(head(e, i), j), s));
+          c.reset<b1, b1>(cddr(c));
         }
         goto fetch;
 
@@ -127,8 +127,8 @@ namespace meevax::inline kernel
         *  s e (%load-constant <object> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s.reset<std::identity, truthy>(cons(cadr(c), s));
-        c.reset<truthy, truthy>(cddr(c));
+        s.reset<bx, b1>(cons(cadr(c), s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_load_closure: /* ----------------------------------
@@ -138,8 +138,8 @@ namespace meevax::inline kernel
         *  where <closure> = (c' . e)
         *
         * ------------------------------------------------------------------- */
-        s.reset<std::identity, truthy>(cons(make<closure, segregated_storage_allocator<void>>(cadr(c), e), s));
-        c.reset<truthy, truthy>(cddr(c));
+        s.reset<bx, b1>(cons(make<closure, segregated_storage_allocator<void>>(cadr(c), e), s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_load_continuation: /* -----------------------------
@@ -149,8 +149,8 @@ namespace meevax::inline kernel
         *  where <continuation> = (s e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s.reset<std::identity, truthy>(cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s));
-        c.reset<truthy, truthy>(cddr(c));
+        s.reset<bx, b1>(cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_current: /* ---------------------------------------
@@ -159,8 +159,8 @@ namespace meevax::inline kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<small_integer>());
-        s.reset<std::identity, truthy>(cons(a[exact_integer_cast<std::size_t>(cadr(c))], s));
-        c.reset<truthy, truthy>(cddr(c));
+        s.reset<bx, b1>(cons(a[exact_integer_cast<std::size_t>(cadr(c))], s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_select: /* ----------------------------------------
@@ -170,9 +170,9 @@ namespace meevax::inline kernel
         *  where c' = (if <boolean> c1 c2)
         *
         * ------------------------------------------------------------------- */
-        d.reset<std::identity, truthy>(cons(cdddr(c), d));
-        c.reset<truthy, truthy>(car(s) != f ? cadr(c) : caddr(c));
-        s.reset<truthy, std::identity>(cdr(s));
+        d.reset<bx, b1>(cons(cdddr(c), d));
+        c.reset<b1, b1>(car(s) != f ? cadr(c) : caddr(c));
+        s.reset<b1, bx>(cdr(s));
         goto fetch;
 
       case instruction::secd_tail_select: /* -----------------------------------
@@ -183,8 +183,8 @@ namespace meevax::inline kernel
         *
         * ------------------------------------------------------------------- */
         assert(cdddr(c).template is<null>());
-        c.reset<truthy, truthy>(car(s) != f ? cadr(c) : caddr(c));
-        s.reset<truthy, std::identity>(cdr(s));
+        c.reset<b1, b1>(car(s) != f ? cadr(c) : caddr(c));
+        s.reset<b1, bx>(cdr(s));
         goto fetch;
 
       case instruction::secd_join: /* ------------------------------------------
@@ -193,8 +193,8 @@ namespace meevax::inline kernel
         *
         * ------------------------------------------------------------------- */
         assert(cdr(c).template is<null>());
-        c.reset<truthy, truthy>(car(d));
-        d.reset<truthy, std::identity>(cdr(d));
+        c.reset<b1, b1>(car(d));
+        d.reset<b1, bx>(cdr(d));
         goto fetch;
 
       case instruction::secd_call:
@@ -207,10 +207,10 @@ namespace meevax::inline kernel
         * ------------------------------------------------------------------- */
         {
           assert(tail(c, 1).template is<pair>());
-          d.reset<std::identity, truthy>(cons(cddr(s), e, cdr(c), d));
-          c.reset<truthy, truthy>(car(callee));
-          e.reset<std::identity, truthy>(cons(cadr(s), cdr(callee)));
-          s.reset<truthy>();
+          d.reset<bx, b1>(cons(cddr(s), e, cdr(c), d));
+          c.reset<b1, b1>(car(callee));
+          e.reset<bx, b1>(cons(cadr(s), cdr(callee)));
+          s.reset<b1>();
           goto fetch;
         }
         else if (callee.is<procedure>()) /* ------------------------------------
@@ -222,8 +222,8 @@ namespace meevax::inline kernel
         * ------------------------------------------------------------------- */
         {
           assert(tail(c, 1).template is<pair>());
-          s.reset<truthy, truthy>(cons(callee.as<procedure>().call(cadr(s)), cddr(s)));
-          c.reset<truthy, truthy>(cdr(c));
+          s.reset<b1, b1>(cons(callee.as<procedure>().call(cadr(s)), cddr(s)));
+          c.reset<b1, b1>(cdr(c));
           goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
@@ -236,10 +236,10 @@ namespace meevax::inline kernel
         {
           assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<pair>());
-          s.reset<truthy, truthy>(cons(caadr(s), car(callee)));
-          e.reset<std::identity, std::identity>(cadr(callee));
-          c.reset<truthy, truthy>(caddr(callee));
-          d.reset<std::identity, std::identity>(cdddr(callee));
+          s.reset<b1, b1>(cons(caadr(s), car(callee)));
+          e.reset<bx, bx>(cadr(callee));
+          c.reset<b1, b1>(caddr(callee));
+          d.reset<bx, bx>(cdddr(callee));
           goto fetch;
         }
         else
@@ -258,9 +258,9 @@ namespace meevax::inline kernel
         {
           assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
-          c.reset<truthy, truthy>(car(callee));
-          e.reset<std::identity, truthy>(cons(cadr(s), cdr(callee)));
-          s.reset<truthy>();
+          c.reset<b1, b1>(car(callee));
+          e.reset<bx, b1>(cons(cadr(s), cdr(callee)));
+          s.reset<b1>();
           goto fetch;
         }
         else if (callee.is<procedure>()) /* ------------------------------------
@@ -273,10 +273,10 @@ namespace meevax::inline kernel
         {
           assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
-          s.reset<truthy, truthy>(cons(callee.as<procedure>().call(cadr(s)), car(d)));
-          e.reset<std::identity, std::identity>(cadr(d));
-          c.reset<truthy, truthy>(caddr(d));
-          d.reset<truthy, std::identity>(cdddr(d));
+          s.reset<b1, b1>(cons(callee.as<procedure>().call(cadr(s)), car(d)));
+          e.reset<bx, bx>(cadr(d));
+          c.reset<b1, b1>(caddr(d));
+          d.reset<b1, bx>(cdddr(d));
           goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
@@ -289,10 +289,10 @@ namespace meevax::inline kernel
         {
           assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
-          s.reset<truthy, truthy>(cons(caadr(s), car(callee)));
-          e.reset<std::identity, std::identity>(cadr(callee));
-          c.reset<truthy, truthy>(caddr(callee));
-          d.reset<std::identity, std::identity>(cdddr(callee));
+          s.reset<b1, b1>(cons(caadr(s), car(callee)));
+          e.reset<bx, bx>(cadr(callee));
+          c.reset<b1, b1>(caddr(callee));
+          d.reset<bx, bx>(cdddr(callee));
           goto fetch;
         }
         else
@@ -305,8 +305,8 @@ namespace meevax::inline kernel
         *  s e (%dummy . c) d => s (<null> . e) c d
         *
         * ------------------------------------------------------------------- */
-        e.reset<std::identity, truthy>(cons(nullptr, e));
-        c.reset<truthy, truthy>(cdr(c));
+        e.reset<bx, b1>(cons(nullptr, e));
+        c.reset<b1, b1>(cdr(c));
         goto fetch;
 
       case instruction::secd_letrec: /* ----------------------------------------
@@ -317,10 +317,10 @@ namespace meevax::inline kernel
         *
         * ------------------------------------------------------------------- */
         cadar(s) = cadr(s);
-        d.reset<std::identity, truthy>(cons(cddr(s), cdr(e), cdr(c), d));
-        c.reset<truthy, truthy>(caar(s));
-        e.reset<truthy, truthy>(cdar(s));
-        s.reset<truthy>();
+        d.reset<bx, b1>(cons(cddr(s), cdr(e), cdr(c), d));
+        c.reset<b1, b1>(caar(s));
+        e.reset<b1, b1>(cdar(s));
+        s.reset<b1>();
         goto fetch;
 
       case instruction::secd_tail_letrec: /* -----------------------------------
@@ -332,9 +332,9 @@ namespace meevax::inline kernel
         * ------------------------------------------------------------------- */
         assert(cdr(c).template is<null>());
         cadar(s) = cadr(s);
-        c.reset<truthy, std::identity>(caar(s));
-        e.reset<truthy, truthy>(cdar(s));
-        s.reset<truthy>();
+        c.reset<b1, bx>(caar(s));
+        e.reset<b1, b1>(cdar(s));
+        s.reset<b1>();
         goto fetch;
 
       case instruction::secd_return: /* ----------------------------------------
@@ -345,10 +345,10 @@ namespace meevax::inline kernel
         assert(cdr(s).template is<null>());
         assert(cdr(c).template is<null>());
 
-        s.reset<truthy, truthy>(cons(car(s), car(d)));
-        e.reset<std::identity, std::identity>(cadr(d));
-        c.reset<truthy, truthy>(caddr(d));
-        d.reset<truthy, std::identity>(cdddr(d));
+        s.reset<b1, b1>(cons(car(s), car(d)));
+        e.reset<bx, bx>(cadr(d));
+        c.reset<b1, b1>(caddr(d));
+        d.reset<b1, bx>(cdddr(d));
         goto fetch;
 
       case instruction::secd_cons: /* ------------------------------------------
@@ -356,9 +356,9 @@ namespace meevax::inline kernel
         *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
         *
         * ------------------------------------------------------------------- */
-        car(s).reset<std::identity, truthy>(cons(car(s), cadr(s)));
-        cdr(s).reset<truthy, std::identity>(cddr(s));
-        c.reset<truthy, truthy>(cdr(c));
+        car(s).reset<bx, b1>(cons(car(s), cadr(s)));
+        cdr(s).reset<b1, bx>(cddr(s));
+        c.reset<b1, b1>(cdr(c));
         goto fetch;
 
       case instruction::secd_drop: /* ------------------------------------------
@@ -366,8 +366,8 @@ namespace meevax::inline kernel
         *  (x . s) e (%drop . c) d => s e c d
         *
         * ------------------------------------------------------------------- */
-        s.reset<truthy, std::identity>(cdr(s));
-        c.reset<truthy, truthy>(cdr(c));
+        s.reset<b1, bx>(cdr(s));
+        c.reset<b1, b1>(cdr(c));
         goto fetch;
 
       case instruction::secd_store_absolute: /* --------------------------------
@@ -381,7 +381,7 @@ namespace meevax::inline kernel
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<absolute>());
         cdadr(c) = car(s);
-        c.reset<truthy, truthy>(cddr(c));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_store_relative: /* --------------------------------
@@ -404,7 +404,7 @@ namespace meevax::inline kernel
 
           head(head(e, i), j) = car(s);
 
-          c.reset<truthy, truthy>(cddr(c));
+          c.reset<b1, b1>(cddr(c));
         }
         goto fetch;
 
@@ -428,7 +428,7 @@ namespace meevax::inline kernel
 
           tail(head(e, i), j) = car(s);
 
-          c.reset<truthy, truthy>(cddr(c));
+          c.reset<b1, b1>(cddr(c));
         }
         goto fetch;
 
@@ -439,7 +439,7 @@ namespace meevax::inline kernel
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<small_integer>());
         a[exact_integer_cast<std::size_t>(cadr(c))] = car(s);
-        c.reset<truthy, truthy>(cddr(c));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       default: // ERROR

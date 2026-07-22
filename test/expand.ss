@@ -86,6 +86,21 @@
           ()
           ()))))
 
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (define x 10)
+                 (define y 20)
+                 (+ x y)))
+  => '((<lambda> (x y)
+         ((<lambda> (<x%1> <y%1>)
+            (<set!> <x%1> 10)
+            (<set!> <y%1> 20)
+            (+ <x%1> <y%1>))
+          ()
+          ()))
+       1
+       2))
+
 (check (strip '(let ((x 5))
                  (define foo (lambda (y) (bar x y)))
                  (define bar (lambda (a b) (+ (* a b) a)))
@@ -98,6 +113,20 @@
           ()
           ()))
        5))
+
+(check (strip '(let ((f 1)
+                     (g 2))
+                 (define (f x) (+ x 10))
+                 (define (g x) (+ x 20))
+                 (g (f 3))))
+  => '((<lambda> (f g)
+         ((<lambda> (<f%1> <g%1>)
+            (<set!> <f%1> (<lambda> (x) (+ x 10)))
+            (<set!> <g%1> (<lambda> (x) (+ x 20)))
+            (<g%1> (<f%1> 3)))
+          ()
+          ()))
+       1 2))
 
 (check (strip '(let ()
                  (define-values (x y)
@@ -455,4 +484,4 @@
 
 (check-report)
 
-(exit (check-passed? 27))
+(exit (check-passed? 29))
