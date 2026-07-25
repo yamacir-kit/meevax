@@ -291,7 +291,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        environment().load(*iter);
+        interaction_environment().as<environment>().load(*iter);
       }
     }
   }
