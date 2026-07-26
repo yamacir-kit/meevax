@@ -49,6 +49,21 @@ namespace meevax::inline kernel
     assert(last(c).template is<instruction>());
     assert(last(c).template as<instruction>() == instruction::secd_stop);
 
+    auto i = [&]() -> decltype(auto)
+    {
+      assert(cadr(c).is<relative>() or cadr(c).is<variadic>());
+      assert(car(cadr(c)).is<small_integer>());
+      assert(car(cadr(c)).as<small_integer>() < length(e));
+      return car(cadr(c)).as<small_integer>();
+    };
+
+    auto j = [&]() -> decltype(auto)
+    {
+      assert(cadr(c).is<relative>() or cadr(c).is<variadic>());
+      assert(cdr(cadr(c)).is<small_integer>());
+      return cdr(cadr(c)).as<small_integer>();
+    };
+
     try
     {
     fetch:
@@ -77,22 +92,8 @@ namespace meevax::inline kernel
         *        x = (list-ref (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<relative>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          s.reset<bx, b1>(cons(head(head(e, i), j), s));
-          c.reset<b1, b1>(cddr(c));
-        }
+        s.reset<bx, b1>(cons(head(head(e, i()), j()), s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_load_variadic: /* ---------------------------------
@@ -104,22 +105,8 @@ namespace meevax::inline kernel
         *        x = (list-tail (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<variadic>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          s.reset<bx, b1>(cons(tail(head(e, i), j), s));
-          c.reset<b1, b1>(cddr(c));
-        }
+        s.reset<bx, b1>(cons(tail(head(e, i()), j()), s));
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_load_constant: /* ---------------------------------
@@ -344,7 +331,6 @@ namespace meevax::inline kernel
         * ------------------------------------------------------------------- */
         assert(cdr(s).template is<null>());
         assert(cdr(c).template is<null>());
-
         s.reset<b1, b1>(cons(car(s), car(d)));
         e.reset<bx, bx>(cadr(d));
         c.reset<b1, b1>(caddr(d));
@@ -389,23 +375,8 @@ namespace meevax::inline kernel
         *  (x . s) e (%store-relative <relative> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<relative>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          head(head(e, i), j) = car(s);
-
-          c.reset<b1, b1>(cddr(c));
-        }
+        head(head(e, i()), j()) = car(s);
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_store_variadic: /* --------------------------------
@@ -413,23 +384,8 @@ namespace meevax::inline kernel
         *  (x . s) e (%store-variadic <variadic> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<variadic>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          tail(head(e, i), j) = car(s);
-
-          c.reset<b1, b1>(cddr(c));
-        }
+        tail(head(e, i()), j()) = car(s);
+        c.reset<b1, b1>(cddr(c));
         goto fetch;
 
       case instruction::secd_install: /* ---------------------------------------
