@@ -201,20 +201,21 @@ namespace meevax::inline kernel
          In that case, the macro definition must be compiled before the
          macro is used (the evaluation order of function arguments in C++
          is not specified, but in most environments they are evaluated from
-         right to left). Therefore, the first expression is compiled
-         separately and then combined with the compiled result of the
-         remaining expressions by append.
+         right to left). Therefore, the first expression is compiled with a
+         continuation whose tail is patched after compiling the remaining
+         expressions.
       */
-      let const& head = generator.generate(car(form), // Head expression or definition
+      let rest = list(make<instruction>(instruction::secd_drop)); // Pop result of head expression
+
+      let const& code = generator.generate(car(form), // Head expression or definition
                                            bound_variables,
-                                           unit);
-      return append(head,
-                    cons(make<instruction>(instruction::secd_drop), // Pop result of head expression
-                         sequence(generator,
-                                  cdr(form), // Rest expression or definitions
-                                  bound_variables,
-                                  continuation,
-                                  tail)));
+                                           rest);
+      cdr(rest) = sequence(generator,
+                           cdr(form), // Rest expression or definitions
+                           bound_variables,
+                           continuation,
+                           tail);
+      return code;
     }
   }
 
