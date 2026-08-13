@@ -126,16 +126,17 @@ namespace meevax::inline kernel
     {
       return generator.generate(car(form), // <test>
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_select),
+                                list(make<instruction>(instruction::secd_select),
                                      generator.generate(cadr(form),
                                                         bound_variables,
-                                                        list(make<instruction>(instruction::secd_join))),
+                                                        continuation,
+                                                        tail),
                                      cddr(form) ? generator.generate(caddr(form),
                                                                      bound_variables,
-                                                                     list(make<instruction>(instruction::secd_join)))
-                                                : list(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       make<instruction>(instruction::secd_join)),
-                                     continuation));
+                                                                     continuation,
+                                                                     tail)
+                                                : cons(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                       continuation)));
     }
   }
 

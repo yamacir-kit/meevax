@@ -38,17 +38,11 @@ namespace meevax::inline kernel
 
   auto dynamic_environment::execute(object const& c) -> object
   {
-    assert(last(c).is<instruction>());
-    assert(last(c).as<instruction>() == instruction::secd_stop);
-
     return execute(nullptr, nullptr, c, nullptr);
   }
 
   auto dynamic_environment::execute(object s, object e, object c, object d) -> object
   {
-    assert(last(c).template is<instruction>());
-    assert(last(c).template as<instruction>() == instruction::secd_stop);
-
     auto i = [&]() -> decltype(auto)
     {
       assert(cadr(c).is<relative>() or cadr(c).is<variadic>());
@@ -152,12 +146,12 @@ namespace meevax::inline kernel
 
       case instruction::secd_select: /* ----------------------------------------
         *
-        *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' (c . d)
+        *  (<boolean> . s) e (%select c1 c2) d => s e c' d
         *
         *  where c' = (if <boolean> c1 c2)
         *
         * ------------------------------------------------------------------- */
-        d.reset<bx, b1>(cons(cdddr(c), d));
+        assert(cdddr(c).template is<null>());
         c.reset<b1, b1>(car(s) != f ? cadr(c) : caddr(c));
         s.reset<b1, bx>(cdr(s));
         goto fetch;
