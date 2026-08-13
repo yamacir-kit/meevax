@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/eof.hpp>
@@ -196,6 +195,21 @@ namespace meevax::inline kernel
     return c;
   }
 
+  auto concatenate(auto&&... xs)
+  {
+    auto ss = std::ostringstream();
+    (ss << ... << xs);
+    return ss.str();
+  }
+
+  template <typename T, int Base>
+  auto from_chars_to(std::string_view s)
+  {
+    auto x = T();
+    std::from_chars(s.data(), s.data() + s.size(), x, Base);
+    return x;
+  }
+
   auto textual_input_port::read(character c0) -> object
   {
     auto is_digit = [](auto c)
@@ -225,7 +239,7 @@ namespace meevax::inline kernel
           case 'r': s.characters.emplace_back('\r'); break;
           case 't': s.characters.emplace_back('\t'); break;
           case 'v': s.characters.emplace_back('\v'); break;
-          case 'x': s.characters.emplace_back(lexical_cast<character::int_type>(std::hex, take_character_until([](auto c) { return c == ';'; }))); break;
+          case 'x': s.characters.emplace_back(from_chars_to<character::int_type, 16>(take_character_until([](auto c) { return c == ';'; }))); break;
 
           case '\n':
           case '\r':
@@ -357,7 +371,7 @@ namespace meevax::inline kernel
 
             default:
               throw read_error(make<string>("unknown discriminator"),
-                               make<string>(lexical_cast('#', n, c)));
+                               make<string>(concatenate('#', n, c)));
             }
           }
 
@@ -365,7 +379,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 2);
+            return make_number(read().external_representation(), 2);
 
           default:
             return make_number(take_token(c3), 2);
@@ -375,7 +389,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 10);
+            return make_number(read().external_representation(), 10);
 
           default:
             return make_number(take_token(c3), 10);
@@ -405,7 +419,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 8);
+            return make_number(read().external_representation(), 8);
 
           default:
             return make_number(take_token(c3), 8);
@@ -428,7 +442,7 @@ namespace meevax::inline kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast(c1, c2, n)));
+                             make<string>(concatenate(c1, c2, n)));
           }
 
         case 't':
@@ -452,14 +466,14 @@ namespace meevax::inline kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast(c1, c2, n)));
+                             make<string>(concatenate(c1, c2, n)));
           }
 
         case 'x':
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast(read()), 16);
+            return make_number(read().external_representation(), 16);
 
           default:
             return make_number(take_token(c3), 16);
@@ -475,7 +489,7 @@ namespace meevax::inline kernel
           }
           else if (c3 == 'x') // #\x<hex scalar value>
           {
-            return make<character>(lexical_cast<character::int_type>(std::hex, take_token(character('0'))));
+            return make<character>(from_chars_to<character::int_type, 16>(take_token(character('0'))));
           }
           else // #\<character name>
           {

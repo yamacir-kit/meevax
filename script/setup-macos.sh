@@ -15,7 +15,7 @@ brew update
 
 if test "$#" -eq 0
 then
-  required | xargs brew install
+  essential | xargs brew install
 else
   for each in "$@"
   do

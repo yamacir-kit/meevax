@@ -1,4 +1,5 @@
-(import (only (meevax environment) expand)
+(import (meevax environment)
+        (meevax macro-transformer)
         (scheme base)
         (scheme eval)
         (scheme list)
@@ -8,13 +9,9 @@
         (scheme write)
         (srfi 78))
 
-(define strip-environment (environment '(meevax macro-transformer)
-                                       '(scheme base)
-                                       '(scheme list)))
-
 (define (strip expression)
   (parameterize ((current-output-port (open-output-string)))
-    (write (expand expression strip-environment))
+    (write (expand expression (interaction-environment)))
     (read (open-input-string (get-output-string (current-output-port))))))
 
 (check (strip '(let ((x 1)
@@ -86,6 +83,21 @@
           ()
           ()))))
 
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (define x 10)
+                 (define y 20)
+                 (+ x y)))
+  => '((<lambda> (x y)
+         ((<lambda> (<x%1> <y%1>)
+            (<set!> <x%1> 10)
+            (<set!> <y%1> 20)
+            (+ <x%1> <y%1>))
+          ()
+          ()))
+       1
+       2))
+
 (check (strip '(let ((x 5))
                  (define foo (lambda (y) (bar x y)))
                  (define bar (lambda (a b) (+ (* a b) a)))
@@ -98,6 +110,20 @@
           ()
           ()))
        5))
+
+(check (strip '(let ((f 1)
+                     (g 2))
+                 (define (f x) (+ x 10))
+                 (define (g x) (+ x 20))
+                 (g (f 3))))
+  => '((<lambda> (f g)
+         ((<lambda> (<f%1> <g%1>)
+            (<set!> <f%1> (<lambda> (x) (+ x 10)))
+            (<set!> <g%1> (<lambda> (x) (+ x 20)))
+            (<g%1> (<f%1> 3)))
+          ()
+          ()))
+       1 2))
 
 (check (strip '(let ()
                  (define-values (x y)
@@ -138,15 +164,14 @@
              (quote inner)))))
        (quote outer)))
 
-(eval '(define-syntax sc-swap!
-         (sc-macro-transformer
-           (lambda (form on-use)
-             (let ((a (make-syntactic-closure on-use '() (cadr form)))
-                   (b (make-syntactic-closure on-use '() (caddr form))))
-               `(let ((x ,a))
-                  (set! ,a ,b)
-                  (set! ,b x))))))
-      strip-environment)
+(define-syntax sc-swap!
+  (sc-macro-transformer
+    (lambda (form on-use)
+      (let ((a (make-syntactic-closure on-use '() (cadr form)))
+            (b (make-syntactic-closure on-use '() (caddr form))))
+        `(let ((x ,a))
+           (set! ,a ,b)
+           (set! ,b x))))))
 
 (check (strip '(let ((x 1)
                      (y 2))
@@ -196,18 +221,17 @@
              <x>))))
        1 2))
 
-(eval '(define-syntax rsc-swap!
-         (rsc-macro-transformer
-           (lambda (form environment)
-             (let ((a (cadr form))
-                   (b (caddr form))
-                   (x (make-syntactic-closure environment '() 'x))
-                   (let (make-syntactic-closure environment '() 'let))
-                   (set! (make-syntactic-closure environment '() 'set!)))
-               `(,let ((,x ,a))
-                  (,set! ,a ,b)
-                  (,set! ,b ,x))))))
-      strip-environment)
+(define-syntax rsc-swap!
+  (rsc-macro-transformer
+    (lambda (form environment)
+      (let ((a (cadr form))
+            (b (caddr form))
+            (x (make-syntactic-closure environment '() 'x))
+            (let (make-syntactic-closure environment '() 'let))
+            (set! (make-syntactic-closure environment '() 'set!)))
+        `(,let ((,x ,a))
+               (,set! ,a ,b)
+               (,set! ,b ,x))))))
 
 (check (strip '(let ((x 1)
                      (y 2))
@@ -241,15 +265,14 @@
              x))))
        1 2))
 
-(eval '(define-syntax er-swap!
-         (er-macro-transformer
-           (lambda (form rename compare)
-             (let ((a (cadr form))
-                   (b (caddr form)))
-               `(,(rename 'let) ((,(rename 'x) ,a))
-                                (,(rename 'set!) ,a ,b)
-                                (,(rename 'set!) ,b ,(rename 'x)))))))
-      strip-environment)
+(define-syntax er-swap!
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let ((a (cadr form))
+            (b (caddr form)))
+        `(,(rename 'let) ((,(rename 'x) ,a))
+                         (,(rename 'set!) ,a ,b)
+                         (,(rename 'set!) ,b ,(rename 'x)))))))
 
 (check (strip '(let ((x 1)
                      (y 2))
@@ -280,13 +303,12 @@
              x))))
        1 2))
 
-(eval '(define-syntax swap!
-         (syntax-rules ()
-           ((swap! a b)
-            (let ((x a))
-              (set! a b)
-              (set! b x)))))
-      strip-environment)
+(define-syntax swap!
+  (syntax-rules ()
+    ((swap! a b)
+     (let ((x a))
+       (set! a b)
+       (set! b x)))))
 
 (check (strip '(let ((x 1)
                      (y 2))
@@ -340,14 +362,13 @@
        (quote X)
        (quote Y)))
 
-(eval '(define-syntax macro
-         (syntax-rules ()
-           ((macro)
-            (lambda xs
-              (letrec-syntax ((inner-macro (syntax-rules ()
-                                             ((inner-macro) xs))))
-                (inner-macro))))))
-      strip-environment)
+(define-syntax macro
+  (syntax-rules ()
+    ((macro)
+     (lambda xs
+       (letrec-syntax ((inner-macro (syntax-rules ()
+                                      ((inner-macro) xs))))
+         (inner-macro))))))
 
 (check (strip '((macro) 1 2 3))
   => '((<lambda> <xs>
@@ -355,17 +376,16 @@
             <<<xs>>>)))
        1 2 3))
 
-(eval '(define-syntax aif
-         (sc-macro-transformer
-           (lambda (form at-use)
-             (let ((test (make-syntactic-closure at-use '() (cadr form)))
-                   (consequent (make-syntactic-closure at-use '(it) (caddr form)))
-                   (alternative (if (null? (cdddr form))
-                                    (if #f #f)
-                                    (make-syntactic-closure at-use '() (cadddr form)))))
-               `(let ((it ,test))
-                  (if it ,consequent ,alternative))))))
-      strip-environment)
+(define-syntax aif
+  (sc-macro-transformer
+    (lambda (form at-use)
+      (let ((test (make-syntactic-closure at-use '() (cadr form)))
+            (consequent (make-syntactic-closure at-use '(it) (caddr form)))
+            (alternative (if (null? (cdddr form))
+                             (if #f #f)
+                             (make-syntactic-closure at-use '() (cadddr form)))))
+        `(let ((it ,test))
+           (if it ,consequent ,alternative))))))
 
 (check (strip '(aif (memq 'b '(a b c))
                     (car it)))
@@ -455,4 +475,4 @@
 
 (check-report)
 
-(exit (check-passed? 27))
+(exit (check-passed? 29))

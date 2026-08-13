@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 
   struct pair;
 
-  struct truthy
+  struct b1
   {
     auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
     {
@@ -38,12 +38,20 @@ namespace meevax::inline kernel
     }
   };
 
-  struct falsy
+  struct b0
   {
     auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
     {
       assert(not x);
       return false;
+    }
+  };
+
+  struct bx
+  {
+    auto constexpr operator ()(auto const& x) const noexcept
+    {
+      return static_cast<bool>(x);
     }
   };
 
@@ -74,7 +82,7 @@ namespace meevax::inline kernel
 
     auto insert() const noexcept -> void;
 
-    template <typename Precondition = std::identity, typename Postcondition = std::identity>
+    template <typename Precondition = bx, typename Postcondition = bx>
     auto reset(object const& x) noexcept
     {
       if (Precondition()(*this))
@@ -97,10 +105,10 @@ namespace meevax::inline kernel
       }
     }
 
-    template <typename From = std::identity>
+    template <typename Precondition = bx>
     auto reset(std::nullptr_t = nullptr) noexcept -> void
     {
-      if (From()(*this))
+      if (Precondition()(*this))
       {
         pointer::reset();
         erase();
@@ -140,6 +148,8 @@ namespace meevax::inline kernel
     template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<object &>(*this)); }
 
     auto eqv(object const&) const noexcept -> bool;
+
+    auto external_representation() const -> std::string;
 
     template <typename U>
     auto is() const noexcept

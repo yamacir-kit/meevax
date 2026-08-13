@@ -17,6 +17,7 @@
 #include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/object.hpp>
 #include <meevax/memory/pointer_set.hpp>
+#include <sstream>
 #include <vector>
 
 namespace meevax::inline kernel
@@ -81,6 +82,13 @@ namespace meevax::inline kernel
   auto object::eqv(object const& rhs) const noexcept -> bool
   {
     return *this ? pointer::unsafe_get()->eqv(rhs.get()) : static_cast<pointer const&>(*this) == static_cast<pointer const&>(rhs);
+  }
+
+  auto object::external_representation() const -> std::string
+  {
+    auto oss = std::ostringstream();
+    write(oss);
+    return oss.str();
   }
 
   auto object::erase() const noexcept -> void
