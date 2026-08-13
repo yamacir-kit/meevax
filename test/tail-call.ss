@@ -246,58 +246,58 @@
        cons
        load-absolute =
        call
-       tail-select (load-constant ()
-                    load-constant 1
-                    cons
-                    load-relative (0 . 1)
-                    cons
-                    load-absolute +
-                    tail-call)
-                   (load-constant ()
-                    load-constant 0
-                    cons
-                    load-relative (0 . 1)
-                    cons
-                    load-absolute =
-                    call
-                    tail-select (load-constant ()
-                                 load-constant 1
-                                 cons
-                                 load-constant ()
-                                 load-constant 1
-                                 cons
-                                 load-relative (0 . 0)
-                                 cons
-                                 load-absolute -
-                                 call
-                                 cons
-                                 load-absolute ack
-                                 tail-call)
-                                (load-constant ()
-                                 load-constant ()
-                                 load-constant ()
-                                 load-constant 1
-                                 cons
-                                 load-relative (0 . 1)
-                                 cons
-                                 load-absolute -
-                                 call
-                                 cons
-                                 load-relative (0 . 0)
-                                 cons
-                                 load-absolute ack
-                                 call
-                                 cons
-                                 load-constant ()
-                                 load-constant 1
-                                 cons
-                                 load-relative (0 . 0)
-                                 cons
-                                 load-absolute -
-                                 call
-                                 cons
-                                 load-absolute ack
-                                 tail-call))))
+       select (load-constant ()
+               load-constant 1
+               cons
+               load-relative (0 . 1)
+               cons
+               load-absolute +
+               tail-call)
+              (load-constant ()
+               load-constant 0
+               cons
+               load-relative (0 . 1)
+               cons
+               load-absolute =
+               call
+               select (load-constant ()
+                       load-constant 1
+                       cons
+                       load-constant ()
+                       load-constant 1
+                       cons
+                       load-relative (0 . 0)
+                       cons
+                       load-absolute -
+                       call
+                       cons
+                       load-absolute ack
+                       tail-call)
+                      (load-constant ()
+                       load-constant ()
+                       load-constant ()
+                       load-constant 1
+                       cons
+                       load-relative (0 . 1)
+                       cons
+                       load-absolute -
+                       call
+                       cons
+                       load-relative (0 . 0)
+                       cons
+                       load-absolute ack
+                       call
+                       cons
+                       load-constant ()
+                       load-constant 1
+                       cons
+                       load-relative (0 . 0)
+                       cons
+                       load-absolute -
+                       call
+                       cons
+                       load-absolute ack
+                       tail-call))))
 
 (define (fib n)
   (if (< n 2)
@@ -313,35 +313,35 @@
        cons
        load-absolute <
        call
-       tail-select (load-relative (0 . 0)
-                    return)
-                   (load-constant ()
-                    load-constant ()
-                    load-constant ()
-                    load-constant 2
-                    cons
-                    load-relative (0 . 0)
-                    cons
-                    load-absolute -
-                    call
-                    cons
-                    load-absolute fib
-                    call
-                    cons
-                    load-constant ()
-                    load-constant ()
-                    load-constant 1
-                    cons
-                    load-relative (0 . 0)
-                    cons
-                    load-absolute -
-                    call
-                    cons
-                    load-absolute fib
-                    call
-                    cons
-                    load-absolute +
-                    tail-call)))
+       select (load-relative (0 . 0)
+               return)
+              (load-constant ()
+               load-constant ()
+               load-constant ()
+               load-constant 2
+               cons
+               load-relative (0 . 0)
+               cons
+               load-absolute -
+               call
+               cons
+               load-absolute fib
+               call
+               cons
+               load-constant ()
+               load-constant ()
+               load-constant 1
+               cons
+               load-relative (0 . 0)
+               cons
+               load-absolute -
+               call
+               cons
+               load-absolute fib
+               call
+               cons
+               load-absolute +
+               tail-call)))
 
 (check-report)
 

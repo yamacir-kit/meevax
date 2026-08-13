@@ -104,40 +104,28 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::conditional)
   {
-    if (tail)
-    {
-      assert(continuation.external_representation() == "(return)");
+    assert(not tail or continuation.external_representation() == "(return)");
 
-      return generator.generate(car(form), // <test>
-                                bound_variables,
-                                list(make<instruction>(instruction::secd_tail_select),
-                                     generator.generate(cadr(form),
-                                                        bound_variables,
-                                                        continuation,
-                                                        tail),
-                                     cddr(form) ? generator.generate(caddr(form),
-                                                                     bound_variables,
-                                                                     continuation,
-                                                                     tail)
-                                                : list(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       make<instruction>(instruction::secd_return))));
-    }
-    else
-    {
-      return generator.generate(car(form), // <test>
-                                bound_variables,
-                                list(make<instruction>(instruction::secd_select),
-                                     generator.generate(cadr(form),
-                                                        bound_variables,
-                                                        continuation,
-                                                        tail),
-                                     cddr(form) ? generator.generate(caddr(form),
-                                                                     bound_variables,
-                                                                     continuation,
-                                                                     tail)
-                                                : cons(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       continuation)));
-    }
+    /*
+       [R7RS 4.1.5. Conditionals]
+
+       If <test> yields a false value and no <alternate> is specified, then the
+       result of the expression is unspecified.
+    */
+
+    return generator.generate(car(form), // <test>
+                              bound_variables,
+                              list(make<instruction>(instruction::secd_select),
+                                   generator.generate(cadr(form),
+                                                      bound_variables,
+                                                      continuation,
+                                                      tail),
+                                   cddr(form) ? generator.generate(caddr(form),
+                                                                   bound_variables,
+                                                                   continuation,
+                                                                   tail)
+                                              : cons(make<instruction>(instruction::secd_load_constant), unspecified,
+                                                     continuation)));
   }
 
   GENERATOR(generator::set)
