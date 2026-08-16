@@ -38,17 +38,11 @@ namespace meevax::inline kernel
 
   auto dynamic_environment::execute(object const& c) -> object
   {
-    assert(last(c).is<instruction>());
-    assert(last(c).as<instruction>() == instruction::secd_stop);
-
     return execute(nullptr, nullptr, c, nullptr);
   }
 
   auto dynamic_environment::execute(object s, object e, object c, object d) -> object
   {
-    assert(last(c).template is<instruction>());
-    assert(last(c).template as<instruction>() == instruction::secd_stop);
-
     auto i = [&]() -> decltype(auto)
     {
       assert(cadr(c).is<relative>() or cadr(c).is<variadic>());
@@ -118,6 +112,15 @@ namespace meevax::inline kernel
         c.reset<b1, b1>(cddr(c));
         goto fetch;
 
+      case instruction::secd_load_null: /* -------------------------------------
+        *
+        *  s e (%load-null . c) d => (() . s) e c d
+        *
+        * ------------------------------------------------------------------- */
+        s.reset<bx, b1>(cons(nullptr, s));
+        c.reset<b1, b1>(cdr(c));
+        goto fetch;
+
       case instruction::secd_load_closure: /* ----------------------------------
         *
         *  s e (%load-closure c' . c) d => (<closure> . s) e c d
@@ -131,12 +134,12 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_continuation: /* -----------------------------
         *
-        *  s e (%load-continuation c' . c) d => ((<continuation>) . s) e c d
+        *  s e (%load-continuation c' . c) d => (<continuation> . s) e c d
         *
         *  where <continuation> = (s e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s.reset<bx, b1>(cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s));
+        s.reset<bx, b1>(cons(make<continuation>(s, cons(e, cons(cadr(c), d))), s));
         c.reset<b1, b1>(cddr(c));
         goto fetch;
 
@@ -152,19 +155,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_select: /* ----------------------------------------
         *
-        *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' (c . d)
-        *
-        *  where c' = (if <boolean> c1 c2)
-        *
-        * ------------------------------------------------------------------- */
-        d.reset<bx, b1>(cons(cdddr(c), d));
-        c.reset<b1, b1>(car(s) != f ? cadr(c) : caddr(c));
-        s.reset<b1, bx>(cdr(s));
-        goto fetch;
-
-      case instruction::secd_tail_select: /* -----------------------------------
-        *
-        *  (<boolean> . s) e (%tail-select c1 c2) d => s e c' d
+        *  (<boolean> . s) e (%select c1 c2) d => s e c' d
         *
         *  where c' = (if <boolean> c1 c2)
         *
@@ -172,16 +163,6 @@ namespace meevax::inline kernel
         assert(cdddr(c).template is<null>());
         c.reset<b1, b1>(car(s) != f ? cadr(c) : caddr(c));
         s.reset<b1, bx>(cdr(s));
-        goto fetch;
-
-      case instruction::secd_join: /* ------------------------------------------
-        *
-        *  s e (%join) (c . d) => s e c d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(c).template is<null>());
-        c.reset<b1, b1>(car(d));
-        d.reset<b1, bx>(cdr(d));
         goto fetch;
 
       case instruction::secd_call:
@@ -326,10 +307,9 @@ namespace meevax::inline kernel
 
       case instruction::secd_return: /* ----------------------------------------
         *
-        *  (x)  e (%return) (s' e' c' . d) => (x . s') e' c' d
+        *  (x . s)  e (%return) (s' e' c' . d) => (x . s') e' c' d
         *
         * ------------------------------------------------------------------- */
-        assert(cdr(s).template is<null>());
         assert(cdr(c).template is<null>());
         s.reset<b1, b1>(cons(car(s), car(d)));
         e.reset<bx, bx>(cadr(d));

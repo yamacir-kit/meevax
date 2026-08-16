@@ -64,6 +64,11 @@ namespace meevax::inline kernel
                                         cons(make<instruction>(instruction::secd_cons),
                                              continuation)));
     }
+    else if (form.is<null>())
+    {
+      return cons(make<instruction>(instruction::secd_load_null),
+                  continuation);
+    }
     else
     {
       return generator.generate(form, bound_variables, continuation);
@@ -104,39 +109,28 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::conditional)
   {
-    if (tail)
-    {
-      assert(continuation.external_representation() == "(return)");
+    assert(not tail or continuation.external_representation() == "(return)");
 
-      return generator.generate(car(form), // <test>
-                                bound_variables,
-                                list(make<instruction>(instruction::secd_tail_select),
-                                     generator.generate(cadr(form),
-                                                        bound_variables,
-                                                        continuation,
-                                                        tail),
-                                     cddr(form) ? generator.generate(caddr(form),
-                                                                     bound_variables,
-                                                                     continuation,
-                                                                     tail)
-                                                : list(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       make<instruction>(instruction::secd_return))));
-    }
-    else
-    {
-      return generator.generate(car(form), // <test>
-                                bound_variables,
-                                cons(make<instruction>(instruction::secd_select),
-                                     generator.generate(cadr(form),
-                                                        bound_variables,
-                                                        list(make<instruction>(instruction::secd_join))),
-                                     cddr(form) ? generator.generate(caddr(form),
-                                                                     bound_variables,
-                                                                     list(make<instruction>(instruction::secd_join)))
-                                                : list(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       make<instruction>(instruction::secd_join)),
-                                     continuation));
-    }
+    /*
+       [R7RS 4.1.5. Conditionals]
+
+       If <test> yields a false value and no <alternate> is specified, then the
+       result of the expression is unspecified.
+    */
+
+    return generator.generate(car(form), // <test>
+                              bound_variables,
+                              list(make<instruction>(instruction::secd_select),
+                                   generator.generate(cadr(form),
+                                                      bound_variables,
+                                                      continuation,
+                                                      tail),
+                                   cddr(form) ? generator.generate(caddr(form),
+                                                                   bound_variables,
+                                                                   continuation,
+                                                                   tail)
+                                              : cons(make<instruction>(instruction::secd_load_constant), unspecified,
+                                                     continuation)));
   }
 
   GENERATOR(generator::set)
@@ -201,20 +195,21 @@ namespace meevax::inline kernel
          In that case, the macro definition must be compiled before the
          macro is used (the evaluation order of function arguments in C++
          is not specified, but in most environments they are evaluated from
-         right to left). Therefore, the first expression is compiled
-         separately and then combined with the compiled result of the
-         remaining expressions by append.
+         right to left). Therefore, the first expression is compiled with a
+         continuation whose tail is patched after compiling the remaining
+         expressions.
       */
-      let const& head = generator.generate(car(form), // Head expression or definition
+      let rest = list(make<instruction>(instruction::secd_drop)); // Pop result of head expression
+
+      let const& code = generator.generate(car(form), // Head expression or definition
                                            bound_variables,
-                                           unit);
-      return append(head,
-                    cons(make<instruction>(instruction::secd_drop), // Pop result of head expression
-                         sequence(generator,
-                                  cdr(form), // Rest expression or definitions
-                                  bound_variables,
-                                  continuation,
-                                  tail)));
+                                           rest);
+      cdr(rest) = sequence(generator,
+                           cdr(form), // Rest expression or definitions
+                           bound_variables,
+                           continuation,
+                           tail);
+      return code;
     }
   }
 
@@ -257,8 +252,9 @@ namespace meevax::inline kernel
     assert(form.is<pair>());
     assert(cdr(form).is<null>());
 
-    return cons(make<instruction>(instruction::secd_load_continuation),
-                continuation,
+    return cons(make<instruction>(instruction::secd_load_null),
+                make<instruction>(instruction::secd_load_continuation), continuation,
+                make<instruction>(instruction::secd_cons),
                 generator.generate(car(form),
                                    bound_variables,
                                    list(make<instruction>(instruction::secd_tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.

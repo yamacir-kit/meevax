@@ -29,12 +29,12 @@ namespace meevax::inline kernel
     secd_drop,              //
     secd_dummy,             // a.k.a DUM
     secd_install,           //
-    secd_join,              //
     secd_letrec,            // a.k.a RAP
     secd_load_absolute,     // a.k.a LDG
     secd_load_closure,      // a.k.a LDF
     secd_load_constant,     // a.k.a LDC
     secd_load_continuation, //
+    secd_load_null,         //
     secd_load_relative,     // a.k.a LDL
     secd_load_variadic,     //
     secd_return,            // a.k.a RTN
@@ -45,7 +45,6 @@ namespace meevax::inline kernel
     secd_store_variadic,    //
     secd_tail_call,         //
     secd_tail_letrec,       //
-    secd_tail_select,       //
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
