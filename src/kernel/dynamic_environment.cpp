@@ -112,6 +112,15 @@ namespace meevax::inline kernel
         c.reset<b1, b1>(cddr(c));
         goto fetch;
 
+      case instruction::secd_load_null: /* -------------------------------------
+        *
+        *  s e (%load-null . c) d => (() . s) e c d
+        *
+        * ------------------------------------------------------------------- */
+        s.reset<bx, b1>(cons(nullptr, s));
+        c.reset<b1, b1>(cdr(c));
+        goto fetch;
+
       case instruction::secd_load_closure: /* ----------------------------------
         *
         *  s e (%load-closure c' . c) d => (<closure> . s) e c d

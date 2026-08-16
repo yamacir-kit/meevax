@@ -34,6 +34,7 @@ namespace meevax::inline kernel
     secd_load_closure,      // a.k.a LDF
     secd_load_constant,     // a.k.a LDC
     secd_load_continuation, //
+    secd_load_null,         //
     secd_load_relative,     // a.k.a LDL
     secd_load_variadic,     //
     secd_return,            // a.k.a RTN

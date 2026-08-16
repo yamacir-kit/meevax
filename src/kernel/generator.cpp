@@ -64,6 +64,11 @@ namespace meevax::inline kernel
                                         cons(make<instruction>(instruction::secd_cons),
                                              continuation)));
     }
+    else if (form.is<null>())
+    {
+      return cons(make<instruction>(instruction::secd_load_null),
+                  continuation);
+    }
     else
     {
       return generator.generate(form, bound_variables, continuation);

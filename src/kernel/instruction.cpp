@@ -35,6 +35,7 @@ namespace meevax::inline kernel
       case instruction::secd_load_closure:      return os << "load-closure";
       case instruction::secd_load_constant:     return os << "load-constant";
       case instruction::secd_load_continuation: return os << "load-continuation";
+      case instruction::secd_load_null:         return os << "load-null";
       case instruction::secd_load_relative:     return os << "load-relative";
       case instruction::secd_load_variadic:     return os << "load-variadic";
       case instruction::secd_return:            return os << "return";

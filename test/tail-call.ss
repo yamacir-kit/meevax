@@ -15,7 +15,7 @@
   (car '(a b)))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant (a b)
        cons
        load-absolute car
@@ -27,10 +27,10 @@
    42))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant 42
        cons
-       load-closure (load-constant ()
+       load-closure (load-null
                      load-constant 1
                      cons
                      load-relative (0 . 0)
@@ -44,10 +44,10 @@
     (+ x 1)))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant 42
        cons
-       load-closure (load-constant ()
+       load-closure (load-null
                      load-constant 1
                      cons
                      load-relative (0 . 0)
@@ -62,7 +62,7 @@
   (+ x y))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant ()
        cons
        load-constant ()
@@ -73,7 +73,7 @@
                      load-constant 2
                      store-relative (0 . 1)
                      drop
-                     load-constant ()
+                     load-null
                      load-relative (0 . 1)
                      cons
                      load-relative (0 . 0)
@@ -91,7 +91,7 @@
    '()))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant ()
        cons
        load-constant ()
@@ -102,7 +102,7 @@
                      load-constant 2
                      store-relative (0 . 1)
                      drop
-                     load-constant ()
+                     load-null
                      load-relative (0 . 1)
                      cons
                      load-relative (0 . 0)
@@ -117,9 +117,9 @@
       (let () 42))))
 
 (check (disassemble f)
-  => '(load-constant ()
-       load-closure (load-constant ()
-                     load-closure (load-constant ()
+  => '(load-null
+       load-closure (load-null
+                     load-closure (load-null
                                    load-closure (load-constant 42
                                                  return)
                                    tail-call)
@@ -133,12 +133,12 @@
 
 (check (disassemble f)
   => '(dummy
-       load-constant ()
+       load-null
        load-constant 2
        cons
        load-constant 1
        cons
-       load-closure (load-constant ()
+       load-closure (load-null
                      load-relative (0 . 1)
                      cons
                      load-relative (0 . 0)
@@ -153,7 +153,7 @@
          (+ 5 6)))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant 2
        cons
        load-constant 1
@@ -161,7 +161,7 @@
        load-absolute +
        call
        drop
-       load-constant ()
+       load-null
        load-constant 4
        cons
        load-constant 3
@@ -169,7 +169,7 @@
        load-absolute +
        call
        drop
-       load-constant ()
+       load-null
        load-constant 6
        cons
        load-constant 5
@@ -183,7 +183,7 @@
          (begin (+ 5 6))))
 
 (check (disassemble f)
-  => '(load-constant ()
+  => '(load-null
        load-constant 2
        cons
        load-constant 1
@@ -191,7 +191,7 @@
        load-absolute +
        call
        drop
-       load-constant ()
+       load-null
        load-constant 4
        cons
        load-constant 3
@@ -199,7 +199,7 @@
        load-absolute +
        call
        drop
-       load-constant ()
+       load-null
        load-constant 6
        cons
        load-constant 5
@@ -214,7 +214,7 @@
 
 (check (disassemble f)
   => '(load-continuation (return)
-       load-closure (load-constant ()
+       load-closure (load-null
                      load-relative (0 . 0)
                      tail-call)
        tail-call))
@@ -225,8 +225,8 @@
       (return))))
 
 (check (disassemble f)
-  => '(load-constant ()
-       load-closure (load-constant ()
+  => '(load-null
+       load-closure (load-null
                      load-relative (0 . 0)
                      tail-call)
        cons
@@ -239,31 +239,31 @@
         (else (ack (- m 1) (ack m (- n 1))))))
 
 (check (disassemble ack)
-  => '(load-constant ()
+  => '(load-null
        load-constant 0
        cons
        load-relative (0 . 0)
        cons
        load-absolute =
        call
-       select (load-constant ()
+       select (load-null
                load-constant 1
                cons
                load-relative (0 . 1)
                cons
                load-absolute +
                tail-call)
-              (load-constant ()
+              (load-null
                load-constant 0
                cons
                load-relative (0 . 1)
                cons
                load-absolute =
                call
-               select (load-constant ()
+               select (load-null
                        load-constant 1
                        cons
-                       load-constant ()
+                       load-null
                        load-constant 1
                        cons
                        load-relative (0 . 0)
@@ -273,9 +273,9 @@
                        cons
                        load-absolute ack
                        tail-call)
-                      (load-constant ()
-                       load-constant ()
-                       load-constant ()
+                      (load-null
+                       load-null
+                       load-null
                        load-constant 1
                        cons
                        load-relative (0 . 1)
@@ -288,7 +288,7 @@
                        load-absolute ack
                        call
                        cons
-                       load-constant ()
+                       load-null
                        load-constant 1
                        cons
                        load-relative (0 . 0)
@@ -306,7 +306,7 @@
          (fib (- n 2)))))
 
 (check (disassemble fib)
-  => '(load-constant ()
+  => '(load-null
        load-constant 2
        cons
        load-relative (0 . 0)
@@ -315,9 +315,9 @@
        call
        select (load-relative (0 . 0)
                return)
-              (load-constant ()
-               load-constant ()
-               load-constant ()
+              (load-null
+               load-null
+               load-null
                load-constant 2
                cons
                load-relative (0 . 0)
@@ -328,8 +328,8 @@
                load-absolute fib
                call
                cons
-               load-constant ()
-               load-constant ()
+               load-null
+               load-null
                load-constant 1
                cons
                load-relative (0 . 0)
