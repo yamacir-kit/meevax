@@ -134,12 +134,12 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_continuation: /* -----------------------------
         *
-        *  s e (%load-continuation c' . c) d => ((<continuation>) . s) e c d
+        *  s e (%load-continuation c' . c) d => (<continuation> . s) e c d
         *
         *  where <continuation> = (s e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s.reset<bx, b1>(cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s));
+        s.reset<bx, b1>(cons(make<continuation>(s, cons(e, cons(cadr(c), d))), s));
         c.reset<b1, b1>(cddr(c));
         goto fetch;
 
@@ -307,10 +307,9 @@ namespace meevax::inline kernel
 
       case instruction::secd_return: /* ----------------------------------------
         *
-        *  (x)  e (%return) (s' e' c' . d) => (x . s') e' c' d
+        *  (x . s)  e (%return) (s' e' c' . d) => (x . s') e' c' d
         *
         * ------------------------------------------------------------------- */
-        assert(cdr(s).template is<null>());
         assert(cdr(c).template is<null>());
         s.reset<b1, b1>(cons(car(s), car(d)));
         e.reset<bx, bx>(cadr(d));

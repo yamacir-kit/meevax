@@ -252,8 +252,9 @@ namespace meevax::inline kernel
     assert(form.is<pair>());
     assert(cdr(form).is<null>());
 
-    return cons(make<instruction>(instruction::secd_load_continuation),
-                continuation,
+    return cons(make<instruction>(instruction::secd_load_null),
+                make<instruction>(instruction::secd_load_continuation), continuation,
+                make<instruction>(instruction::secd_cons),
                 generator.generate(car(form),
                                    bound_variables,
                                    list(make<instruction>(instruction::secd_tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.

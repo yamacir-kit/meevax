@@ -213,7 +213,9 @@
       (return))))
 
 (check (disassemble f)
-  => '(load-continuation (return)
+  => '(load-null
+       load-continuation (return)
+       cons
        load-closure (load-null
                      load-relative (0 . 0)
                      tail-call)
