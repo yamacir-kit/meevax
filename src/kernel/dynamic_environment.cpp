@@ -156,28 +156,6 @@ namespace meevax::inline kernel
         s.reset<b1, bx>(cdr(s));
         goto fetch;
 
-      case instruction::secd_tail_select: /* -----------------------------------
-        *
-        *  (<boolean> . s) e (%tail-select c1 c2) d => s e c' d
-        *
-        *  where c' = (if <boolean> c1 c2)
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdddr(c).template is<null>());
-        c.reset<b1, b1>(car(s) != f ? cadr(c) : caddr(c));
-        s.reset<b1, bx>(cdr(s));
-        goto fetch;
-
-      case instruction::secd_join: /* ------------------------------------------
-        *
-        *  s e (%join) (c . d) => s e c d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(c).template is<null>());
-        c.reset<b1, b1>(car(d));
-        d.reset<b1, bx>(cdr(d));
-        goto fetch;
-
       case instruction::secd_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *

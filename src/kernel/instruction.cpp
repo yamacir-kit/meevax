@@ -30,7 +30,6 @@ namespace meevax::inline kernel
       case instruction::secd_drop:              return os << "drop";
       case instruction::secd_dummy:             return os << "dummy";
       case instruction::secd_install:           return os << "install";
-      case instruction::secd_join:              return os << "join";
       case instruction::secd_letrec:            return os << "letrec";
       case instruction::secd_load_absolute:     return os << "load-absolute";
       case instruction::secd_load_closure:      return os << "load-closure";
@@ -46,7 +45,6 @@ namespace meevax::inline kernel
       case instruction::secd_store_variadic:    return os << "store-variadic";
       case instruction::secd_tail_call:         return os << "tail-call";
       case instruction::secd_tail_letrec:       return os << "tail-letrec";
-      case instruction::secd_tail_select:       return os << "tail-select";
 
       default:
         assert(false);

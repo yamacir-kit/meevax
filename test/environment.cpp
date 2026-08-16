@@ -56,14 +56,14 @@ auto main() -> int
 
     std::cout << status << std::endl;
 
-    assert(status.root_count == 515);
+    assert(status.root_count == 513);
     assert(status.root_count_of.size() == 6);
     assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
     assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(status.root_count_of[typeid(eof                               )] ==   1);
     assert(status.root_count_of[typeid(ghost                             )] ==   2);
     assert(status.root_count_of[typeid(library                           )] ==  27); // There are 27 primitive libraries
-    assert(status.root_count_of[typeid(symbol                            )] == 483); // There are 483 builtin definitions
+    assert(status.root_count_of[typeid(symbol                            )] == 481); // There are 481 builtin definitions
   }
 
   interaction_environment().as<environment>().load_scheme_libraries();
@@ -73,14 +73,14 @@ auto main() -> int
 
     std::cout << status << std::endl;
 
-    assert(status.root_count == 1431);
+    assert(status.root_count == 1429);
     assert(status.root_count_of.size() == 6);
     assert(status.root_count_of[typeid(environment                       )] ==   1); // The interaction-environment
     assert(status.root_count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(status.root_count_of[typeid(eof                               )] ==   1);
     assert(status.root_count_of[typeid(ghost                             )] ==   2);
     assert(status.root_count_of[typeid(library                           )] ==  76);
-    assert(status.root_count_of[typeid(symbol                            )] >= 482);
+    assert(status.root_count_of[typeid(symbol                            )] >= 481); // There are 481 builtin definitions
   }
 
   collect();
@@ -96,7 +96,7 @@ auto main() -> int
     assert(status.root_count_of[typeid(eof                               )] ==   1);
     assert(status.root_count_of[typeid(ghost                             )] ==   2);
     assert(status.root_count_of[typeid(library                           )] ==  76);
-    assert(status.root_count_of[typeid(symbol                            )] >= 483); // There are 483 builtin definitions
+    assert(status.root_count_of[typeid(symbol                            )] >= 481); // There are 481 builtin definitions
   }
 
   symbols().clear();

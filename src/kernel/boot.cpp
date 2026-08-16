@@ -562,7 +562,6 @@ namespace meevax::inline kernel
                   define(make_symbol("secd-drop"),              make<instruction>(instruction::secd_drop             )),
                   define(make_symbol("secd-dummy"),             make<instruction>(instruction::secd_dummy            )),
                   define(make_symbol("secd-install"),           make<instruction>(instruction::secd_install          )),
-                  define(make_symbol("secd-join"),              make<instruction>(instruction::secd_join             )),
                   define(make_symbol("secd-letrec"),            make<instruction>(instruction::secd_letrec           )),
                   define(make_symbol("secd-load-absolute"),     make<instruction>(instruction::secd_load_absolute    )),
                   define(make_symbol("secd-load-closure"),      make<instruction>(instruction::secd_load_closure     )),
@@ -577,8 +576,7 @@ namespace meevax::inline kernel
                   define(make_symbol("secd-store-relative"),    make<instruction>(instruction::secd_store_relative   )),
                   define(make_symbol("secd-store-variadic"),    make<instruction>(instruction::secd_store_variadic   )),
                   define(make_symbol("secd-tail-call"),         make<instruction>(instruction::secd_tail_call        )),
-                  define(make_symbol("secd-tail-letrec"),       make<instruction>(instruction::secd_tail_letrec      )),
-                  define(make_symbol("secd-tail-select"),       make<instruction>(instruction::secd_tail_select      )));
+                  define(make_symbol("secd-tail-letrec"),       make<instruction>(instruction::secd_tail_letrec      )));
     }));
 
     libraries().emplace("(meevax integer32)", make<library>([](auto define)
