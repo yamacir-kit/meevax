@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 {
   auto dynamic_environment::apply(object const& f, object const& xs) -> object
   {
-    return execute(list(f, xs),
+    return execute(cons(f, xs),
                    nullptr,
                    list(make<instruction>(instruction::secd_call),
                         make<instruction>(instruction::secd_stop)),
@@ -117,6 +117,7 @@ namespace meevax::inline kernel
         *  s e (%load-null . c) d => (() . s) e c d
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer called.
         s.reset<bx, b1>(cons(nullptr, s));
         c.reset<b1, b1>(cdr(c));
         goto fetch;
@@ -134,12 +135,13 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_continuation: /* -----------------------------
         *
-        *  s e (%load-continuation c' . c) d => (<continuation> . s) e c d
+        *  () e (%load-continuation c' . c) d => (<continuation>) e c d
         *
-        *  where <continuation> = (s e c' . d)
+        *  where <continuation> = (e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s.reset<bx, b1>(cons(make<continuation>(s, cons(e, cons(cadr(c), d))), s));
+        assert(s.is<null>());
+        s.reset<b0, b1>(list(make<continuation>(e, cons(cadr(c), d))));
         c.reset<b1, b1>(cddr(c));
         goto fetch;
 
@@ -168,46 +170,45 @@ namespace meevax::inline kernel
       case instruction::secd_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
+        *  (<closure> . xs) e (%call . c) d => () (xs . e') c' (e c . d)
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         {
           assert(tail(c, 1).template is<pair>());
-          d.reset<bx, b1>(cons(cddr(s), e, cdr(c), d));
+          d.reset<bx, b1>(cons(e, cdr(c), d));
           c.reset<b1, b1>(car(callee));
-          e.reset<bx, b1>(cons(cadr(s), cdr(callee)));
+          e.reset<bx, b1>(cons(cdr(s), cdr(callee)));
           s.reset<b1>();
           goto fetch;
         }
         else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
+        *  (<procedure> . xs) e (%call . c) d => (x) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
           assert(tail(c, 1).template is<pair>());
-          s.reset<b1, b1>(cons(callee.as<procedure>().call(cadr(s)), cddr(s)));
+          s.reset<b1, b1>(list(callee.as<procedure>().call(cdr(s))));
           c.reset<b1, b1>(cdr(c));
           goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs) e (%call . c) d => (xs . s') e' c' d'
+        *  (<continuation> . xs) e (%call . c) d => xs e' c' d'
         *
-        *  where <continuation> = (s' e' c' . 'd)
+        *  where <continuation> = (e' c' . d')
         *
         * ------------------------------------------------------------------- */
         {
-          assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<pair>());
-          s.reset<b1, b1>(cons(caadr(s), car(callee)));
-          e.reset<bx, bx>(cadr(callee));
-          c.reset<b1, b1>(caddr(callee));
-          d.reset<bx, bx>(cdddr(callee));
+          e.reset<bx, bx>(car(callee));
+          c.reset<b1, b1>(cadr(callee));
+          d.reset<bx, bx>(cddr(callee));
+          s.reset<b1, bx>(cdr(s));
           goto fetch;
         }
         else
@@ -218,49 +219,46 @@ namespace meevax::inline kernel
       case instruction::secd_tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs) e (%tail-call) d => () (xs . e') c' d
+        *  (<closure> . xs) e (%tail-call) d => () (xs . e') c' d
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         {
-          assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
           c.reset<b1, b1>(car(callee));
-          e.reset<bx, b1>(cons(cadr(s), cdr(callee)));
+          e.reset<bx, b1>(cons(cdr(s), cdr(callee)));
           s.reset<b1>();
           goto fetch;
         }
         else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
+        *  (<procedure> . xs) e (%tail-call) (e' c' . d) => (x) e' c' d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
-          s.reset<b1, b1>(cons(callee.as<procedure>().call(cadr(s)), car(d)));
-          e.reset<bx, bx>(cadr(d));
-          c.reset<b1, b1>(caddr(d));
-          d.reset<b1, bx>(cdddr(d));
+          s.reset<b1, b1>(list(callee.as<procedure>().call(cdr(s))));
+          e.reset<bx, bx>(car(d));
+          c.reset<b1, b1>(cadr(d));
+          d.reset<b1, bx>(cddr(d));
           goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs) e (%tail-call) d => (xs . s') e' c' d'
+        *  (<continuation> . xs) e (%tail-call) d => xs e' c' d'
         *
-        *  where <continuation> = (s' e' c' . 'd)
+        *  where <continuation> = (e' c' . d')
         *
         * ------------------------------------------------------------------- */
         {
-          assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
-          s.reset<b1, b1>(cons(caadr(s), car(callee)));
-          e.reset<bx, bx>(cadr(callee));
-          c.reset<b1, b1>(caddr(callee));
-          d.reset<bx, bx>(cdddr(callee));
+          d.reset<bx, bx>(cddr(callee));
+          c.reset<b1, b1>(cadr(callee));
+          e.reset<bx, bx>(car(callee));
+          s.reset<b1, bx>(cdr(s));
           goto fetch;
         }
         else
@@ -279,13 +277,13 @@ namespace meevax::inline kernel
 
       case instruction::secd_letrec: /* ----------------------------------------
         *
-        *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
+        *  (<closure> . xs) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (e c . d)
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
-        cadar(s) = cadr(s);
-        d.reset<bx, b1>(cons(cddr(s), cdr(e), cdr(c), d));
+        cadar(s) = cdr(s);
+        d.reset<bx, b1>(cons(cdr(e), cdr(c), d));
         c.reset<b1, b1>(caar(s));
         e.reset<b1, b1>(cdar(s));
         s.reset<b1>();
@@ -293,13 +291,13 @@ namespace meevax::inline kernel
 
       case instruction::secd_tail_letrec: /* -----------------------------------
         *
-        *  (<closure> xs . s) (<null> . e) (%tail-letrec) d => () (set-car! e' xs) c' d
+        *  (<closure> . xs) (<null> . e) (%tail-letrec) d => () (set-car! e' xs) c' d
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         assert(cdr(c).template is<null>());
-        cadar(s) = cadr(s);
+        cadar(s) = cdr(s);
         c.reset<b1, bx>(caar(s));
         e.reset<b1, b1>(cdar(s));
         s.reset<b1>();
@@ -307,14 +305,13 @@ namespace meevax::inline kernel
 
       case instruction::secd_return: /* ----------------------------------------
         *
-        *  (x . s)  e (%return) (s' e' c' . d) => (x . s') e' c' d
+        *  s e (%return) (e' c' . d) => s e' c' d
         *
         * ------------------------------------------------------------------- */
         assert(cdr(c).template is<null>());
-        s.reset<b1, b1>(cons(car(s), car(d)));
-        e.reset<bx, bx>(cadr(d));
-        c.reset<b1, b1>(caddr(d));
-        d.reset<b1, bx>(cdddr(d));
+        e.reset<bx, bx>(car(d));
+        c.reset<b1, b1>(cadr(d));
+        d.reset<b1, bx>(cddr(d));
         goto fetch;
 
       case instruction::secd_cons: /* ------------------------------------------
@@ -322,8 +319,19 @@ namespace meevax::inline kernel
         *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer called.
         car(s).reset<bx, b1>(cons(car(s), cadr(s)));
         cdr(s).reset<b1, bx>(cddr(s));
+        c.reset<b1, b1>(cdr(c));
+        goto fetch;
+
+      case instruction::secd_cons_values: /* -----------------------------------
+        *
+        *  (x) e (%cons-values . c) (s' . d) => (x . s') e c d
+        *
+        * ------------------------------------------------------------------- */
+        s.reset<b1, b1>(cons(car(s), car(d)));
+        d.reset<b1, bx>(cdr(d));
         c.reset<b1, b1>(cdr(c));
         goto fetch;
 
@@ -378,13 +386,41 @@ namespace meevax::inline kernel
         c.reset<b1, b1>(cddr(c));
         goto fetch;
 
+      case instruction::secd_drop_values: /* -----------------------------------
+        *
+        *  s e (%drop-values . c) d => () e c d
+        *
+        * ------------------------------------------------------------------- */
+        s.reset<bx>();
+        c.reset<b1, b1>(cdr(c));
+        goto fetch;
+
+      case instruction::secd_save_values: /* -----------------------------------
+        *
+        *  s e (%save-values . c) d => () e c (s . d)
+        *
+        * ------------------------------------------------------------------- */
+        d.reset<bx, b1>(cons(s, d));
+        s.reset<bx>();
+        c.reset<b1, b1>(cdr(c));
+        goto fetch;
+
+      case instruction::secd_list_values: /* -----------------------------------
+        *
+        *  (xs) e (%list-values . c) d => xs e c d
+        *
+        * ------------------------------------------------------------------- */
+        s.reset<b1, bx>(car(s));
+        c.reset<b1, b1>(cdr(c));
+        goto fetch;
+
       default: // ERROR
         assert(false);
         [[fallthrough]];
 
       case instruction::secd_stop: /* ------------------------------------------
         *
-        *  (x) e (%stop) d => () e () d
+        *  (x . xs) () (%stop) () => (x . xs) () () ()
         *
         * ------------------------------------------------------------------- */
         assert(cdr(s).template is<null>());

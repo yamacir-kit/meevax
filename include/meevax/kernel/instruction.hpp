@@ -25,11 +25,14 @@ namespace meevax::inline kernel
   {
     secd_call,              // a.k.a APP
     secd_cons,              //
+    secd_cons_values,       //
     secd_current,           //
     secd_drop,              //
+    secd_drop_values,       //
     secd_dummy,             // a.k.a DUM
     secd_install,           //
     secd_letrec,            // a.k.a RAP
+    secd_list_values,       //
     secd_load_absolute,     // a.k.a LDG
     secd_load_closure,      // a.k.a LDF
     secd_load_constant,     // a.k.a LDC
@@ -38,6 +41,7 @@ namespace meevax::inline kernel
     secd_load_relative,     // a.k.a LDL
     secd_load_variadic,     //
     secd_return,            // a.k.a RTN
+    secd_save_values,       //
     secd_select,            // a.k.a SEL
     secd_stop,              //
     secd_store_absolute,    //

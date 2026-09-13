@@ -43,13 +43,28 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::call)
   {
-    return operand(generator,
-                   cdr(form),
-                   bound_variables,
-                   generator.generate(car(form),
-                                      bound_variables,
-                                      tail ? list(make<instruction>(instruction::secd_tail_call))
-                                           : cons(make<instruction>(instruction::secd_call), continuation)));
+    if (tail)
+    {
+      return cons(make<instruction>(instruction::secd_drop_values),
+                  operand(generator,
+                          cdr(form),
+                          bound_variables,
+                          generator.generate(car(form),
+                                             bound_variables,
+                                             list(make<instruction>(instruction::secd_tail_call)))));
+    }
+    else
+    {
+      return cons(make<instruction>(instruction::secd_save_values),
+                  operand(generator,
+                          cdr(form),
+                          bound_variables,
+                          generator.generate(car(form),
+                                             bound_variables,
+                                             cons(make<instruction>(instruction::secd_call),
+                                                  make<instruction>(instruction::secd_cons_values),
+                                                  continuation))));
+    }
   }
 
   GENERATOR(generator::operand)
@@ -61,17 +76,18 @@ namespace meevax::inline kernel
                      bound_variables,
                      generator.generate(car(form),
                                         bound_variables,
-                                        cons(make<instruction>(instruction::secd_cons),
-                                             continuation)));
+                                        continuation));
     }
     else if (form.is<null>())
     {
-      return cons(make<instruction>(instruction::secd_load_null),
-                  continuation);
+      return continuation;
     }
     else
     {
-      return generator.generate(form, bound_variables, continuation);
+      return generator.generate(form,
+                                bound_variables,
+                                cons(make<instruction>(instruction::secd_list_values),
+                                     continuation));
     }
   }
 
@@ -168,7 +184,9 @@ namespace meevax::inline kernel
 
     let const formals = map(car, car(form));
 
-    return cons(make<instruction>(instruction::secd_dummy),
+    return cons(make<instruction>(tail ? instruction::secd_drop_values
+                                       : instruction::secd_save_values),
+                make<instruction>(instruction::secd_dummy),
                 operand(generator,
                         map(cadr, car(form)),
                         cons(formals, bound_variables),
@@ -176,7 +194,9 @@ namespace meevax::inline kernel
                                cons(formals, cdr(form)), // (<formals> <body>)
                                bound_variables,
                                tail ? list(make<instruction>(instruction::secd_tail_letrec))
-                                    : cons(make<instruction>(instruction::secd_letrec), continuation))));
+                                    : cons(make<instruction>(instruction::secd_letrec),
+                                           make<instruction>(instruction::secd_cons_values),
+                                           continuation))));
   }
 
   GENERATOR(generator::sequence)
@@ -252,13 +272,25 @@ namespace meevax::inline kernel
     assert(form.is<pair>());
     assert(cdr(form).is<null>());
 
-    return cons(make<instruction>(instruction::secd_load_null),
-                make<instruction>(instruction::secd_load_continuation), continuation,
-                make<instruction>(instruction::secd_cons),
-                generator.generate(car(form),
-                                   bound_variables,
-                                   list(make<instruction>(instruction::secd_tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                                   tail));
+    if (tail)
+    {
+      return cons(make<instruction>(instruction::secd_drop_values),
+                  make<instruction>(instruction::secd_load_continuation), continuation,
+                  generator.generate(car(form),
+                                     bound_variables,
+                                     list(make<instruction>(instruction::secd_tail_call))));
+    }
+    else
+    {
+      return cons(make<instruction>(instruction::secd_save_values),
+                  make<instruction>(instruction::secd_load_continuation), cons(make<instruction>(instruction::secd_cons_values),
+                                                                               continuation),
+                  generator.generate(car(form),
+                                     bound_variables,
+                                     cons(make<instruction>(instruction::secd_call),
+                                          make<instruction>(instruction::secd_cons_values),
+                                          continuation)));
+    }
   }
 
   GENERATOR(generator::current)
