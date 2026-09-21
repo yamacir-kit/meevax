@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <meevax/kernel/converter.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
@@ -28,6 +29,14 @@ namespace meevax::inline kernel
     using pair::pair;
 
     auto compile(object const& form) -> object;
+
+    auto convert(object const& form, object const& bound_variables) const -> object;
+
+    auto T_c(object const& form, object const& bound_variables, syntactic_continuation const&) const -> object;
+
+    auto T_k(object const& form, object const& bound_variables, administrative_beta_reducer const&) const -> object;
+
+    auto M(object const& form, object const& bound_variables) const -> object;
 
     auto define(object const&, object const& = undefined) -> object;
 

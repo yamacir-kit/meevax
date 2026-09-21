@@ -43,28 +43,12 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::call)
   {
-    if (tail)
-    {
-      return cons(make<instruction>(instruction::secd_drop_values),
-                  operand(generator,
-                          cdr(form),
-                          bound_variables,
-                          generator.generate(car(form),
-                                             bound_variables,
-                                             list(make<instruction>(instruction::secd_tail_call)))));
-    }
-    else
-    {
-      return cons(make<instruction>(instruction::secd_save_values),
-                  operand(generator,
-                          cdr(form),
-                          bound_variables,
-                          generator.generate(car(form),
-                                             bound_variables,
-                                             cons(make<instruction>(instruction::secd_call),
-                                                  make<instruction>(instruction::secd_cons_values),
-                                                  continuation))));
-    }
+    return operand(generator,
+                   cdr(form),
+                   bound_variables,
+                   generator.generate(car(form),
+                                      bound_variables,
+                                      list(make<instruction>(instruction::secd_tail_call))));
   }
 
   GENERATOR(generator::operand)
@@ -180,6 +164,8 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::letrec)
   {
+    assert(false);
+
     assert(not tail or continuation.external_representation() == "(return)");
 
     let const formals = map(car, car(form));
@@ -258,7 +244,8 @@ namespace meevax::inline kernel
 
     let identity = generator.identify(car(form), unit);
 
-    cdr(identity) = make<transformer>(environment().execute(generator.generate(cadr(form),
+    cdr(identity) = make<transformer>(environment().execute(generator.generate(generator.convert(cadr(form),
+                                                                                                 bound_variables),
                                                                                bound_variables)),
                                       make<syntactic_environment>(bound_variables,
                                                                   generator.second));

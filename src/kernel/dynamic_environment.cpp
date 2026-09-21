@@ -29,10 +29,9 @@ namespace meevax::inline kernel
 {
   auto dynamic_environment::apply(object const& f, object const& xs) -> object
   {
-    return execute(cons(f, xs),
+    return execute(cons(f, make<continuation>(nullptr, list(list(make<instruction>(instruction::secd_stop)))), xs),
                    nullptr,
-                   list(make<instruction>(instruction::secd_call),
-                        make<instruction>(instruction::secd_stop)),
+                   list(make<instruction>(instruction::secd_tail_call)),
                    nullptr);
   }
 
@@ -117,7 +116,7 @@ namespace meevax::inline kernel
         *  s e (%load-null . c) d => (() . s) e c d
         *
         * ------------------------------------------------------------------- */
-        assert(false); // No longer called.
+        assert(false); // No longer emitted.
         s.reset<bx, b1>(cons(nullptr, s));
         c.reset<b1, b1>(cdr(c));
         goto fetch;
@@ -140,6 +139,7 @@ namespace meevax::inline kernel
         *  where <continuation> = (e c' . d)
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         assert(s.is<null>());
         s.reset<b0, b1>(list(make<continuation>(e, cons(cadr(c), d))));
         c.reset<b1, b1>(cddr(c));
@@ -168,6 +168,8 @@ namespace meevax::inline kernel
         goto fetch;
 
       case instruction::secd_call:
+        assert(false); // No longer emitted.
+
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
         *  (<closure> . xs) e (%call . c) d => () (xs . e') c' (e c . d)
@@ -233,17 +235,15 @@ namespace meevax::inline kernel
         }
         else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<procedure> . xs) e (%tail-call) (e' c' . d) => (x) e' c' d
+        *  (<procedure> k . xs) e (%tail-call) d => (k x) e (%tail-call) d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
           assert(tail(c, 1).template is<null>());
-          s.reset<b1, b1>(list(callee.as<procedure>().call(cdr(s))));
-          e.reset<bx, bx>(car(d));
-          c.reset<b1, b1>(cadr(d));
-          d.reset<b1, bx>(cddr(d));
+          s.reset<b1, bx>(list(cadr(s), callee.as<procedure>().call(cddr(s))));
+          assert(not car(s).template is<procedure>());
           goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
@@ -271,6 +271,7 @@ namespace meevax::inline kernel
         *  s e (%dummy . c) d => s (<null> . e) c d
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         e.reset<bx, b1>(cons(nullptr, e));
         c.reset<b1, b1>(cdr(c));
         goto fetch;
@@ -282,6 +283,7 @@ namespace meevax::inline kernel
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         cadar(s) = cdr(s);
         d.reset<bx, b1>(cons(cdr(e), cdr(c), d));
         c.reset<b1, b1>(caar(s));
@@ -296,6 +298,7 @@ namespace meevax::inline kernel
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         assert(cdr(c).template is<null>());
         cadar(s) = cdr(s);
         c.reset<b1, bx>(caar(s));
@@ -308,6 +311,7 @@ namespace meevax::inline kernel
         *  s e (%return) (e' c' . d) => s e' c' d
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         assert(cdr(c).template is<null>());
         e.reset<bx, bx>(car(d));
         c.reset<b1, b1>(cadr(d));
@@ -319,7 +323,7 @@ namespace meevax::inline kernel
         *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
         *
         * ------------------------------------------------------------------- */
-        assert(false); // No longer called.
+        assert(false); // No longer emitted.
         car(s).reset<bx, b1>(cons(car(s), cadr(s)));
         cdr(s).reset<b1, bx>(cddr(s));
         c.reset<b1, b1>(cdr(c));
@@ -330,6 +334,7 @@ namespace meevax::inline kernel
         *  (x) e (%cons-values . c) (s' . d) => (x . s') e c d
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         s.reset<b1, b1>(cons(car(s), car(d)));
         d.reset<b1, bx>(cdr(d));
         c.reset<b1, b1>(cdr(c));
@@ -391,6 +396,7 @@ namespace meevax::inline kernel
         *  s e (%drop-values . c) d => () e c d
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         s.reset<bx>();
         c.reset<b1, b1>(cdr(c));
         goto fetch;
@@ -400,6 +406,7 @@ namespace meevax::inline kernel
         *  s e (%save-values . c) d => () e c (s . d)
         *
         * ------------------------------------------------------------------- */
+        assert(false); // No longer emitted.
         d.reset<bx, b1>(cons(s, d));
         s.reset<bx>();
         c.reset<b1, b1>(cdr(c));

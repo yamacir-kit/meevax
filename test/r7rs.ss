@@ -164,7 +164,7 @@
 
 (check (+ x 1) => 3)
 
-(check (set! x 4) => 4)
+(check (set! x 4) => (if #f #f))
 
 (check (+ x 1) => 5)
 
@@ -1604,7 +1604,7 @@
                       (null-environment 5))))
          (f + 10)) => 20)
 
-(check (eval '(define foo 32) (environment '(scheme base))) => 32)
+(check (eval '(define foo 32) (environment '(scheme base))) => (if #f #f))
 
 ; ---- 6.13.1. -----------------------------------------------------------------
 

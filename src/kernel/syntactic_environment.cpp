@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
@@ -30,7 +31,67 @@ namespace meevax::inline kernel
 {
   auto syntactic_environment::compile(object const& form) -> object
   {
-    return generate(expand(form, first), first);
+    return generate(convert(expand(form, first), first), first);
+  }
+
+  auto syntactic_environment::convert(object const& form, object const& bound_variables) const -> object
+  {
+    return T_c(form,
+               bound_variables,
+               make<kernel::continuation>(nullptr, list(list(make<instruction>(instruction::secd_stop)))));
+  }
+
+  auto syntactic_environment::T_c(object const& form, object const& bound_variables, syntactic_continuation const& c) const -> object
+  {
+    if (not form.is<pair>())
+    {
+      return list(c, M(form, bound_variables));
+    }
+    else if (car(form).is_also<identifier>())
+    {
+      if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
+      {
+        return cdr(identity).as<syntax>().T_c(*this, form, bound_variables, c);
+      }
+    }
+
+    return converter::call(*this, form, bound_variables, c);
+  }
+
+  auto syntactic_environment::T_k(object const& form, object const& bound_variables, administrative_beta_reducer const& k) const -> object
+  {
+    if (not form.is<pair>())
+    {
+      return k(M(form, bound_variables));
+    }
+    else if (car(form).is_also<identifier>())
+    {
+      if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
+      {
+        return cdr(identity).as<syntax>().T_k(*this, form, bound_variables, k);
+      }
+    }
+
+    return converter::call(*this, form, bound_variables, k);
+  }
+
+  auto syntactic_environment::M(object const& form, object const& bound_variables) const -> object
+  {
+    if (form.is<pair>())
+    {
+      let const k = make<symbol>("$k");
+
+      return list(default_rename("lambda"),
+                  cons(k, cadr(form)),
+                  converter::body(*this,
+                                  cddr(form),
+                                  cons(cadr(form), bound_variables),
+                                  k));
+    }
+    else
+    {
+      return form;
+    }
   }
 
   auto syntactic_environment::define(object const& variable, object const& value) -> object
@@ -332,7 +393,13 @@ namespace meevax::inline kernel
 
   auto core_syntactic_environment() -> object const&
   {
-    #define BIND(NAME, SYNTAX) make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, generator::SYNTAX))
+    #define BIND(NAME, SYNTAX) \
+    make<absolute>(make_symbol(NAME), \
+                   make<syntax>(NAME, \
+                                expander::SYNTAX, \
+                                static_cast<decltype(syntax::T_c)>(converter::SYNTAX), \
+                                static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \
+                                generator::SYNTAX))
 
     let static const core_syntactic_environment = make<syntactic_environment>(
       unit,
