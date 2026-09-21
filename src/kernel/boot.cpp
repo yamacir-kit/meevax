@@ -119,6 +119,8 @@ namespace meevax::inline kernel
       { "environment",                   [](let const& xs) { return make<environment>(xs | as_proper_list); } },
       { "eval",                          [](let const& xs) { return cadr(xs).as<environment>().evaluate(car(xs)); } },
       { "expand",                        [](let const& xs) { return cadr(xs).as<environment>().expand(car(xs), unit); } },
+      { "convert",                       [](let const& xs) { return cadr(xs).as<environment>().convert(car(xs), unit); } },
+      { "generate",                      [](let const& xs) { return cadr(xs).as<environment>().generate(car(xs), unit); } },
       { "interaction-environment",       [](let const&   ) { return interaction_environment(); } },
       { "load",                          [](let const& xs) { car(xs).as<environment>().load(cadr(xs).as<string>().utf8()); return unspecified; } },
 
@@ -530,9 +532,11 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax environment)", make<library>([](auto define)
     {
-      return list(define(make_symbol("environment"            ), make<procedure>("meevax", "environment"            )),
+      return list(define(make_symbol("convert"                ), make<procedure>("meevax", "convert"                )),
+                  define(make_symbol("environment"            ), make<procedure>("meevax", "environment"            )),
                   define(make_symbol("eval"                   ), make<procedure>("meevax", "eval"                   )),
                   define(make_symbol("expand"                 ), make<procedure>("meevax", "expand"                 )),
+                  define(make_symbol("generate"               ), make<procedure>("meevax", "generate"               )),
                   define(make_symbol("interaction-environment"), make<procedure>("meevax", "interaction-environment")),
                   define(make_symbol("load"                   ), make<procedure>("meevax", "load"                   )));
     }));

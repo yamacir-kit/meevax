@@ -36,9 +36,7 @@ namespace meevax::inline kernel
 
   auto syntactic_environment::convert(object const& form, object const& bound_variables) const -> object
   {
-    return T_c(form,
-               bound_variables,
-               make<kernel::continuation>(nullptr, list(list(make<instruction>(instruction::secd_stop)))));
+    return T_c(form, bound_variables, make<continuation>());
   }
 
   auto syntactic_environment::T_c(object const& form, object const& bound_variables, syntactic_continuation const& c) const -> object

@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 {
   auto dynamic_environment::apply(object const& f, object const& xs) -> object
   {
-    return execute(cons(f, make<continuation>(nullptr, list(list(make<instruction>(instruction::secd_stop)))), xs),
+    return execute(cons(f, make<continuation>(), xs),
                    nullptr,
                    list(make<instruction>(instruction::secd_tail_call)),
                    nullptr);
@@ -174,18 +174,14 @@ namespace meevax::inline kernel
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> . xs) e (%tail-call) d => xs e' c' d'
-        *
-        *  where <continuation> = (e' c' . d')
+        *  (<continuation> x . xs) e (%tail-call) () => stop
         *
         * ------------------------------------------------------------------- */
         {
-          assert(tail(c, 1).template is<null>());
-          d.reset<bx, bx>(cddr(callee));
-          c.reset<b1, b1>(cadr(callee));
-          e.reset<bx, bx>(car(callee));
-          s.reset<b1, bx>(cdr(s));
-          goto fetch;
+          assert(cdr(s).template is<pair>());
+          assert(cdr(c).template is<null>());
+          assert(d.is<null>());
+          return cadr(s);
         }
         else
         {
