@@ -43,7 +43,7 @@
 (define-library (meevax continuation)
   (import (only (meevax context) emergency-exit)
           (only (meevax comparator) eq?)
-          (only (meevax core) begin call-with-current-continuation! current define if install lambda)
+          (only (meevax core) begin call-with-current-continuation! current define if install lambda letrec)
           (only (meevax pair) caar car cdar cdr cons pair?)
           (only (meevax list) null?))
 
