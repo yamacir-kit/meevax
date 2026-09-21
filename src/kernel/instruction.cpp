@@ -24,32 +24,21 @@ namespace meevax::inline kernel
   {
     switch (datum)
     {
-      case instruction::secd_call:              return os << "call";
-      case instruction::secd_cons:              return os << "cons";
-      case instruction::secd_cons_values:       return os << "cons-values";
       case instruction::secd_current:           return os << "current";
       case instruction::secd_drop:              return os << "drop";
-      case instruction::secd_drop_values:       return os << "drop-values";
-      case instruction::secd_dummy:             return os << "dummy";
       case instruction::secd_install:           return os << "install";
-      case instruction::secd_letrec:            return os << "letrec";
       case instruction::secd_list_values:       return os << "list-values";
       case instruction::secd_load_absolute:     return os << "load-absolute";
       case instruction::secd_load_closure:      return os << "load-closure";
       case instruction::secd_load_constant:     return os << "load-constant";
-      case instruction::secd_load_continuation: return os << "load-continuation";
-      case instruction::secd_load_null:         return os << "load-null";
       case instruction::secd_load_relative:     return os << "load-relative";
       case instruction::secd_load_variadic:     return os << "load-variadic";
-      case instruction::secd_return:            return os << "return";
-      case instruction::secd_save_values:       return os << "save-values";
       case instruction::secd_select:            return os << "select";
       case instruction::secd_stop:              return os << "stop";
       case instruction::secd_store_absolute:    return os << "store-absolute";
       case instruction::secd_store_relative:    return os << "store-relative";
       case instruction::secd_store_variadic:    return os << "store-variadic";
       case instruction::secd_tail_call:         return os << "tail-call";
-      case instruction::secd_tail_letrec:       return os << "tail-letrec";
 
       default:
         assert(false);

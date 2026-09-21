@@ -52,7 +52,7 @@ namespace meevax::inline kernel
 
     static constexpr auto conditional_expand = nullptr;
 
-    static GENERATOR(letrec);
+    static constexpr auto letrec = nullptr;
 
     static GENERATOR(sequence);
 
@@ -64,7 +64,7 @@ namespace meevax::inline kernel
 
     static GENERATOR(define_syntax);
 
-    static GENERATOR(call_with_current_continuation);
+    static constexpr auto call_with_current_continuation = nullptr;
 
     static GENERATOR(current);
 

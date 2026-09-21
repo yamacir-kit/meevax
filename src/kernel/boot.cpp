@@ -554,35 +554,6 @@ namespace meevax::inline kernel
                   define(make_symbol("library-directories"), make<procedure>("meevax", "library-directories")));
     }));
 
-    libraries().emplace("(meevax instruction)", make<library>([](auto define)
-    {
-      return list(define(make_symbol("secd-call"),              make<instruction>(instruction::secd_call             )),
-                  define(make_symbol("secd-cons"),              make<instruction>(instruction::secd_cons             )),
-                  define(make_symbol("secd-cons-values"),       make<instruction>(instruction::secd_cons_values      )),
-                  define(make_symbol("secd-current"),           make<instruction>(instruction::secd_current          )),
-                  define(make_symbol("secd-drop"),              make<instruction>(instruction::secd_drop             )),
-                  define(make_symbol("secd-drop-values"),       make<instruction>(instruction::secd_drop_values      )),
-                  define(make_symbol("secd-dummy"),             make<instruction>(instruction::secd_dummy            )),
-                  define(make_symbol("secd-install"),           make<instruction>(instruction::secd_install          )),
-                  define(make_symbol("secd-letrec"),            make<instruction>(instruction::secd_letrec           )),
-                  define(make_symbol("secd-list-values"),       make<instruction>(instruction::secd_list_values      )),
-                  define(make_symbol("secd-load-absolute"),     make<instruction>(instruction::secd_load_absolute    )),
-                  define(make_symbol("secd-load-closure"),      make<instruction>(instruction::secd_load_closure     )),
-                  define(make_symbol("secd-load-constant"),     make<instruction>(instruction::secd_load_constant    )),
-                  define(make_symbol("secd-load-continuation"), make<instruction>(instruction::secd_load_continuation)),
-                  define(make_symbol("secd-load-relative"),     make<instruction>(instruction::secd_load_relative    )),
-                  define(make_symbol("secd-load-variadic"),     make<instruction>(instruction::secd_load_variadic    )),
-                  define(make_symbol("secd-return"),            make<instruction>(instruction::secd_return           )),
-                  define(make_symbol("secd-save-values"),       make<instruction>(instruction::secd_save_values      )),
-                  define(make_symbol("secd-select"),            make<instruction>(instruction::secd_select           )),
-                  define(make_symbol("secd-stop"),              make<instruction>(instruction::secd_stop             )),
-                  define(make_symbol("secd-store-absolute"),    make<instruction>(instruction::secd_store_absolute   )),
-                  define(make_symbol("secd-store-relative"),    make<instruction>(instruction::secd_store_relative   )),
-                  define(make_symbol("secd-store-variadic"),    make<instruction>(instruction::secd_store_variadic   )),
-                  define(make_symbol("secd-tail-call"),         make<instruction>(instruction::secd_tail_call        )),
-                  define(make_symbol("secd-tail-letrec"),       make<instruction>(instruction::secd_tail_letrec      )));
-    }));
-
     libraries().emplace("(meevax integer32)", make<library>([](auto define)
     {
       return list(define(make_symbol("integer32?"     ), make<procedure>("meevax", "integer32?")),
