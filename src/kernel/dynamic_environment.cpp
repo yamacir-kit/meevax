@@ -32,16 +32,15 @@ namespace meevax::inline kernel
   {
     return execute(cons(f, make<continuation>(), xs),
                    nullptr,
-                   list(make<instruction>(instruction::secd_tail_call)),
-                   nullptr);
+                   list(make<instruction>(instruction::secd_tail_call)));
   }
 
   auto dynamic_environment::execute(object const& c) -> object
   {
-    return execute(nullptr, nullptr, c, nullptr);
+    return execute(nullptr, nullptr, c);
   }
 
-  auto dynamic_environment::execute(object s, object e, object c, object d) -> object
+  auto dynamic_environment::execute(object s, object e, object c) -> object
   {
     auto i = [&]() -> decltype(auto)
     {
@@ -67,7 +66,7 @@ namespace meevax::inline kernel
       {
       case instruction::secd_load_absolute: /* ---------------------------------
         *
-        *  s e (%load-absolute <absolute> . c) d => (x . s) e c d
+        *  s e (%load-absolute <absolute> . c) => (x . s) e c
         *
         *  where <absolute> = (<symbol> . x)
         *
@@ -79,7 +78,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_relative: /* ---------------------------------
         *
-        *  s  e (%load-relative <relative> . c) d => (x . s) e c d
+        *  s  e (%load-relative <relative> . c) => (x . s) e c
         *
         *  where <relative> = (i . j)
         *
@@ -92,7 +91,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_variadic: /* ---------------------------------
         *
-        *  s  e (%load-variadic <variadic> . c) d => (x . s) e c d
+        *  s  e (%load-variadic <variadic> . c) => (x . s) e c
         *
         *  where <variadic> = (i . j)
         *
@@ -105,7 +104,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_constant: /* ---------------------------------
         *
-        *  s e (%load-constant <object> . c) d => (x . s) e c d
+        *  s e (%load-constant <object> . c) => (x . s) e c
         *
         * ------------------------------------------------------------------- */
         s.reset<bx, b1>(cons(cadr(c), s));
@@ -114,7 +113,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_load_closure: /* ----------------------------------
         *
-        *  s e (%load-closure c' . c) d => (<closure> . s) e c d
+        *  s e (%load-closure c' . c) => (<closure> . s) e c
         *
         *  where <closure> = (c' . e)
         *
@@ -125,7 +124,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_current: /* ---------------------------------------
         *
-        *  s e (%current i . c) => (a[i] . s) e c d
+        *  s e (%current i . c) => (a[i] . s) e c
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<small_integer>());
@@ -135,7 +134,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_select: /* ----------------------------------------
         *
-        *  (<boolean> . s) e (%select c1 c2) d => s e c' d
+        *  (<boolean> . s) e (%select c1 c2) => s e c'
         *
         *  where c' = (if <boolean> c1 c2)
         *
@@ -148,7 +147,7 @@ namespace meevax::inline kernel
       case instruction::secd_tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> . xs) e (%tail-call) d => () (xs . e') c' d
+        *  (<closure> . xs) e (%tail-call) => () (xs . e') c'
         *
         *  where <closure> = (c' . e')
         *
@@ -162,7 +161,7 @@ namespace meevax::inline kernel
         }
         else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<procedure> k . xs) e (%tail-call) d => (k x) e (%tail-call) d
+        *  (<procedure> k . xs) e (%tail-call) => (k x) e (%tail-call)
         *
         *  where x = procedure(xs)
         *
@@ -175,13 +174,12 @@ namespace meevax::inline kernel
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> x . xs) e (%tail-call) () => x
+        *  (<continuation> x . xs) e (%tail-call) => x
         *
         * ------------------------------------------------------------------- */
         {
           assert(cdr(s).template is<pair>());
           assert(cdr(c).template is<null>());
-          assert(d.is<null>());
           return cadr(s);
         }
         else
@@ -191,7 +189,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_drop: /* ------------------------------------------
         *
-        *  (x . s) e (%drop . c) d => s e c d
+        *  (x . s) e (%drop . c) => s e c
         *
         * ------------------------------------------------------------------- */
         s.reset<b1, bx>(cdr(s));
@@ -200,7 +198,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_store_absolute: /* --------------------------------
         *
-        *  (x . s) e (%store-absolute <absolute> . c) d => (x . s) e c d
+        *  (x . s) e (%store-absolute <absolute> . c) => (x . s) e c
         *
         *  where <absolute> = (<symbol> . <object>)
         *
@@ -214,7 +212,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_store_relative: /* --------------------------------
         *
-        *  (x . s) e (%store-relative <relative> . c) d => (x . s) e c d
+        *  (x . s) e (%store-relative <relative> . c) => (x . s) e c
         *
         * ------------------------------------------------------------------- */
         head(head(e, i()), j()) = car(s);
@@ -223,7 +221,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_store_variadic: /* --------------------------------
         *
-        *  (x . s) e (%store-variadic <variadic> . c) d => (x . s) e c d
+        *  (x . s) e (%store-variadic <variadic> . c) => (x . s) e c
         *
         * ------------------------------------------------------------------- */
         tail(head(e, i()), j()) = car(s);
@@ -232,7 +230,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_install: /* ---------------------------------------
         *
-        *  (x . s) e (%install i . c) d => (x . s) e c d
+        *  (x . s) e (%install i . c) => (x . s) e c
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<small_integer>());
@@ -242,7 +240,7 @@ namespace meevax::inline kernel
 
       case instruction::secd_list_values: /* -----------------------------------
         *
-        *  (xs) e (%list-values . c) d => xs e c d
+        *  (xs) e (%list-values . c) => xs e c
         *
         * ------------------------------------------------------------------- */
         s.reset<b1, bx>(car(s));
