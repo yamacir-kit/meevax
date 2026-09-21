@@ -149,8 +149,7 @@ namespace meevax::inline kernel
 
   auto syntactic_environment::generate(object const& form,
                                        object const& bound_variables,
-                                       object const& continuation,
-                                       bool tail) -> object
+                                       object const& continuation) -> object
   {
     if (not form.is<pair>())
     {
@@ -179,11 +178,11 @@ namespace meevax::inline kernel
     {
       if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
+        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation);
       }
     }
 
-    return generator::call(*this, form, bound_variables, continuation, tail);
+    return generator::call(*this, form, bound_variables, continuation);
   }
 
   auto syntactic_environment::identify(object const& variable,

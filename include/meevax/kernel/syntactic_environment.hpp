@@ -46,8 +46,7 @@ namespace meevax::inline kernel
 
     auto generate(object const& form,
                   object const& bound_variables,
-                  object const& continuation = unit,
-                  bool tail = false) -> object;
+                  object const& continuation = unit) -> object;
 
     auto identify(object const& variable, object const& bound_variables) const -> object;
 

@@ -25,8 +25,7 @@ namespace meevax::inline kernel
   auto NAME([[maybe_unused]] syntactic_environment & generator,                \
             [[maybe_unused]] object const& form,                               \
             [[maybe_unused]] object const& bound_variables,                    \
-            [[maybe_unused]] object const& continuation,                       \
-            [[maybe_unused]] bool tail) -> object
+            [[maybe_unused]] object const& continuation) -> object
 
   GENERATOR(generator::quote)
   {
@@ -91,8 +90,7 @@ namespace meevax::inline kernel
     {
       return generator.generate(car(form),
                                 bound_variables,
-                                continuation,
-                                true);
+                                continuation);
     }
     else
     {
@@ -102,15 +100,12 @@ namespace meevax::inline kernel
                                      body(generator,
                                           cdr(form),
                                           bound_variables,
-                                          continuation)),
-                                false);
+                                          continuation)));
     }
   }
 
   GENERATOR(generator::conditional)
   {
-    assert(not tail or continuation.external_representation() == "()");
-
     /*
        [R7RS 4.1.5. Conditionals]
 
@@ -123,12 +118,10 @@ namespace meevax::inline kernel
                               list(make<instruction>(instruction::secd_select),
                                    generator.generate(cadr(form),
                                                       bound_variables,
-                                                      continuation,
-                                                      tail),
+                                                      continuation),
                                    cddr(form) ? generator.generate(caddr(form),
                                                                    bound_variables,
-                                                                   continuation,
-                                                                   tail)
+                                                                   continuation)
                                               : cons(make<instruction>(instruction::secd_load_constant), unspecified,
                                                      continuation)));
   }
@@ -168,8 +161,7 @@ namespace meevax::inline kernel
     {
       return generator.generate(car(form),
                                 bound_variables,
-                                continuation,
-                                tail);
+                                continuation);
     }
     else
     {
@@ -190,8 +182,7 @@ namespace meevax::inline kernel
       cdr(rest) = sequence(generator,
                            cdr(form), // Rest expression or definitions
                            bound_variables,
-                           continuation,
-                           tail);
+                           continuation);
       return code;
     }
   }

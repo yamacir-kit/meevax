@@ -27,8 +27,7 @@ namespace meevax::inline kernel
     auto NAME([[maybe_unused]] syntactic_environment & generator,            \
               [[maybe_unused]] object const& form,                           \
               [[maybe_unused]] object const& bound_variables,                \
-              [[maybe_unused]] object const& continuation,                   \
-              [[maybe_unused]] bool tail = false) -> object
+              [[maybe_unused]] object const& continuation) -> object
 
     static GENERATOR(quote);
 

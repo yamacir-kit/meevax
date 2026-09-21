@@ -44,8 +44,7 @@ namespace meevax::inline kernel
     auto (*generate)(syntactic_environment & generator,
                      object const& form,
                      object const& bound_variables,
-                     object const& continuation,
-                     bool tail) -> object;
+                     object const& continuation) -> object;
 
     explicit syntax(auto const& name, auto expand, auto T_c, auto T_k, auto generate)
       : name { name }
