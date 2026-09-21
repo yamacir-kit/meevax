@@ -34,7 +34,6 @@ namespace meevax::inline kernel
       case instruction::secd_load_relative:     return os << "load-relative";
       case instruction::secd_load_variadic:     return os << "load-variadic";
       case instruction::secd_select:            return os << "select";
-      case instruction::secd_stop:              return os << "stop";
       case instruction::secd_store_absolute:    return os << "store-absolute";
       case instruction::secd_store_relative:    return os << "store-relative";
       case instruction::secd_store_variadic:    return os << "store-variadic";

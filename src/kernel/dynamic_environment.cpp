@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <exception>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
@@ -174,7 +175,7 @@ namespace meevax::inline kernel
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> x . xs) e (%tail-call) () => stop
+        *  (<continuation> x . xs) e (%tail-call) () => x
         *
         * ------------------------------------------------------------------- */
         {
@@ -248,20 +249,9 @@ namespace meevax::inline kernel
         c.reset<b1, b1>(cdr(c));
         goto fetch;
 
-      default: // ERROR
+      default:
         assert(false);
-        [[fallthrough]];
-
-      case instruction::secd_stop: /* ------------------------------------------
-        *
-        *  (x . xs) () (%stop) () => (x . xs) () () ()
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(s).template is<null>());
-        assert(e.is<null>());
-        assert(cdr(c).template is<null>());
-        assert(d.is<null>());
-        return car(s);
+        std::terminate();
       }
     }
     catch (object const& thrown) // by the procedure `throw`.

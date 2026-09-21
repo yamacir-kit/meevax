@@ -46,7 +46,7 @@ namespace meevax::inline kernel
 
     auto generate(object const& form,
                   object const& bound_variables,
-                  object const& continuation = list(make<instruction>(instruction::secd_stop)),
+                  object const& continuation = unit,
                   bool tail = false) -> object;
 
     auto identify(object const& variable, object const& bound_variables) const -> object;

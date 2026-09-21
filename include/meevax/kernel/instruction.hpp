@@ -33,7 +33,6 @@ namespace meevax::inline kernel
     secd_load_relative,     // a.k.a LDL
     secd_load_variadic,     //
     secd_select,            // a.k.a SEL
-    secd_stop,              //
     secd_store_absolute,    //
     secd_store_relative,    //
     secd_store_variadic,    //
