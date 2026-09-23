@@ -65,6 +65,8 @@ namespace meevax::inline kernel
 
     static constexpr auto call_with_current_continuation = nullptr;
 
+    static constexpr auto call_with_values = nullptr;
+
     static GENERATOR(current);
 
     static GENERATOR(install);

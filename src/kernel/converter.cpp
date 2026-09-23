@@ -290,6 +290,29 @@ namespace meevax::inline kernel
     return call_with_current_continuation(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
   }
 
+  CONVERTER(converter::call_with_values, syntactic_continuation const& c)
+  {
+    return converter.T_k(cadr(form), bound_variables, [&](let const& producer)
+    {
+      return converter.T_k(caddr(form), bound_variables, [&](let const& consumer)
+      {
+        let const values = make<symbol>("$values");
+
+        return list(producer,
+                    list(default_rename("lambda"),
+                         values,
+                         cons(consumer, c, values)));
+      });
+    });
+  }
+
+  CONVERTER(converter::call_with_values, administrative_beta_reducer const& k)
+  {
+    let const value = make<symbol>("$value");
+
+    return call_with_values(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
+  }
+
   CONVERTER(converter::current, syntactic_continuation const& c)
   {
     return list(c, form);

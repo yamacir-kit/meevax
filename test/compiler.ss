@@ -1064,16 +1064,41 @@
 
   '(1 2))
 
-; (check-compiler ; Multiple values (call-with-values)
-;   '(call-with-values (lambda ()
-;                        (call-with-current-continuation
-;                          (lambda (k)
-;                            (k))))
-;                      list)
-;   '()
-;   '()
-;   '()
-;   '())
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda ()
+                       (call-with-current-continuation
+                         (lambda (k)
+                           (k))))
+                     list)
+
+  '(call-with-values (lambda ()
+                       (call-with-current-continuation
+                         (lambda (k)
+                           (k))))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (call-with-current-continuation
+                         $k
+                         (<lambda> ($k k)
+                           (k $k))))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-closure
+      ( load-relative (0 . 0)
+        load-relative (0 . 1)
+        tail-call)
+      load-relative (0 . 0)
+      load-absolute call-with-current-continuation
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '())
 
 (check-compiler ; Multiple values (call-with-values)
   '(call-with-values (lambda ()
@@ -1148,8 +1173,7 @@
     load-absolute call-with-values
     tail-call)
 
-  '(1) ; TODO '(1 2)
-  )
+  '(1 2))
 
 (check-compiler ; Multiple values (internal define-values)
   '(let ()
@@ -2318,4 +2342,4 @@
 
 (check-report)
 
-(exit (check-passed? 186))
+(exit (check-passed? 190))

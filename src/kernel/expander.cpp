@@ -308,6 +308,15 @@ namespace meevax::inline kernel
                         alpha));
   }
 
+  EXPANDER(expander::call_with_values)
+  {
+    return cons(alpha.convert(car(form)),
+                operand(expander,
+                        cdr(form),
+                        bound_variables,
+                        alpha));
+  }
+
   EXPANDER(expander::current)
   {
     return cons(alpha.convert(car(form)),

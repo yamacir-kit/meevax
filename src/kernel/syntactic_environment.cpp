@@ -402,6 +402,7 @@ namespace meevax::inline kernel
       unit,
       list(BIND("begin"                          , sequence                      ),
            BIND("call-with-current-continuation!", call_with_current_continuation),
+           BIND("call-with-values!"              , call_with_values              ),
            BIND("conditional-expand"             , conditional_expand            ),
            BIND("current"                        , current                       ),
            BIND("define"                         , define                        ),

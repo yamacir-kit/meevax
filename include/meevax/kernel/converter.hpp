@@ -67,6 +67,8 @@ namespace meevax::inline kernel
 
     CONVERTER(call_with_current_continuation);
 
+    CONVERTER(call_with_values);
+
     CONVERTER(current);
 
     CONVERTER(install);

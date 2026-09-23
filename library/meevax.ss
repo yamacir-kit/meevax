@@ -43,7 +43,7 @@
 (define-library (meevax continuation)
   (import (only (meevax context) emergency-exit)
           (only (meevax comparator) eq?)
-          (only (meevax core) begin call-with-current-continuation! current define if install lambda letrec)
+          (only (meevax core) begin call-with-current-continuation! call-with-values! current define if install lambda letrec)
           (only (meevax pair) caar car cdar cdr cons pair?)
           (only (meevax list) null?))
 
@@ -59,11 +59,13 @@
            (before)
            (install-dynamic-extents! (cons (cons before after)
                                            (current-dynamic-extents)))
-           ((lambda (result) ; TODO let-values
-              (install-dynamic-extents! (cdr (current-dynamic-extents)))
-              (after)
-              result) ; TODO (apply values result)
-            (thunk)))
+           (call-with-values! thunk
+                              (lambda xs
+                                (install-dynamic-extents! (cdr (current-dynamic-extents)))
+                                (after)
+                                (call-with-current-continuation!
+                                  (lambda (k)
+                                    (k . xs))))))
 
          (define (call-with-current-continuation procedure)
            (define (windup! from to)
@@ -83,10 +85,10 @@
              (install-dynamic-extents! to))
            ((lambda (dynamic-extents)
               (call-with-current-continuation!
-                (lambda (continue)
-                  (procedure (lambda (x)
+                (lambda (k)
+                  (procedure (lambda xs
                                (windup! (current-dynamic-extents) dynamic-extents)
-                               (continue x))))))
+                               (k . xs))))))
             (current-dynamic-extents)))
 
          (define (exit . xs)
