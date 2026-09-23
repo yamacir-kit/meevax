@@ -84,15 +84,15 @@ namespace meevax::inline kernel
     explicit binder(auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
     {
-      pair::base = this;
-      pair::size = sizeof(binder);
+      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
+      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
     }
 
     explicit binder(with_braces_tag, auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
     {
-      pair::base = this;
-      pair::size = sizeof(binder);
+      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
+      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
     }
 
     ~binder() override = default;
@@ -154,8 +154,8 @@ namespace meevax::inline kernel
     explicit binder(auto&&... xs) noexcept
       : pair { std::forward<decltype(xs)>(xs)... }
     {
-      base = this;
-      size = sizeof(binder);
+      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
+      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
     }
 
     ~binder() override = default;

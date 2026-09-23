@@ -150,6 +150,21 @@ namespace meevax::inline kernel
 
     roots.clear();
 
+    auto is_root = [next = data.begin(), base = std::uintptr_t(), end = std::uintptr_t()](auto x) mutable
+    {
+      auto const address = reinterpret_cast<std::uintptr_t>(x);
+
+      while (next and end <= address)
+      {
+        auto const datum = *next;
+        base = reinterpret_cast<std::uintptr_t>(datum->base());
+        end = base + datum->size();
+        ++next;
+      }
+
+      return address < base or end <= address;
+    };
+
     for (auto x : objects)
     {
       if (is_root(x))
@@ -185,12 +200,12 @@ namespace meevax::inline kernel
       {
         auto const datum = stack.back();
 
-        size += datum->size;
+        size += datum->size();
 
         stack.pop_back();
 
-        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base)),
-                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base) + datum->size)),
+        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base())),
+                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base()) + datum->size())),
                       mark);
       }
     }
@@ -237,7 +252,7 @@ namespace meevax::inline kernel
 
     auto contains = [&](auto datum)
     {
-      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base) < datum->size; // NOTE: Same as base <= x and x < base + size
+      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base()) < datum->size(); // NOTE: Same as base <= x and x < base + size
     };
 
     return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));
