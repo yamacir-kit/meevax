@@ -63,8 +63,8 @@
           (+ 3 4)
           (+ 5 6))
 
-  '(+ (<lambda> ($value)
-        (+ (<lambda> ($value)
+  '(+ (<lambda> $values
+        (+ (<lambda> $values
              (+ #k 5 6))
            3
            4))
@@ -98,8 +98,8 @@
           (begin (+ 3 4))
           (begin (+ 5 6)))
 
-  '(+ (<lambda> ($value)
-        (+ (<lambda> ($value)
+  '(+ (<lambda> $values
+        (+ (<lambda> $values
              (+ #k 5 6))
            3
            4))
@@ -361,8 +361,10 @@
   '((<lambda> ($k a b)
       ((<lambda> ($k $temporary $temporary)
          (<begin> (<set!> a $temporary)
-                  (<begin> (<set!> b $temporary)
-                           (+ $k a b))))
+                  ((<lambda> $values
+                     (<begin> (<set!> b $temporary)
+                              ((<lambda> $values
+                                 (+ $k a b))))))))
        $k 1 2))
     #k)
 
@@ -377,13 +379,19 @@
       ( load-relative (0 . 1)
         store-relative (1 . 1)
         drop
-        load-relative (0 . 2)
-        store-relative (1 . 2)
-        drop
-        load-relative (1 . 2)
-        load-relative (1 . 1)
-        load-relative (0 . 0)
-        load-absolute +
+        load-constant #;unspecified
+        load-closure
+        ( load-relative (1 . 2)
+          store-relative (2 . 2)
+          drop
+          load-constant #;unspecified
+          load-closure
+          ( load-relative (3 . 2)
+            load-relative (3 . 1)
+            load-relative (2 . 0)
+            load-absolute +
+            tail-call)
+          tail-call)
         tail-call)
       tail-call)
     tail-call)
@@ -452,37 +460,44 @@
   '((<lambda> ($k)
       ((<lambda> ($k x y)
          (<begin> (<set!> x 1)
-                  (+ (<lambda> ($value)
-                       (<begin> (<set!> y $value)
-                                (+ $k x y)))
-                     x
-                     1)))
+                  ((<lambda> $values
+                     (+ (<lambda> ($value)
+                          (<begin> (<set!> y $value)
+                                   ((<lambda> $values (+ $k x y)))))
+                        x
+                        1)))))
        $k
        ()
        ()))
     #k)
 
   '(load-constant #k
-    load-closure (
-      load-constant ()
+    load-closure
+    ( load-constant ()
       load-constant ()
       load-relative (0 . 0)
-      load-closure (
-        load-constant 1
+      load-closure
+      ( load-constant 1
         store-relative (0 . 1)
         drop
-        load-constant 1
-        load-relative (0 . 1)
-        load-closure (
-          load-relative (0 . 0)
-          store-relative (1 . 2)
-          drop
-          load-relative (1 . 2)
+        load-constant #;unspecified
+        load-closure
+        ( load-constant 1
           load-relative (1 . 1)
-          load-relative (1 . 0)
+          load-closure
+          ( load-relative (0 . 0)
+            store-relative (2 . 2)
+            drop
+            load-constant #;unspecified
+            load-closure
+            ( load-relative (3 . 2)
+              load-relative (3 . 1)
+              load-relative (3 . 0)
+              load-absolute +
+              tail-call)
+            tail-call)
           load-absolute +
           tail-call)
-        load-absolute +
         tail-call)
       tail-call)
     tail-call)
@@ -509,8 +524,9 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x%1> <y%1>)
          (<begin> (<set!> <x%1> 10)
-                  (<begin> (<set!> <y%1> 20)
-                           (+ $k <x%1> <y%1>))))
+                  ((<lambda> $values
+                     (<begin> (<set!> <y%1> 20)
+                              ((<lambda> $values (+ $k <x%1> <y%1>))))))))
        $k
        ()
        ()))
@@ -529,13 +545,19 @@
       ( load-constant 10
         store-relative (0 . 1)
         drop
-        load-constant 20
-        store-relative (0 . 2)
-        drop
-        load-relative (0 . 2)
-        load-relative (0 . 1)
-        load-relative (0 . 0)
-        load-absolute +
+        load-constant
+        load-closure
+        ( load-constant 20
+          store-relative (1 . 2)
+          drop
+          load-constant #;unspecified
+          load-closure
+          ( load-relative (2 . 2)
+            load-relative (2 . 1)
+            load-relative (2 . 0)
+            load-absolute +
+            tail-call)
+          tail-call)
         tail-call)
       tail-call)
     tail-call)
@@ -561,15 +583,17 @@
       ((<lambda> ($k foo bar)
          (<begin> (<set!> foo (<lambda> ($k y)
                                 (bar $k x y)))
-                  (<begin> (<set!> bar (<lambda> ($k a b)
-                                         (* (<lambda> ($value)
-                                              (+ $k $value a))
-                                            a
-                                            b)))
-                           (+ (<lambda> ($value)
-                                (foo $k $value))
-                              x
-                              3))))
+                  ((<lambda> $values
+                     (<begin> (<set!> bar (<lambda> ($k a b)
+                                            (* (<lambda> ($value)
+                                                 (+ $k $value a))
+                                               a
+                                               b)))
+                              ((<lambda> $values
+                                 (+ (<lambda> ($value)
+                                      (foo $k $value))
+                                    x
+                                    3))))))))
        $k
        ()
        ()))
@@ -591,27 +615,33 @@
           tail-call)
         store-relative (0 . 1)
         drop
+        load-constant #;unspecified
         load-closure
-        ( load-relative (0 . 2)
-          load-relative (0 . 1)
+        ( load-closure
+          ( load-relative (0 . 2)
+            load-relative (0 . 1)
+            load-closure
+            ( load-relative (1 . 1)
+              load-relative (0 . 0)
+              load-relative (1 . 0)
+              load-absolute +
+              tail-call)
+            load-absolute *
+            tail-call)
+          store-relative (1 . 2)
+          drop
+          load-constant
           load-closure
-          ( load-relative (1 . 1)
-            load-relative (0 . 0)
-            load-relative (1 . 0)
+          ( load-constant 3
+            load-relative (3 . 1)
+            load-closure
+            ( load-relative (0 . 0)
+              load-relative (3 . 0)
+              load-relative (3 . 1)
+              tail-call)
             load-absolute +
             tail-call)
-          load-absolute *
           tail-call)
-        store-relative (0 . 2)
-        drop
-        load-constant 3
-        load-relative (1 . 1)
-        load-closure
-        ( load-relative (0 . 0)
-          load-relative (1 . 0)
-          load-relative (1 . 1)
-          tail-call)
-        load-absolute +
         tail-call)
       tail-call)
     tail-call)
@@ -639,11 +669,13 @@
       ((<lambda> ($k <f%1> <g%1>)
          (<begin> (<set!> <f%1> (<lambda> ($k x)
                                   (+ $k x 10)))
-                  (<begin> (<set!> <g%1> (<lambda> ($k x)
-                                           (+ $k x 20)))
-                           (<f%1> (<lambda> ($value)
-                                    (<g%1> $k $value))
-                                  3))))
+                  ((<lambda> $values
+                     (<begin> (<set!> <g%1> (<lambda> ($k x)
+                                              (+ $k x 20)))
+                              ((<lambda> $values
+                                 (<f%1> (<lambda> ($value)
+                                          (<g%1> $k $value))
+                                        3))))))))
        $k
        ()
        ()))
@@ -667,21 +699,27 @@
           tail-call)
         store-relative (0 . 1)
         drop
+        load-constant
         load-closure
-        ( load-constant 20
-          load-relative (0 . 1)
-          load-relative (0 . 0)
-          load-absolute +
+        ( load-closure
+          ( load-constant 20
+            load-relative (0 . 1)
+            load-relative (0 . 0)
+            load-absolute +
+            tail-call)
+          store-relative (1 . 2)
+          drop
+          load-constant
+          load-closure
+          ( load-constant 3
+            load-closure
+            ( load-relative (0 . 0)
+              load-relative (3 . 0)
+              load-relative (3 . 2)
+              tail-call)
+            load-relative (2 . 1)
+            tail-call)
           tail-call)
-        store-relative (0 . 2)
-        drop
-        load-constant 3
-        load-closure
-        ( load-relative (0 . 0)
-          load-relative (1 . 0)
-          load-relative (1 . 2)
-          tail-call)
-        load-relative (0 . 1)
         tail-call)
       tail-call)
     tail-call)
@@ -723,19 +761,22 @@
                                                  ((<lambda> ($k h)
                                                     (<begin> (<set!> h (<lambda> ($k <x%4>)
                                                                          (+ $k <x%4> 10)))
-                                                             (< (<lambda> ($value)
-                                                                  (<if> $value
-                                                                        (h $k <x%2>)
-                                                                        ($k <x%2>)))
-                                                                0
-                                                                <x%2>)))
+                                                             ((<lambda> $values
+                                                                (< (<lambda> ($value)
+                                                                     (<if> $value
+                                                                           (h $k <x%2>)
+                                                                           ($k <x%2>)))
+                                                                   0
+                                                                   <x%2>)))))
                                                   $k
                                                   ())))
-                                    (<begin> (<set!> g2 (<lambda> ($k <x%2>)
-                                                          (+ $k <x%2> 1)))
-                                             (g2 (<lambda> ($value)
-                                                   (g1 $k $value))
-                                                 x))))
+                                    ((<lambda> $values
+                                       (<begin> (<set!> g2 (<lambda> ($k <x%2>)
+                                                             (+ $k <x%2> 1)))
+                                                ((<lambda> $values
+                                                   (g2 (<lambda> ($value)
+                                                         (g1 $k $value))
+                                                       x))))))))
                          $k
                          ()
                          ())))
@@ -758,38 +799,47 @@
               tail-call)
             store-relative (0 . 1)
             drop
-            load-relative (1 . 1)
-            load-constant 0
+            load-constant #;unspecified
             load-closure
-            ( load-relative (0 . 0)
-              select
-              ( load-relative (2 . 1)
-                load-relative (1 . 0)
-                load-relative (1 . 1)
-                tail-call)
-              ( load-relative (2 . 1)
-                load-relative (1 . 0)
-                tail-call))
-            load-absolute <
+            ( load-relative (2 . 1)
+              load-constant 0
+              load-closure
+              ( load-relative (0 . 0)
+                select
+                ( load-relative (3 . 1)
+                  load-relative (2 . 0)
+                  load-relative (2 . 1)
+                  tail-call)
+                ( load-relative (3 . 1)
+                  load-relative (2 . 0)
+                  tail-call))
+              load-absolute <
+              tail-call)
             tail-call)
           tail-call)
         store-relative (0 . 1)
         drop
+        load-constant #;unspecified
         load-closure
-        ( load-constant 1
-          load-relative (0 . 1)
-          load-relative (0 . 0)
-          load-absolute +
+        ( load-closure
+          ( load-constant 1
+            load-relative (0 . 1)
+            load-relative (0 . 0)
+            load-absolute +
+            tail-call)
+          store-relative (1 . 2)
+          drop
+          load-constant #;unspecified
+          load-closure
+          ( load-relative (3 . 1)
+            load-closure
+            ( load-relative (0 . 0)
+              load-relative (3 . 0)
+              load-relative (3 . 1)
+              tail-call)
+            load-relative (2 . 2)
+            tail-call)
           tail-call)
-        store-relative (0 . 2)
-        drop
-        load-relative (1 . 1)
-        load-closure
-        ( load-relative (0 . 0)
-          load-relative (1 . 0)
-          load-relative (1 . 1)
-          tail-call)
-        load-relative (0 . 2)
         tail-call)
       tail-call)
     store-absolute f
@@ -826,11 +876,12 @@
   '((<lambda> ($k return)
       (return $k))
     #k
-    (<lambda> ($_ $value)
-      (#k $value)))
+    (<lambda> ($_ . $values)
+      (#k . $values)))
 
   '(load-closure
-    ( load-relative (0 . 1)
+    ( load-variadic (0 . 1)
+      list-values
       load-constant #k
       tail-call)
     load-constant #k
@@ -862,6 +913,244 @@
     load-absolute call-with-current-continuation
     tail-call))
 
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values values list)
+
+  '(call-with-values values list)
+
+  '(call-with-values #k values list)
+
+  '(load-absolute list
+    load-absolute values
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '())
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda () (values))
+                     list)
+
+  '(call-with-values (lambda () (values))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (values $k))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-relative (0 . 0)
+      load-absolute values
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '())
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda ()
+                       (values 1))
+                     list)
+
+  '(call-with-values (lambda ()
+                       (values 1))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (values $k 1))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-constant 1
+      load-relative (0 . 0)
+      load-absolute values
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '(1))
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda ()
+                       (values 1 2))
+                     list)
+
+  '(call-with-values (lambda ()
+                       (values 1 2))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (values $k 1 2))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-constant 2
+      load-constant 1
+      load-relative (0 . 0)
+      load-absolute values
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '(1 2))
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda () 42) list)
+
+  '(call-with-values (lambda () 42) list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       ($k 42))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-constant 42
+      load-relative (0 . 0)
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '(42))
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda ()
+                       (call-with-values (lambda ()
+                                           (values 1 2))
+                                         values))
+                     list)
+
+  '(call-with-values (lambda ()
+                       (call-with-values (lambda ()
+                                           (values 1 2))
+                                         values))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (call-with-values $k
+                                         (<lambda> ($k)
+                                           (values $k 1 2))
+                                         values))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-absolute values
+      load-closure
+      ( load-constant 2
+        load-constant 1
+        load-relative (0 . 0)
+        load-absolute values
+        tail-call)
+      load-relative (0 . 0)
+      load-absolute call-with-values
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '(1 2))
+
+; (check-compiler ; Multiple values (call-with-values)
+;   '(call-with-values (lambda ()
+;                        (call-with-current-continuation
+;                          (lambda (k)
+;                            (k))))
+;                      list)
+;   '()
+;   '()
+;   '()
+;   '())
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda ()
+                       (call-with-current-continuation
+                         (lambda (k)
+                           (k 1))))
+                     list)
+
+  '(call-with-values (lambda ()
+                       (call-with-current-continuation
+                         (lambda (k)
+                           (k 1))))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (call-with-current-continuation
+                         $k
+                         (<lambda> ($k k)
+                           (k $k 1))))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-closure
+      ( load-constant 1
+        load-relative (0 . 0)
+        load-relative (0 . 1)
+        tail-call)
+      load-relative (0 . 0)
+      load-absolute call-with-current-continuation
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '(1))
+
+(check-compiler ; Multiple values (call-with-values)
+  '(call-with-values (lambda ()
+                       (call-with-current-continuation
+                         (lambda (k)
+                           (k 1 2))))
+                     list)
+
+  '(call-with-values (lambda ()
+                       (call-with-current-continuation
+                         (lambda (k)
+                           (k 1 2))))
+                     list)
+
+  '(call-with-values #k
+                     (<lambda> ($k)
+                       (call-with-current-continuation
+                         $k
+                         (<lambda> ($k k)
+                           (k $k 1 2))))
+                     list)
+
+  '(load-absolute list
+    load-closure
+    ( load-closure
+      ( load-constant 2
+        load-constant 1
+        load-relative (0 . 0)
+        load-relative (0 . 1)
+        tail-call)
+      load-relative (0 . 0)
+      load-absolute call-with-current-continuation
+      tail-call)
+    load-constant #k
+    load-absolute call-with-values
+    tail-call)
+
+  '(1) ; TODO '(1 2)
+  )
+
 (check-compiler ; Multiple values (internal define-values)
   '(let ()
      (define-values (x y)
@@ -885,17 +1174,20 @@
       ((<lambda> ($k x y)
          (<call-with-values> (<lambda> ($value)
                                (<begin> (<set!> x $value)
-                                        (<cadr> (<lambda> ($value)
-                                                  ((<lambda> ($k <x>)
-                                                     (<car> (<lambda> ($value)
-                                                              (<begin> (<set!> x $value)
-                                                                       ($k <x>)))
-                                                            x))
-                                                   (<lambda> ($value)
-                                                     (<begin> (<set!> y $value)
-                                                              (+ $k x y)))
-                                                   $value))
-                                                x)))
+                                        ((<lambda> $values
+                                           (<cadr> (<lambda> ($value)
+                                                     ((<lambda> ($k <x>)
+                                                        (<car> (<lambda> ($value)
+                                                                 (<begin> (<set!> x $value)
+                                                                          ((<lambda> $values
+                                                                             ($k <x>)))))
+                                                               x))
+                                                      (<lambda> ($value)
+                                                        (<begin> (<set!> y $value)
+                                                                 ((<lambda> $values
+                                                                    (+ $k x y)))))
+                                                      $value))
+                                                   x)))))
                              (<lambda> ($k)
                                (values $k 1 2))
                              <list>))
@@ -921,31 +1213,40 @@
         ( load-relative (0 . 0)
           store-relative (1 . 1)
           drop
-          load-relative (1 . 1)
+          load-constant #;unspecified
           load-closure
-          ( load-relative (0 . 0)
+          ( load-relative (2 . 1)
             load-closure
             ( load-relative (0 . 0)
-              store-relative (3 . 2)
-              drop
-              load-relative (3 . 2)
-              load-relative (3 . 1)
-              load-relative (3 . 0)
-              load-absolute +
-              tail-call)
-            load-closure
-            ( load-relative (3 . 1)
               load-closure
               ( load-relative (0 . 0)
-                store-relative (4 . 1)
+                store-relative (4 . 2)
                 drop
-                load-relative (1 . 1)
-                load-relative (1 . 0)
+                load-constant #;unspecified
+                load-closure
+                ( load-relative (5 . 2)
+                  load-relative (5 . 1)
+                  load-relative (5 . 0)
+                  load-absolute +
+                  tail-call)
                 tail-call)
-              load-absolute car
+              load-closure
+              ( load-relative (4 . 1)
+                load-closure
+                ( load-relative (0 . 0)
+                  store-relative (5 . 1)
+                  drop
+                  load-constant #;unspecified
+                  load-closure
+                  ( load-relative (2 . 1)
+                    load-relative (2 . 0)
+                    tail-call)
+                  tail-call)
+                load-absolute car
+                tail-call)
               tail-call)
+            load-absolute cadr
             tail-call)
-          load-absolute cadr
           tail-call)
         load-absolute call-with-values
         tail-call)
@@ -1153,8 +1454,9 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x%1>)
          (<begin> (<set!%-1> <x> <y>)
-                  (<begin> (<set!%-1> <y> <x%1>)
-                           ($k))))
+                  ((<lambda> $values
+                     (<begin> (<set!%-1> <y> <x%1>)
+                              ($k))))))
        $k
        <x>))
     #k
@@ -1171,11 +1473,14 @@
       ( load-relative (1 . 2)
         store-relative (1 . 1)
         drop
-        load-relative (0 . 1)
-        store-relative (1 . 2)
-        drop
-        load-constant
-        load-relative (0 . 0)
+        load-constant #;unspecified
+        load-closure
+        ( load-relative (1 . 1)
+          store-relative (2 . 2)
+          drop
+          load-constant #;unspecified
+          load-relative (1 . 0)
+          tail-call)
         tail-call)
       tail-call)
     tail-call)
@@ -1204,8 +1509,9 @@
       ((<lambda> ($k a b let set!)
          ((<lambda> ($k <x%2>)
             (<begin> (<set!%-1> <x> <y>)
-                     (<begin> (<set!%-1> <y> <x%2>)
-                              ($k))))
+                     ((<lambda> $values
+                        (<begin> (<set!%-1> <y> <x%2>)
+                                 ($k))))))
           $k
           <x>))
        $k 'A 'B 'LET 'SET!))
@@ -1227,11 +1533,14 @@
         ( load-relative (2 . 2)
           store-relative (2 . 1)
           drop
-          load-relative (0 . 1)
-          store-relative (2 . 2)
-          drop
-          load-constant
-          load-relative (0 . 0)
+          load-constant #;unspecified
+          load-closure
+          ( load-relative (1 . 1)
+            store-relative (3 . 2)
+            drop
+            load-constant #;unspecified
+            load-relative (1 . 0)
+            tail-call)
           tail-call)
         tail-call)
       tail-call)
@@ -1264,8 +1573,9 @@
       ((<lambda> ($k local-sc-swap!)
          ((<lambda> ($k <x%2>)
             (<begin> (<set!%-1> <x> <y>)
-                     (<begin> (<set!%-1> <y> <x%2>)
-                              ($k))))
+                     ((<lambda> $values
+                        (<begin> (<set!%-1> <y> <x%2>)
+                                 ($k))))))
           $k <x>))
        $k))
     #k 1 2)
@@ -1282,11 +1592,14 @@
         ( load-relative (2 . 2)
           store-relative (2 . 1)
           drop
-          load-relative (0 . 1)
-          store-relative (2 . 2)
-          drop
           load-constant #;unspecified
-          load-relative (0 . 0)
+          load-closure
+          ( load-relative (1 . 1)
+            store-relative (3 . 2)
+            drop
+            load-constant #;unspecified
+            load-relative (1 . 0)
+            tail-call)
           tail-call)
         tail-call)
       tail-call)
@@ -1321,8 +1634,9 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x>)
          (<begin> (<set!> x y)
-                  (<begin> (<set!> y <x>)
-                           ($k))))
+                  ((<lambda> $values
+                     (<begin> (<set!> y <x>)
+                              ($k))))))
        $k x))
     #k 1 2)
 
@@ -1336,11 +1650,14 @@
       ( load-relative (1 . 2)
         store-relative (1 . 1)
         drop
-        load-relative (0 . 1)
-        store-relative (1 . 2)
-        drop
         load-constant #;unspecified
-        load-relative (0 . 0)
+        load-closure
+        ( load-relative (1 . 1)
+          store-relative (2 . 2)
+          drop
+          load-constant #;unspecified
+          load-relative (1 . 0)
+          tail-call)
         tail-call)
       tail-call)
     tail-call)
@@ -1375,8 +1692,9 @@
       ((<lambda> ($k local-rsc-swap!)
          ((<lambda> ($k <x>)
             (<begin> (<set!> x y)
-                     (<begin> (<set!> y <x>)
-                              ($k))))
+                     ((<lambda> $values
+                        (<begin> (<set!> y <x>)
+                                 ($k))))))
           $k x))
        $k))
     #k 1 2)
@@ -1393,11 +1711,14 @@
         ( load-relative (2 . 2)
           store-relative (2 . 1)
           drop
-          load-relative (0 . 1)
-          store-relative (2 . 2)
-          drop
           load-constant #;unspecified
-          load-relative (0 . 0)
+          load-closure
+          ( load-relative (1 . 1)
+            store-relative (3 . 2)
+            drop
+            load-constant #;unspecified
+            load-relative (1 . 0)
+            tail-call)
           tail-call)
         tail-call)
       tail-call)
@@ -1429,8 +1750,9 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x>)
          (<begin> (<set!> x y)
-                  (<begin> (<set!> y <x>)
-                           ($k))))
+                  ((<lambda> $values
+                     (<begin> (<set!> y <x>)
+                              ($k))))))
        $k x))
     #k 1 2)
 
@@ -1444,11 +1766,14 @@
       ( load-relative (1 . 2)
         store-relative (1 . 1)
         drop
-        load-relative (0 . 1)
-        store-relative (1 . 2)
-        drop
         load-constant #;unspecified
-        load-relative (0 . 0)
+        load-closure
+        ( load-relative (1 . 1)
+          store-relative (2 . 2)
+          drop
+          load-constant #;unspecified
+          load-relative (1 . 0)
+          tail-call)
         tail-call)
       tail-call)
     tail-call)
@@ -1480,8 +1805,9 @@
       ((<lambda> ($k local-er-swap!)
          ((<lambda> ($k <x>)
             (<begin> (<set!> x y)
-                     (<begin> (<set!> y <x>)
-                              ($k))))
+                     ((<lambda> $values
+                        (<begin> (<set!> y <x>)
+                                 ($k))))))
           $k x))
        $k))
     #k 1 2)
@@ -1498,11 +1824,14 @@
         ( load-relative (2 . 2)
           store-relative (2 . 1)
           drop
-          load-relative (0 . 1)
-          store-relative (2 . 2)
-          drop
           load-constant #;unspecified
-          load-relative (0 . 0)
+          load-closure
+          ( load-relative (1 . 1)
+            store-relative (3 . 2)
+            drop
+            load-constant #;unspecified
+            load-relative (1 . 0)
+            tail-call)
           tail-call)
         tail-call)
       tail-call)
@@ -1532,8 +1861,9 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x>)
          (<begin> (<set!> x y)
-                  (<begin> (<set!> y <x>)
-                           ($k))))
+                  ((<lambda> $values
+                     (<begin> (<set!> y <x>)
+                              ($k))))))
        $k x))
     #k 1 2)
 
@@ -1547,11 +1877,14 @@
       ( load-relative (1 . 2)
         store-relative (1 . 1)
         drop
-        load-relative (0 . 1)
-        store-relative (1 . 2)
-        drop
         load-constant #;unspecified
-        load-relative (0 . 0)
+        load-closure
+        ( load-relative (1 . 1)
+          store-relative (2 . 2)
+          drop
+          load-constant #;unspecified
+          load-relative (1 . 0)
+          tail-call)
         tail-call)
       tail-call)
     tail-call)
@@ -1581,8 +1914,9 @@
       ((<lambda> ($k local-swap!)
          ((<lambda> ($k <x>)
             (<begin> (<set!> x y)
-                     (<begin> (<set!> y <x>)
-                              ($k))))
+                     ((<lambda> $values
+                        (<begin> (<set!> y <x>)
+                                 ($k))))))
           $k x))
        $k))
     #k 1 2)
@@ -1599,11 +1933,14 @@
         ( load-relative (2 . 2)
           store-relative (2 . 1)
           drop
-          load-relative (0 . 1)
-          store-relative (2 . 2)
-          drop
           load-constant #;unspecified
-          load-relative (0 . 0)
+          load-closure
+          ( load-relative (1 . 1)
+            store-relative (3 . 2)
+            drop
+            load-constant #;unspecified
+            load-relative (1 . 0)
+            tail-call)
           tail-call)
         tail-call)
       tail-call)
@@ -1739,9 +2076,11 @@
       ((<lambda> ($k f m g)
          (<begin> (<set!> f (<lambda> ($k x y)
                               (+ $k x y)))
-                  (<begin> (<set!> g (<lambda> ($k x y)
-                                       (<f> $k x y)))
-                           (g $k 1 2))))
+                  ((<lambda> $values
+                     (<begin> (<set!> g (<lambda> ($k x y)
+                                          (<f> $k x y)))
+                              ((<lambda> $values
+                                 (g $k 1 2))))))))
        $k
        ()
        ()
@@ -1763,18 +2102,24 @@
           tail-call)
         store-relative (0 . 1)
         drop
+        load-constant #;unspecified
         load-closure
-        ( load-relative (0 . 2)
-          load-relative (0 . 1)
-          load-relative (0 . 0)
-          load-relative (1 . 1)
+        ( load-closure
+          ( load-relative (0 . 2)
+            load-relative (0 . 1)
+            load-relative (0 . 0)
+            load-relative (2 . 1)
+            tail-call)
+          store-relative (1 . 3)
+          drop
+          load-constant #;unspecified
+          load-closure
+          ( load-constant 2
+            load-constant 1
+            load-relative (2 . 0)
+            load-relative (2 . 3)
+            tail-call)
           tail-call)
-        store-relative (0 . 3)
-        drop
-        load-constant 2
-        load-constant 1
-        load-relative (0 . 0)
-        load-relative (0 . 3)
         tail-call)
       tail-call)
     tail-call)
@@ -1973,4 +2318,4 @@
 
 (check-report)
 
-(exit (check-passed? 154))
+(exit (check-passed? 186))

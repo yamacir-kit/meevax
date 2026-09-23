@@ -108,10 +108,14 @@ namespace meevax::inline kernel
     }
     else
     {
-      return converter.T_k(car(form), bound_variables, [&](let const&)
-      {
-        return body(converter, cdr(form), bound_variables, c);
-      });
+      return converter.T_c(car(form),
+                           bound_variables,
+                           list(default_rename("lambda"),
+                                make<symbol>("$values"),
+                                body(converter,
+                                     cdr(form),
+                                     bound_variables,
+                                     c)));
     }
   }
 
@@ -127,10 +131,14 @@ namespace meevax::inline kernel
     }
     else
     {
-      return converter.T_k(car(form), bound_variables, [&](let const&)
-      {
-        return body(converter, cdr(form), bound_variables, k);
-      });
+      return converter.T_c(car(form),
+                           bound_variables,
+                           list(default_rename("lambda"),
+                                make<symbol>("$values"),
+                                body(converter,
+                                     cdr(form),
+                                     bound_variables,
+                                     k)));
     }
   }
 
@@ -264,13 +272,13 @@ namespace meevax::inline kernel
     {
       return converter.T_k(cadr(form), bound_variables, [&](let const& f)
       {
-        let const value = make<symbol>("$value");
+        let const values = make<symbol>("$values");
 
         return list(f,
                     c,
                     list(default_rename("lambda"),
-                         list(make<symbol>("$_"), value),
-                         list(c, value)));
+                         cons(make<symbol>("$_"), values),
+                         cons(c, values)));
       });
     }
   }

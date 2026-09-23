@@ -958,23 +958,23 @@
 
 (check (abs -7) => 7)
 
-(check (floor/ 5 2) => (values 2 1))
+(check (call-with-values (lambda () (floor/ 5 2)) list) => '(2 1))
 
-(check (floor/ -5 2) => (values -3 1))
+(check (call-with-values (lambda () (floor/ -5 2)) list) => '(-3 1))
 
-(check (floor/ 5 -2) => (values -3 -1))
+(check (call-with-values (lambda () (floor/ 5 -2)) list) => '(-3 -1))
 
-(check (floor/ -5 -2) => (values 2 -1))
+(check (call-with-values (lambda () (floor/ -5 -2)) list) => '(2 -1))
 
-(check (truncate/ 5 2) => (values 2 1))
+(check (call-with-values (lambda () (truncate/ 5 2)) list) => '(2 1))
 
-(check (truncate/ -5 2) => (values -2 -1))
+(check (call-with-values (lambda () (truncate/ -5 2)) list) => '(-2 -1))
 
-(check (truncate/ 5 -2) => (values -2 1))
+(check (call-with-values (lambda () (truncate/ 5 -2)) list) => '(-2 1))
 
-(check (truncate/ -5 -2) => (values 2 -1))
+(check (call-with-values (lambda () (truncate/ -5 -2)) list) => '(2 -1))
 
-(check (truncate/ -5.0 -2) => (values 2.0 -1.0))
+(check (call-with-values (lambda () (truncate/ -5.0 -2)) list) => '(2.0 -1.0))
 
 (check (gcd 32 -36) => 4)
 
@@ -1024,9 +1024,9 @@
 
 (check (sqrt -1) => +i)
 
-(check (exact-integer-sqrt 4) => (values 2 0))
+(check (call-with-values (lambda () (exact-integer-sqrt 4)) list) => '(2 0))
 
-(check (exact-integer-sqrt 5) => (values 2 1))
+(check (call-with-values (lambda () (exact-integer-sqrt 5)) list) => '(2 1))
 
 (check (string->number "100") => 100)
 
