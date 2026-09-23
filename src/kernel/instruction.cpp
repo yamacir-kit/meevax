@@ -24,20 +24,20 @@ namespace meevax::inline kernel
   {
     switch (datum)
     {
-      case instruction::secd_current:           return os << "current";
-      case instruction::secd_drop:              return os << "drop";
-      case instruction::secd_install:           return os << "install";
-      case instruction::secd_list_values:       return os << "list-values";
-      case instruction::secd_load_absolute:     return os << "load-absolute";
-      case instruction::secd_load_closure:      return os << "load-closure";
-      case instruction::secd_load_constant:     return os << "load-constant";
-      case instruction::secd_load_relative:     return os << "load-relative";
-      case instruction::secd_load_variadic:     return os << "load-variadic";
-      case instruction::secd_select:            return os << "select";
-      case instruction::secd_store_absolute:    return os << "store-absolute";
-      case instruction::secd_store_relative:    return os << "store-relative";
-      case instruction::secd_store_variadic:    return os << "store-variadic";
-      case instruction::secd_tail_call:         return os << "tail-call";
+      case instruction::call:              return os << "call";
+      case instruction::current:           return os << "current";
+      case instruction::drop:              return os << "drop";
+      case instruction::install:           return os << "install";
+      case instruction::list_values:       return os << "list-values";
+      case instruction::load_absolute:     return os << "load-absolute";
+      case instruction::load_closure:      return os << "load-closure";
+      case instruction::load_constant:     return os << "load-constant";
+      case instruction::load_relative:     return os << "load-relative";
+      case instruction::load_variadic:     return os << "load-variadic";
+      case instruction::select:            return os << "select";
+      case instruction::store_absolute:    return os << "store-absolute";
+      case instruction::store_relative:    return os << "store-relative";
+      case instruction::store_variadic:    return os << "store-variadic";
 
       default:
         assert(false);

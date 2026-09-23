@@ -29,14 +29,14 @@ namespace meevax::inline kernel
 
   GENERATOR(generator::quote)
   {
-    return cons(make<instruction>(instruction::secd_load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
-                                                                                                      : car(form),
+    return cons(make<instruction>(instruction::load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
+                                                                                                 : car(form),
                 continuation);
   }
 
   GENERATOR(generator::quote_syntax)
   {
-    return cons(make<instruction>(instruction::secd_load_constant), car(form),
+    return cons(make<instruction>(instruction::load_constant), car(form),
                 continuation);
   }
 
@@ -47,7 +47,7 @@ namespace meevax::inline kernel
                    bound_variables,
                    generator.generate(car(form),
                                       bound_variables,
-                                      list(make<instruction>(instruction::secd_tail_call))));
+                                      list(make<instruction>(instruction::call))));
   }
 
   GENERATOR(generator::operand)
@@ -69,14 +69,14 @@ namespace meevax::inline kernel
     {
       return generator.generate(form,
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_list_values),
+                                cons(make<instruction>(instruction::list_values),
                                      continuation));
     }
   }
 
   GENERATOR(generator::lambda)
   {
-    return cons(make<instruction>(instruction::secd_load_closure),
+    return cons(make<instruction>(instruction::load_closure),
                 body(generator,
                      cdr(form),
                      cons(car(form), bound_variables), // Extend scope.
@@ -96,7 +96,7 @@ namespace meevax::inline kernel
     {
       return generator.generate(car(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_drop),
+                                cons(make<instruction>(instruction::drop),
                                      body(generator,
                                           cdr(form),
                                           bound_variables,
@@ -115,14 +115,14 @@ namespace meevax::inline kernel
 
     return generator.generate(car(form), // <test>
                               bound_variables,
-                              list(make<instruction>(instruction::secd_select),
+                              list(make<instruction>(instruction::select),
                                    generator.generate(cadr(form),
                                                       bound_variables,
                                                       continuation),
                                    cddr(form) ? generator.generate(caddr(form),
                                                                    bound_variables,
                                                                    continuation)
-                                              : cons(make<instruction>(instruction::secd_load_constant), unspecified,
+                                              : cons(make<instruction>(instruction::load_constant), unspecified,
                                                      continuation)));
   }
 
@@ -134,14 +134,14 @@ namespace meevax::inline kernel
     {
       return generator.generate(cadr(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_relative), identity,
+                                cons(make<instruction>(instruction::store_relative), identity,
                                      continuation));
     }
     else if (identity.is<variadic>())
     {
       return generator.generate(cadr(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_variadic), identity,
+                                cons(make<instruction>(instruction::store_variadic), identity,
                                      continuation));
     }
     else
@@ -150,7 +150,7 @@ namespace meevax::inline kernel
 
       return generator.generate(cadr(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_absolute), identity,
+                                cons(make<instruction>(instruction::store_absolute), identity,
                                      continuation));
     }
   }
@@ -174,7 +174,7 @@ namespace meevax::inline kernel
          continuation whose tail is patched after compiling the remaining
          expressions.
       */
-      let rest = list(make<instruction>(instruction::secd_drop)); // Pop result of head expression
+      let rest = list(make<instruction>(instruction::drop)); // Pop result of head expression
 
       let const& code = generator.generate(car(form), // Head expression or definition
                                            bound_variables,
@@ -201,7 +201,7 @@ namespace meevax::inline kernel
     {
       return generator.generate(cdr(form) ? cadr(form) : unspecified,
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_absolute), generator.identify(car(form), bound_variables),
+                                cons(make<instruction>(instruction::store_absolute), generator.identify(car(form), bound_variables),
                                      continuation));
     }
   }
@@ -218,13 +218,13 @@ namespace meevax::inline kernel
                                       make<syntactic_environment>(bound_variables,
                                                                   generator.second));
 
-    return cons(make<instruction>(instruction::secd_load_constant), unspecified,
+    return cons(make<instruction>(instruction::load_constant), unspecified,
                 continuation);
   }
 
   GENERATOR(generator::current)
   {
-    return cons(make<instruction>(instruction::secd_current), car(form),
+    return cons(make<instruction>(instruction::current), car(form),
                 continuation);
   }
 
@@ -232,7 +232,7 @@ namespace meevax::inline kernel
   {
     return generator.generate(cadr(form),
                               bound_variables,
-                              cons(make<instruction>(instruction::secd_install), car(form),
+                              cons(make<instruction>(instruction::install), car(form),
                                    continuation));
   }
 } // namespace meevax::kernel

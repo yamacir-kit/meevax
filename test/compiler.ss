@@ -36,7 +36,7 @@
     load-constant 1
     load-constant #k
     load-absolute +
-    tail-call)
+    call)
 
   6)
 
@@ -50,7 +50,7 @@
   '(load-constant (a b)
     load-constant #k
     load-absolute car
-    tail-call)
+    call)
 
   'a)
 
@@ -81,11 +81,11 @@
         load-constant 5
         load-constant #k
         load-absolute +
-        tail-call)
+        call)
       load-absolute +
-      tail-call)
+      call)
     load-absolute +
-    tail-call)
+    call)
 
   '11)
 
@@ -116,11 +116,11 @@
         load-constant 5
         load-constant #k
         load-absolute +
-        tail-call)
+        call)
       load-absolute +
-      tail-call)
+      call)
     load-absolute +
-    tail-call)
+    call)
 
   '11)
 
@@ -143,8 +143,8 @@
       load-relative (0 . 1)
       load-relative (0 . 0)
       load-absolute +
-      tail-call)
-    tail-call)
+      call)
+    call)
 
   43)
 
@@ -172,8 +172,8 @@
       load-relative (0 . 1)
       load-relative (0 . 0)
       load-absolute +
-      tail-call)
-    tail-call)
+      call)
+    call)
 
   '6)
 
@@ -211,9 +211,9 @@
         load-relative (1 . 1)
         load-relative (0 . 0)
         load-absolute +
-        tail-call)
-      tail-call)
-    tail-call)
+        call)
+      call)
+    call)
 
   '10)
 
@@ -259,10 +259,10 @@
           load-relative (2 . 1)
           load-relative (0 . 0)
           load-absolute +
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   '11)
 
@@ -308,10 +308,10 @@
           load-relative (2 . 1)
           load-relative (0 . 0)
           load-absolute +
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   '11)
 
@@ -342,10 +342,10 @@
         load-closure
         ( load-constant 42
           load-relative (0 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   '42)
 
@@ -390,11 +390,11 @@
             load-relative (3 . 1)
             load-relative (2 . 0)
             load-absolute +
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   '3)
 
@@ -424,7 +424,7 @@
       select
       ( load-constant greater
         load-constant #k
-        tail-call)
+        call)
       ( load-constant 2
         load-constant 3
         load-closure
@@ -432,14 +432,14 @@
           select
           ( load-constant less
             load-constant #k
-            tail-call)
+            call)
           ( load-constant #;unspecified
             load-constant #k
-            tail-call))
+            call))
         load-absolute <
-        tail-call))
+        call))
     load-absolute >
-    tail-call)
+    call)
 
   'greater)
 
@@ -494,13 +494,13 @@
               load-relative (3 . 1)
               load-relative (3 . 0)
               load-absolute +
-              tail-call)
-            tail-call)
+              call)
+            call)
           load-absolute +
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   3)
 
@@ -556,11 +556,11 @@
             load-relative (2 . 1)
             load-relative (2 . 0)
             load-absolute +
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   '30)
 
@@ -612,7 +612,7 @@
           load-relative (2 . 1)
           load-relative (0 . 0)
           load-relative (1 . 2)
-          tail-call)
+          call)
         store-relative (0 . 1)
         drop
         load-constant #;unspecified
@@ -625,9 +625,9 @@
               load-relative (0 . 0)
               load-relative (1 . 0)
               load-absolute +
-              tail-call)
+              call)
             load-absolute *
-            tail-call)
+            call)
           store-relative (1 . 2)
           drop
           load-constant
@@ -638,13 +638,13 @@
             ( load-relative (0 . 0)
               load-relative (3 . 0)
               load-relative (3 . 1)
-              tail-call)
+              call)
             load-absolute +
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   '45)
 
@@ -696,7 +696,7 @@
           load-relative (0 . 1)
           load-relative (0 . 0)
           load-absolute +
-          tail-call)
+          call)
         store-relative (0 . 1)
         drop
         load-constant
@@ -706,7 +706,7 @@
             load-relative (0 . 1)
             load-relative (0 . 0)
             load-absolute +
-            tail-call)
+            call)
           store-relative (1 . 2)
           drop
           load-constant
@@ -716,13 +716,13 @@
             ( load-relative (0 . 0)
               load-relative (3 . 0)
               load-relative (3 . 2)
-              tail-call)
+              call)
             load-relative (2 . 1)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   '33)
 
@@ -796,7 +796,7 @@
               load-relative (0 . 1)
               load-relative (0 . 0)
               load-absolute +
-              tail-call)
+              call)
             store-relative (0 . 1)
             drop
             load-constant #;unspecified
@@ -809,14 +809,14 @@
                 ( load-relative (3 . 1)
                   load-relative (2 . 0)
                   load-relative (2 . 1)
-                  tail-call)
+                  call)
                 ( load-relative (3 . 1)
                   load-relative (2 . 0)
-                  tail-call))
+                  call))
               load-absolute <
-              tail-call)
-            tail-call)
-          tail-call)
+              call)
+            call)
+          call)
         store-relative (0 . 1)
         drop
         load-constant #;unspecified
@@ -826,7 +826,7 @@
             load-relative (0 . 1)
             load-relative (0 . 0)
             load-absolute +
-            tail-call)
+            call)
           store-relative (1 . 2)
           drop
           load-constant #;unspecified
@@ -836,17 +836,17 @@
             ( load-relative (0 . 0)
               load-relative (3 . 0)
               load-relative (3 . 1)
-              tail-call)
+              call)
             load-relative (2 . 2)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
+            call)
+          call)
+        call)
+      call)
     store-absolute f
     drop
     load-constant #;unspecified
     load-constant #k
-    tail-call)
+    call)
 
   (if #f #f))
 
@@ -860,7 +860,7 @@
   '(load-constant 0
     load-constant #k
     load-absolute f
-    tail-call)
+    call)
 
   11)
 
@@ -883,13 +883,13 @@
     ( load-variadic (0 . 1)
       list-values
       load-constant #k
-      tail-call)
+      call)
     load-constant #k
     load-closure
     ( load-relative (0 . 0)
       load-relative (0 . 1)
-      tail-call)
-    tail-call))
+      call)
+    call))
 
 (check-compiler ; Call-with-current-continuation
   '(call-with-current-continuation
@@ -908,10 +908,10 @@
   '(load-closure
     ( load-relative (0 . 0)
       load-relative (0 . 1)
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-current-continuation
-    tail-call))
+    call))
 
 (check-compiler ; Multiple values (call-with-values)
   '(call-with-values values list)
@@ -924,7 +924,7 @@
     load-absolute values
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '())
 
@@ -944,10 +944,10 @@
     load-closure
     ( load-relative (0 . 0)
       load-absolute values
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '())
 
@@ -970,10 +970,10 @@
     ( load-constant 1
       load-relative (0 . 0)
       load-absolute values
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '(1))
 
@@ -997,10 +997,10 @@
       load-constant 1
       load-relative (0 . 0)
       load-absolute values
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '(1 2))
 
@@ -1018,10 +1018,10 @@
     load-closure
     ( load-constant 42
       load-relative (0 . 0)
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '(42))
 
@@ -1054,13 +1054,13 @@
         load-constant 1
         load-relative (0 . 0)
         load-absolute values
-        tail-call)
+        call)
       load-relative (0 . 0)
       load-absolute call-with-values
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '(1 2))
 
@@ -1090,13 +1090,13 @@
     ( load-closure
       ( load-relative (0 . 0)
         load-relative (0 . 1)
-        tail-call)
+        call)
       load-relative (0 . 0)
       load-absolute call-with-current-continuation
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '())
 
@@ -1127,13 +1127,13 @@
       ( load-constant 1
         load-relative (0 . 0)
         load-relative (0 . 1)
-        tail-call)
+        call)
       load-relative (0 . 0)
       load-absolute call-with-current-continuation
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '(1))
 
@@ -1165,13 +1165,13 @@
         load-constant 1
         load-relative (0 . 0)
         load-relative (0 . 1)
-        tail-call)
+        call)
       load-relative (0 . 0)
       load-absolute call-with-current-continuation
-      tail-call)
+      call)
     load-constant #k
     load-absolute call-with-values
-    tail-call)
+    call)
 
   '(1 2))
 
@@ -1232,7 +1232,7 @@
           load-constant 1
           load-relative (0 . 0)
           load-absolute values
-          tail-call)
+          call)
         load-closure
         ( load-relative (0 . 0)
           store-relative (1 . 1)
@@ -1252,8 +1252,8 @@
                   load-relative (5 . 1)
                   load-relative (5 . 0)
                   load-absolute +
-                  tail-call)
-                tail-call)
+                  call)
+                call)
               load-closure
               ( load-relative (4 . 1)
                 load-closure
@@ -1264,18 +1264,18 @@
                   load-closure
                   ( load-relative (2 . 1)
                     load-relative (2 . 0)
-                    tail-call)
-                  tail-call)
+                    call)
+                  call)
                 load-absolute car
-                tail-call)
-              tail-call)
+                call)
+              call)
             load-absolute cadr
-            tail-call)
-          tail-call)
+            call)
+          call)
         load-absolute call-with-values
-        tail-call)
-      tail-call)
-    tail-call)
+        call)
+      call)
+    call)
 
   '3)
 
@@ -1345,29 +1345,29 @@
                 load-relative (3 . 1)
                 load-relative (0 . 0)
                 load-absolute list
-                tail-call)
-              tail-call)
-            tail-call)
+                call)
+              call)
+            call)
           load-closure
           ( load-relative (1 . 2)
             load-relative (1 . 1)
             load-relative (0 . 0)
             load-absolute values
-            tail-call)
+            call)
           load-relative (0 . 0)
           load-absolute call-with-values
-          tail-call)
-        tail-call)
+          call)
+        call)
       load-closure
       ( load-relative (1 . 4)
         load-relative (1 . 3)
         load-relative (0 . 0)
         load-absolute values
-        tail-call)
+        call)
       load-relative (0 . 0)
       load-absolute call-with-values
-      tail-call)
-    tail-call)
+      call)
+    call)
 
   '(X Y X Y))
 
@@ -1405,10 +1405,10 @@
         load-closure
         ( load-relative (2 . 1)
           load-relative (0 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   'outer)
 
@@ -1446,10 +1446,10 @@
         load-closure
         ( load-relative (2 . 1)
           load-relative (0 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   'outer)
 
@@ -1504,10 +1504,10 @@
           drop
           load-constant #;unspecified
           load-relative (1 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1564,11 +1564,11 @@
             drop
             load-constant #;unspecified
             load-relative (1 . 0)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1623,11 +1623,11 @@
             drop
             load-constant #;unspecified
             load-relative (1 . 0)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1681,10 +1681,10 @@
           drop
           load-constant #;unspecified
           load-relative (1 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1742,11 +1742,11 @@
             drop
             load-constant #;unspecified
             load-relative (1 . 0)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1797,10 +1797,10 @@
           drop
           load-constant #;unspecified
           load-relative (1 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1855,11 +1855,11 @@
             drop
             load-constant #;unspecified
             load-relative (1 . 0)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1908,10 +1908,10 @@
           drop
           load-constant #;unspecified
           load-relative (1 . 0)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -1964,11 +1964,11 @@
             drop
             load-constant #;unspecified
             load-relative (1 . 0)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   (if #f #f))
 
@@ -2013,13 +2013,13 @@
         ( load-relative (0 . 1)
           load-relative (0 . 0)
           load-absolute car
-          tail-call)
+          call)
         ( load-constant #;unspecified
           load-relative (0 . 0)
-          tail-call))
-      tail-call)
+          call))
+      call)
     load-absolute memq
-    tail-call)
+    call)
 
   'b)
 
@@ -2062,14 +2062,14 @@
           ( load-relative (1 . 1)
             load-relative (0 . 0)
             load-absolute car
-            tail-call)
-          tail-call)
+            call)
+          call)
         ( load-constant
           load-relative (0 . 0)
-          tail-call))
-      tail-call)
+          call))
+      call)
     load-absolute memq
-    tail-call)
+    call)
 
   'b)
 
@@ -2123,7 +2123,7 @@
           load-relative (0 . 1)
           load-relative (0 . 0)
           load-absolute +
-          tail-call)
+          call)
         store-relative (0 . 1)
         drop
         load-constant #;unspecified
@@ -2133,7 +2133,7 @@
             load-relative (0 . 1)
             load-relative (0 . 0)
             load-relative (2 . 1)
-            tail-call)
+            call)
           store-relative (1 . 3)
           drop
           load-constant #;unspecified
@@ -2142,11 +2142,11 @@
             load-constant 1
             load-relative (2 . 0)
             load-relative (2 . 3)
-            tail-call)
-          tail-call)
-        tail-call)
-      tail-call)
-    tail-call)
+            call)
+          call)
+        call)
+      call)
+    call)
 
   '3)
 
@@ -2163,7 +2163,7 @@
 
   '(load-constant r7rs
     load-constant #k
-    tail-call)
+    call)
 
   'r7rs)
 
@@ -2217,7 +2217,7 @@
           load-relative (1 . 2)
           load-relative (1 . 0)
           load-absolute +
-          tail-call)
+          call)
         ( load-constant 0
           load-relative (1 . 2)
           load-closure
@@ -2230,9 +2230,9 @@
                 load-relative (0 . 0)
                 load-relative (3 . 0)
                 load-absolute ack
-                tail-call)
+                call)
               load-absolute -
-              tail-call)
+              call)
             ( load-constant 1
               load-relative (2 . 1)
               load-closure
@@ -2246,22 +2246,22 @@
                     load-relative (2 . 0)
                     load-relative (5 . 0)
                     load-absolute ack
-                    tail-call)
+                    call)
                   load-absolute ack
-                  tail-call)
+                  call)
                 load-absolute -
-                tail-call)
+                call)
               load-absolute -
-              tail-call))
+              call))
           load-absolute =
-          tail-call))
+          call))
       load-absolute =
-      tail-call)
+      call)
     store-absolute ack
     drop
     load-constant #;unspecified
     load-constant #k
-    tail-call)
+    call)
 
   (if #f #f))
 
@@ -2306,7 +2306,7 @@
         select
         ( load-relative (1 . 1)
           load-relative (1 . 0)
-          tail-call)
+          call)
         ( load-constant 1
           load-relative (1 . 1)
           load-closure
@@ -2321,22 +2321,22 @@
                   load-relative (2 . 0)
                   load-relative (5 . 0)
                   load-absolute +
-                  tail-call)
+                  call)
                 load-absolute fib
-                tail-call)
+                call)
               load-absolute -
-              tail-call)
+              call)
             load-absolute fib
-            tail-call)
+            call)
           load-absolute -
-          tail-call))
+          call))
       load-absolute <
-      tail-call)
+      call)
     store-absolute fib
     drop
     load-constant #;unspecified
     load-constant #k
-    tail-call)
+    call)
 
   (if #f #f))
 
