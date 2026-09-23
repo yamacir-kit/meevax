@@ -63,8 +63,8 @@
           (+ 3 4)
           (+ 5 6))
 
-  '(+ (<lambda> $values
-        (+ (<lambda> $values
+  '(+ (<lambda> $xs
+        (+ (<lambda> $xs
              (+ #k 5 6))
            3
            4))
@@ -98,8 +98,8 @@
           (begin (+ 3 4))
           (begin (+ 5 6)))
 
-  '(+ (<lambda> $values
-        (+ (<lambda> $values
+  '(+ (<lambda> $xs
+        (+ (<lambda> $xs
              (+ #k 5 6))
            3
            4))
@@ -361,9 +361,9 @@
   '((<lambda> ($k a b)
       ((<lambda> ($k $temporary $temporary)
          (<begin> (<set!> a $temporary)
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> b $temporary)
-                              ((<lambda> $values
+                              ((<lambda> $xs
                                  (+ $k a b))))))))
        $k 1 2))
     #k)
@@ -407,11 +407,11 @@
          (<if> (< 3 2)
                (<begin> 'less)))
 
-  '(> (<lambda> ($value)
-        (<if> $value
+  '(> (<lambda> ($x)
+        (<if> $x
               (#k 'greater)
-              (< (<lambda> ($value)
-                   (<if> $value (#k 'less) (#k)))
+              (< (<lambda> ($x)
+                   (<if> $x (#k 'less) (#k)))
                  3
                  2)))
       3
@@ -460,10 +460,10 @@
   '((<lambda> ($k)
       ((<lambda> ($k x y)
          (<begin> (<set!> x 1)
-                  ((<lambda> $values
-                     (+ (<lambda> ($value)
-                          (<begin> (<set!> y $value)
-                                   ((<lambda> $values (+ $k x y)))))
+                  ((<lambda> $xs
+                     (+ (<lambda> ($x)
+                          (<begin> (<set!> y $x)
+                                   ((<lambda> $xs (+ $k x y)))))
                         x
                         1)))))
        $k
@@ -524,9 +524,9 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x%1> <y%1>)
          (<begin> (<set!> <x%1> 10)
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> <y%1> 20)
-                              ((<lambda> $values (+ $k <x%1> <y%1>))))))))
+                              ((<lambda> $xs (+ $k <x%1> <y%1>))))))))
        $k
        ()
        ()))
@@ -583,15 +583,15 @@
       ((<lambda> ($k foo bar)
          (<begin> (<set!> foo (<lambda> ($k y)
                                 (bar $k x y)))
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> bar (<lambda> ($k a b)
-                                            (* (<lambda> ($value)
-                                                 (+ $k $value a))
+                                            (* (<lambda> ($x)
+                                                 (+ $k $x a))
                                                a
                                                b)))
-                              ((<lambda> $values
-                                 (+ (<lambda> ($value)
-                                      (foo $k $value))
+                              ((<lambda> $xs
+                                 (+ (<lambda> ($x)
+                                      (foo $k $x))
                                     x
                                     3))))))))
        $k
@@ -669,12 +669,12 @@
       ((<lambda> ($k <f%1> <g%1>)
          (<begin> (<set!> <f%1> (<lambda> ($k x)
                                   (+ $k x 10)))
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> <g%1> (<lambda> ($k x)
                                               (+ $k x 20)))
-                              ((<lambda> $values
-                                 (<f%1> (<lambda> ($value)
-                                          (<g%1> $k $value))
+                              ((<lambda> $xs
+                                 (<f%1> (<lambda> ($x)
+                                          (<g%1> $k $x))
                                         3))))))))
        $k
        ()
@@ -761,21 +761,21 @@
                                                  ((<lambda> ($k h)
                                                     (<begin> (<set!> h (<lambda> ($k <x%4>)
                                                                          (+ $k <x%4> 10)))
-                                                             ((<lambda> $values
-                                                                (< (<lambda> ($value)
-                                                                     (<if> $value
+                                                             ((<lambda> $xs
+                                                                (< (<lambda> ($x)
+                                                                     (<if> $x
                                                                            (h $k <x%2>)
                                                                            ($k <x%2>)))
                                                                    0
                                                                    <x%2>)))))
                                                   $k
                                                   ())))
-                                    ((<lambda> $values
+                                    ((<lambda> $xs
                                        (<begin> (<set!> g2 (<lambda> ($k <x%2>)
                                                              (+ $k <x%2> 1)))
-                                                ((<lambda> $values
-                                                   (g2 (<lambda> ($value)
-                                                         (g1 $k $value))
+                                                ((<lambda> $xs
+                                                   (g2 (<lambda> ($x)
+                                                         (g1 $k $x))
                                                        x))))))))
                          $k
                          ()
@@ -876,8 +876,8 @@
   '((<lambda> ($k return)
       (return $k))
     #k
-    (<lambda> ($_ . $values)
-      (#k . $values)))
+    (<lambda> ($_ . $xs)
+      (#k . $xs)))
 
   '(load-closure
     ( load-variadic (0 . 1)
@@ -1196,21 +1196,21 @@
 
   '((<lambda> ($k)
       ((<lambda> ($k x y)
-         (<call-with-values> (<lambda> ($value)
-                               (<begin> (<set!> x $value)
-                                        ((<lambda> $values
-                                           (<cadr> (<lambda> ($value)
+         (<call-with-values> (<lambda> ($x)
+                               (<begin> (<set!> x $x)
+                                        ((<lambda> $xs
+                                           (<cadr> (<lambda> ($x)
                                                      ((<lambda> ($k <x>)
-                                                        (<car> (<lambda> ($value)
-                                                                 (<begin> (<set!> x $value)
-                                                                          ((<lambda> $values
+                                                        (<car> (<lambda> ($x)
+                                                                 (<begin> (<set!> x $x)
+                                                                          ((<lambda> $xs
                                                                              ($k <x>)))))
                                                                x))
-                                                      (<lambda> ($value)
-                                                        (<begin> (<set!> y $value)
-                                                                 ((<lambda> $values
+                                                      (<lambda> ($x)
+                                                        (<begin> (<set!> y $x)
+                                                                 ((<lambda> $xs
                                                                     (+ $k x y)))))
-                                                      $value))
+                                                      $x))
                                                    x)))))
                              (<lambda> ($k)
                                (values $k 1 2))
@@ -1478,7 +1478,7 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x%1>)
          (<begin> (<set!%-1> <x> <y>)
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!%-1> <y> <x%1>)
                               ($k))))))
        $k
@@ -1533,7 +1533,7 @@
       ((<lambda> ($k a b let set!)
          ((<lambda> ($k <x%2>)
             (<begin> (<set!%-1> <x> <y>)
-                     ((<lambda> $values
+                     ((<lambda> $xs
                         (<begin> (<set!%-1> <y> <x%2>)
                                  ($k))))))
           $k
@@ -1597,7 +1597,7 @@
       ((<lambda> ($k local-sc-swap!)
          ((<lambda> ($k <x%2>)
             (<begin> (<set!%-1> <x> <y>)
-                     ((<lambda> $values
+                     ((<lambda> $xs
                         (<begin> (<set!%-1> <y> <x%2>)
                                  ($k))))))
           $k <x>))
@@ -1658,7 +1658,7 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x>)
          (<begin> (<set!> x y)
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> y <x>)
                               ($k))))))
        $k x))
@@ -1716,7 +1716,7 @@
       ((<lambda> ($k local-rsc-swap!)
          ((<lambda> ($k <x>)
             (<begin> (<set!> x y)
-                     ((<lambda> $values
+                     ((<lambda> $xs
                         (<begin> (<set!> y <x>)
                                  ($k))))))
           $k x))
@@ -1774,7 +1774,7 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x>)
          (<begin> (<set!> x y)
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> y <x>)
                               ($k))))))
        $k x))
@@ -1829,7 +1829,7 @@
       ((<lambda> ($k local-er-swap!)
          ((<lambda> ($k <x>)
             (<begin> (<set!> x y)
-                     ((<lambda> $values
+                     ((<lambda> $xs
                         (<begin> (<set!> y <x>)
                                  ($k))))))
           $k x))
@@ -1885,7 +1885,7 @@
   '((<lambda> ($k x y)
       ((<lambda> ($k <x>)
          (<begin> (<set!> x y)
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> y <x>)
                               ($k))))))
        $k x))
@@ -1938,7 +1938,7 @@
       ((<lambda> ($k local-swap!)
          ((<lambda> ($k <x>)
             (<begin> (<set!> x y)
-                     ((<lambda> $values
+                     ((<lambda> $xs
                         (<begin> (<set!> y <x>)
                                  ($k))))))
           $k x))
@@ -1992,13 +1992,13 @@
           (<car%-1> it)))
     (memq 'b '(a b c)))
 
-  '(memq (<lambda> ($value)
+  '(memq (<lambda> ($x)
            ((<lambda> ($k it)
               (<if> it
                     (<car%-1> $k it)
                     ($k)))
             #k
-            $value))
+            $x))
          'b
          '(a b c))
 
@@ -2035,7 +2035,7 @@
            '(inner))))
     (memq 'b '(a b c)))
 
-  '(memq (<lambda> ($value)
+  '(memq (<lambda> ($x)
            ((<lambda> ($k it)
               (<if> it
                     ((<lambda> ($k <it%1>)
@@ -2044,7 +2044,7 @@
                      '(inner))
                     ($k)))
             #k
-            $value))
+            $x))
          'b
          '(a b c))
 
@@ -2100,10 +2100,10 @@
       ((<lambda> ($k f m g)
          (<begin> (<set!> f (<lambda> ($k x y)
                               (+ $k x y)))
-                  ((<lambda> $values
+                  ((<lambda> $xs
                      (<begin> (<set!> g (<lambda> ($k x y)
                                           (<f> $k x y)))
-                              ((<lambda> $values
+                              ((<lambda> $xs
                                  (g $k 1 2))))))))
        $k
        ()
@@ -2182,21 +2182,21 @@
                    (<begin> (ack (- m 1) (ack m (- n 1))))))))
 
   '(<begin> (<set!> ack (<lambda> ($k m n)
-                          (= (<lambda> ($value)
-                               (<if> $value
+                          (= (<lambda> ($x)
+                               (<if> $x
                                      (+ $k n 1)
-                                     (= (<lambda> ($value)
-                                          (<if> $value
-                                                (- (<lambda> ($value)
-                                                     (ack $k $value 1))
+                                     (= (<lambda> ($x)
+                                          (<if> $x
+                                                (- (<lambda> ($x)
+                                                     (ack $k $x 1))
                                                    m
                                                    1)
-                                                (- (<lambda> ($value)
-                                                     (- (<lambda> ($value)
-                                                          (ack (<lambda> ($value)
-                                                                 (ack $k $value $value))
+                                                (- (<lambda> ($x)
+                                                     (- (<lambda> ($x)
+                                                          (ack (<lambda> ($x)
+                                                                 (ack $k $x $x))
                                                                m
-                                                               $value))
+                                                               $x))
                                                         n
                                                         1))
                                                    m
@@ -2280,18 +2280,18 @@
               (fib (- n 2))))))
 
   '(<begin> (<set!> fib (<lambda> ($k n)
-                          (< (<lambda> ($value)
-                               (<if> $value
+                          (< (<lambda> ($x)
+                               (<if> $x
                                      ($k n)
-                                     (- (<lambda> ($value)
-                                          (fib (<lambda> ($value)
-                                                 (- (<lambda> ($value)
-                                                      (fib (<lambda> ($value)
-                                                             (+ $k $value $value))
-                                                           $value))
+                                     (- (<lambda> ($x)
+                                          (fib (<lambda> ($x)
+                                                 (- (<lambda> ($x)
+                                                      (fib (<lambda> ($x)
+                                                             (+ $k $x $x))
+                                                           $x))
                                                     n
                                                     2))
-                                               $value))
+                                               $x))
                                         n
                                         1)))
                              n

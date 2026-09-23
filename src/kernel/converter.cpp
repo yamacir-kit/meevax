@@ -81,9 +81,9 @@ namespace meevax::inline kernel
 
   CONVERTER(converter::call, administrative_beta_reducer const& k)
   {
-    let const value = make<symbol>("$value");
+    let const x = make<symbol>("$x");
 
-    return call(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
+    return call(converter, form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   CONVERTER(converter::lambda, syntactic_continuation const& c)
@@ -111,7 +111,7 @@ namespace meevax::inline kernel
       return converter.T_c(car(form),
                            bound_variables,
                            list(default_rename("lambda"),
-                                make<symbol>("$values"),
+                                make<symbol>("$xs"),
                                 body(converter,
                                      cdr(form),
                                      bound_variables,
@@ -134,7 +134,7 @@ namespace meevax::inline kernel
       return converter.T_c(car(form),
                            bound_variables,
                            list(default_rename("lambda"),
-                                make<symbol>("$values"),
+                                make<symbol>("$xs"),
                                 body(converter,
                                      cdr(form),
                                      bound_variables,
@@ -167,9 +167,9 @@ namespace meevax::inline kernel
 
   CONVERTER(converter::conditional, administrative_beta_reducer const& k)
   {
-    let const value = make<symbol>("$value");
+    let const x = make<symbol>("$x");
 
-    return conditional(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
+    return conditional(converter, form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   CONVERTER(converter::set, syntactic_continuation const& c)
@@ -218,9 +218,9 @@ namespace meevax::inline kernel
 
   CONVERTER(converter::letrec, administrative_beta_reducer const& k)
   {
-    let const value = make<symbol>("$value");
+    let const x = make<symbol>("$x");
 
-    return letrec(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
+    return letrec(converter, form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   CONVERTER(converter::sequence, syntactic_continuation const& c)
@@ -272,22 +272,22 @@ namespace meevax::inline kernel
     {
       return converter.T_k(cadr(form), bound_variables, [&](let const& f)
       {
-        let const values = make<symbol>("$values");
+        let const xs = make<symbol>("$xs");
 
         return list(f,
                     c,
                     list(default_rename("lambda"),
-                         cons(make<symbol>("$_"), values),
-                         cons(c, values)));
+                         cons(make<symbol>("$_"), xs),
+                         cons(c, xs)));
       });
     }
   }
 
   CONVERTER(converter::call_with_current_continuation, administrative_beta_reducer const& k)
   {
-    let const value = make<symbol>("$value");
+    let const x = make<symbol>("$x");
 
-    return call_with_current_continuation(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
+    return call_with_current_continuation(converter, form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   CONVERTER(converter::call_with_values, syntactic_continuation const& c)
@@ -296,21 +296,21 @@ namespace meevax::inline kernel
     {
       return converter.T_k(caddr(form), bound_variables, [&](let const& consumer)
       {
-        let const values = make<symbol>("$values");
+        let const xs = make<symbol>("$xs");
 
         return list(producer,
                     list(default_rename("lambda"),
-                         values,
-                         cons(consumer, c, values)));
+                         xs,
+                         cons(consumer, c, xs)));
       });
     });
   }
 
   CONVERTER(converter::call_with_values, administrative_beta_reducer const& k)
   {
-    let const value = make<symbol>("$value");
+    let const x = make<symbol>("$x");
 
-    return call_with_values(converter, form, bound_variables, list(default_rename("lambda"), list(value), k(value)));
+    return call_with_values(converter, form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   CONVERTER(converter::current, syntactic_continuation const& c)
