@@ -37,7 +37,12 @@ namespace meevax::inline memory
     return std::make_pair(i / 64, i % 64);
   }
 
-  template <typename T, std::size_t E, std::size_t... Es>
+  enum class cleanup
+  {
+    automatic, manual
+  };
+
+  template <typename T, cleanup C, std::size_t E, std::size_t... Es>
   struct pointer_set
   {
     static_assert(sizeof(T) <= sizeof(std::uintptr_t));
@@ -50,7 +55,7 @@ namespace meevax::inline memory
 
     auto static constexpr R = 63;
 
-    using subset = pointer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
+    using subset = pointer_set<std::uintptr_t, cleanup::automatic, Es...>; // Only the outermost implementation knows the original type name T.
 
     std::array<subset *, N> data {};
 
@@ -250,13 +255,12 @@ namespace meevax::inline memory
       }
     };
 
-    ~pointer_set()
+    ~pointer_set() requires (C == cleanup::automatic)
     {
-      for (auto datum : data)
-      {
-        delete datum;
-      }
+      clear();
     }
+
+    ~pointer_set() requires (C == cleanup::manual) = default;
 
     static constexpr auto split(T value) noexcept -> std::pair<std::size_t, std::uintptr_t>
     {
@@ -349,7 +353,24 @@ namespace meevax::inline memory
       return size() == 0;
     }
 
-    auto swap(pointer_set & other)
+    auto clear() noexcept -> void
+    {
+      for (auto & datum : data)
+      {
+        delete datum;
+        datum = nullptr;
+      }
+
+      occupancy.fill(0);
+
+      n = 0;
+
+      i_min = N;
+      i_max = 0;
+    }
+
+    template <cleanup _>
+    auto swap(pointer_set<T, _, E, Es...> & other)
     {
       std::swap(data, other.data);
       std::swap(occupancy, other.occupancy);
@@ -359,8 +380,8 @@ namespace meevax::inline memory
     }
   };
 
-  template <typename T, std::size_t E>
-  struct pointer_set<T, E>
+  template <typename T, cleanup C, std::size_t E>
+  struct pointer_set<T, C, E>
   {
     auto static constexpr N = 1_u64 << E;
 
