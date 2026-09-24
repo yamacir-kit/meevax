@@ -255,7 +255,10 @@ namespace meevax::inline memory
 
     ~pointer_set() requires (C == cleanup::automatic)
     {
-      clear();
+      for (auto & datum : data)
+      {
+        delete datum;
+      }
     }
 
     ~pointer_set() requires (C == cleanup::manual) = default;
@@ -264,9 +267,14 @@ namespace meevax::inline memory
     {
       auto x = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
 
-      auto constexpr upper_mask = (1_u64 << E) - 1;
-      static_assert(std::countr_one(upper_mask) == E);
-      auto i = (x >> (Es + ...)) & upper_mask;
+      auto i = x >> (Es + ...);
+
+      if constexpr (not std::is_pointer_v<T>)
+      {
+        auto constexpr upper_mask = (1_u64 << E) - 1;
+        static_assert(std::countr_one(upper_mask) == E);
+        i &= upper_mask;
+      }
 
       auto constexpr lower_mask = (1_u64 << (Es + ...)) - 1;
       static_assert(std::countr_one(lower_mask) == (Es + ...));
@@ -356,13 +364,11 @@ namespace meevax::inline memory
       for (auto & datum : data)
       {
         delete datum;
-        datum = nullptr;
       }
 
+      data.fill(0);
       occupancy.fill(0);
-
       n = 0;
-
       i_min = N;
       i_max = 0;
     }
