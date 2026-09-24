@@ -124,13 +124,13 @@ namespace meevax::inline memory
       {
         assert(p);
 
-        auto seek = [this](auto i)
+        auto seek = [this](auto index)
         {
-          auto [q, r] = qr64(i);
+          auto [q, r] = qr64(index);
 
           if (auto word = p->occupancy[q] & (~0_u64 << r); word)
           {
-            return q * 64 + std::countr_zero(word);
+            return i = q * 64 + std::countr_zero(word);
           }
           else
           {
@@ -138,36 +138,35 @@ namespace meevax::inline memory
             {
               if (auto word = p->occupancy[q]; word)
               {
-                return q * 64 + std::countr_zero(word);
+                return i = q * 64 + std::countr_zero(word);
               }
             }
 
-            return N;
+            return i = N;
           }
         };
 
-        for (i = seek(i); i <= p->i_max; i = seek(i + 1))
+        if (i <= p->i_max and seek(i) < N)
         {
-          if (p->data[i] and (sub = p->data[i]->begin()))
-          {
-            return;
-          }
+          sub = p->data[i]->begin();
         }
-
-        invalidate();
+        else
+        {
+          invalidate();
+        }
       }
 
       auto decrement_unless_truthy() noexcept -> void
       {
         assert(p);
 
-        auto seek = [this](auto i)
+        auto seek = [this](auto index)
         {
-          auto [q, r] = qr64(i);
+          auto [q, r] = qr64(index);
 
           if (auto word = p->occupancy[q] & (~0_u64 >> (R - r)); word)
           {
-            return q * 64 + R - std::countl_zero(word);
+            return i = q * 64 + R - std::countl_zero(word);
           }
           else
           {
@@ -175,23 +174,22 @@ namespace meevax::inline memory
             {
               if (auto word = p->occupancy[q]; word)
               {
-                return q * 64 + R - std::countl_zero(word);
+                return i = q * 64 + R - std::countl_zero(word);
               }
             }
 
-            return N;
+            return i = N;
           }
         };
 
-        for (i = seek(std::min(i, N - 1)); i - p->i_min < N - p->i_min; i = seek(i - 1))
+        if (p->i_min <= i and seek(std::min(i, N - 1)) < N)
         {
-          if (p->data[i] and (sub = typename subset::const_iterator(p->data[i])))
-          {
-            return;
-          }
+          sub = typename subset::const_iterator(p->data[i]);
         }
-
-        invalidate();
+        else
+        {
+          invalidate();
+        }
       }
 
       auto invalidate() noexcept
