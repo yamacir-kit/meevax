@@ -161,16 +161,31 @@ namespace meevax::inline kernel
         }
         else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<procedure> k . xs) e (%call) => (k x) e (%call)
+        *  (<procedure> k . xs) e (%call) => k(x)
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
           assert(cdr(c).template is<null>());
-          s.reset<b1, bx>(list(cadr(s), callee.as<procedure>().call(cddr(s))));
-          assert(not car(s).template is<procedure>());
-          goto fetch;
+
+          if (let const& k = cadr(s); k.is<closure>())
+          {
+            c.reset<b1, b1>(car(k));
+            e.reset<bx, b1>(cons(list(callee.as<procedure>().call(cddr(s))), cdr(k)));
+            s.reset<b1>();
+            goto fetch;
+          }
+          else if (k.is<continuation>())
+          {
+            return callee.as<procedure>().call(cddr(s));
+          }
+          else
+          {
+            assert(false);
+            s.reset<b1, bx>(list(k, callee.as<procedure>().call(cddr(s))));
+            goto fetch;
+          }
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
