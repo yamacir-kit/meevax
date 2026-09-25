@@ -269,7 +269,11 @@ namespace meevax::inline memory
 
       auto i = x >> (Es + ...);
 
-      if constexpr (not std::is_pointer_v<T>)
+      if constexpr (std::is_pointer_v<T>)
+      {
+        assert(i < N);
+      }
+      else
       {
         auto constexpr upper_mask = (1_u64 << E) - 1;
         static_assert(std::countr_one(upper_mask) == E);
