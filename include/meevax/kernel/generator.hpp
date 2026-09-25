@@ -27,8 +27,7 @@ namespace meevax::inline kernel
     auto NAME([[maybe_unused]] syntactic_environment & generator,            \
               [[maybe_unused]] object const& form,                           \
               [[maybe_unused]] object const& bound_variables,                \
-              [[maybe_unused]] object const& continuation,                   \
-              [[maybe_unused]] bool tail = false) -> object
+              [[maybe_unused]] object const& continuation) -> object
 
     static GENERATOR(quote);
 
@@ -52,7 +51,7 @@ namespace meevax::inline kernel
 
     static constexpr auto conditional_expand = nullptr;
 
-    static GENERATOR(letrec);
+    static constexpr auto letrec = nullptr;
 
     static GENERATOR(sequence);
 
@@ -64,7 +63,9 @@ namespace meevax::inline kernel
 
     static GENERATOR(define_syntax);
 
-    static GENERATOR(call_with_current_continuation);
+    static constexpr auto call_with_current_continuation = nullptr;
+
+    static constexpr auto call_with_values = nullptr;
 
     static GENERATOR(current);
 

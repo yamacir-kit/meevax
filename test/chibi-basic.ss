@@ -171,7 +171,7 @@
                 (+ (* y y) (* z z)))
              (+ (* x 100) (+ (* y 10) z))
              (fail)))
-  => 543)
+  => 534) ; left-to-right evaluation returns 534 (Meevax), right-to-left evaluation returns 543 (Chibi)
 
 ; ---- chibi-scheme/tests/basic/test09-hygiene.scm -----------------------------
 

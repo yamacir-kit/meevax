@@ -17,14 +17,14 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
 
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {
-  struct continuation : public virtual pair
-  {
-    using pair::pair;
-  };
+  struct continuation
+  {};
+
+  auto operator ==(continuation const&, continuation const&) -> bool;
 
   auto operator <<(std::ostream &, continuation const&) -> std::ostream &;
 } // namespace meevax::kernel

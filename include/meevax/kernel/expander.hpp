@@ -65,6 +65,8 @@ namespace meevax::inline kernel
 
     static EXPANDER(call_with_current_continuation);
 
+    static EXPANDER(call_with_values);
+
     static EXPANDER(current);
 
     static EXPANDER(install);

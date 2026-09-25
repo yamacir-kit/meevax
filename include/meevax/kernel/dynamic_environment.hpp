@@ -52,7 +52,7 @@ namespace meevax::inline kernel
 
     auto execute(object const&) -> object;
 
-    auto execute(object, object, object, object) -> object;
+    auto execute(object, object, object) -> object;
   };
 } // namespace meevax::kernel
 

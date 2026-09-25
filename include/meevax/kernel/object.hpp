@@ -173,6 +173,20 @@ namespace meevax::inline kernel
   using let = object;
 
   let extern unit;
+
+  struct anchor
+  {
+    anchor() noexcept;
+
+    anchor(anchor const&) = delete;
+
+    anchor(anchor &&) = delete;
+
+    ~anchor() noexcept;
+  };
+
+  [[maybe_unused]]
+  auto const _ = anchor();
 } // namespace meevax::kernel
 
 namespace std
