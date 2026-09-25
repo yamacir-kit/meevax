@@ -14,7 +14,6 @@ project(meevax
 include(GNUInstallDirs)
 
 string(JOIN " " ${PROJECT_NAME}_UNSTABLE_OPTIONS
-  "-flto"
   # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
   # "-mtune=native"
@@ -28,6 +27,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${${PROJECT_NAME}_UNSTABLE_OPTIONS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-4")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
@@ -82,6 +83,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/system.cpp ${CMAKE_CURRENT_
 # ---- TARGET kernel -----------------------------------------------------------
 
 add_library(kernel SHARED)
+
+target_compile_options(kernel
+  PRIVATE $<$<AND:$<PLATFORM_ID:Linux>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:-fno-semantic-interposition>)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
