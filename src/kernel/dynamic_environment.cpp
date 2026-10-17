@@ -18,6 +18,7 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
+#include <meevax/kernel/control.hpp>
 #include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -75,8 +76,8 @@ namespace meevax::inline kernel
         goto fetch;
 
       case instruction::load_closure:
-        assert(pc->is<small_integer>());
-        s.reset<bx, b1>(cons(make<closure, segregated_storage_allocator<void>>(cons(c, make<small_integer>(static_cast<small_integer>(pc - c0) + pc->as<small_integer>())), e), s));
+        assert(pc->is<control>());
+        s.reset<bx, b1>(cons(make<closure, segregated_storage_allocator<void>>(*pc, e), s));
         ++pc;
         goto fetch;
 
@@ -86,15 +87,16 @@ namespace meevax::inline kernel
         goto fetch;
 
       case instruction::select:
-        assert(pc[0].is<small_integer>());
-        assert(pc[1].is<small_integer>());
-        pc += (car(s) != f ? pc[0] : pc[1]).as<small_integer>();
+        assert(pc[0].is<control>());
+        assert(pc[1].is<control>());
+        pc = c0 + cdr(car(s) != f ? pc[0] : pc[1]).as<small_integer>();
         s.reset<b1, bx>(cdr(s));
         goto fetch;
 
       case instruction::call:
         if (let const& f = car(s); f.is<closure>())
         {
+          assert(car(f).is<control>());
           e.reset<bx, b1>(cons(cdr(s), cdr(f)));
           s.reset<bx>();
 
@@ -111,6 +113,7 @@ namespace meevax::inline kernel
         {
           if (let const& k = cadr(s); k.is<closure>())
           {
+            assert(car(k).is<control>());
             e.reset<bx, b1>(cons(list(f.as<procedure>().call(cddr(s))), cdr(k)));
             s.reset<bx>();
 

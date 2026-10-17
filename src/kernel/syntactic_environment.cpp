@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/continuation.hpp>
+#include <meevax/kernel/control.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
@@ -151,7 +152,9 @@ namespace meevax::inline kernel
   auto syntactic_environment::generate(object const& form,
                                        object const& bound_variables) -> object
   {
-    auto assemble = [&](auto assemble, object c) -> object
+    let image = make<vector>();
+
+    auto assemble = [&](auto assemble, object c, std::size_t offset) -> object
     {
       if (c.is<null>())
       {
@@ -162,7 +165,8 @@ namespace meevax::inline kernel
       case instruction::call:
       case instruction::drop:
       case instruction::list_values:
-        return cons(car(c), assemble(assemble, cdr(c)));
+        offset += 1;
+        return cons(car(c), assemble(assemble, cdr(c), offset));
 
       case instruction::current:
       case instruction::install:
@@ -173,26 +177,34 @@ namespace meevax::inline kernel
       case instruction::store_absolute:
       case instruction::store_relative:
       case instruction::store_variadic:
-        return cons(car(c), cadr(c), assemble(assemble, cddr(c)));
+        offset += 2;
+        return cons(car(c), cadr(c), assemble(assemble, cddr(c), offset));
 
       case instruction::load_closure:
         {
-          let const body = assemble(assemble, cddr(c));
+          offset += 2;
+
+          auto const c1 = assemble(assemble, cddr(c), offset);
+          auto const n1 = length(c1);
 
           return cons(car(c),
-                      make<small_integer>(static_cast<small_integer>(1 + length(body))),
-                      append(body, assemble(assemble, cadr(c))));
+                      make<control>(image, make<small_integer>(static_cast<small_integer>(offset + n1))),
+                      append(c1, assemble(assemble, cadr(c), offset + n1)));
         }
 
       case instruction::select:
         {
-          let const consequent = assemble(assemble, cadr(c));
-          let const alternative = assemble(assemble, cdddr(c));
+          offset += 3;
+
+          auto const c2 = assemble(assemble, cdddr(c), offset);
+          auto const n2 = length(c2);
+          auto const c1 = assemble(assemble, cadr(c), offset + n2);
+          auto const n1 = length(c1);
 
           return cons(car(c),
-                      make<small_integer>(static_cast<small_integer>(2 + length(alternative))),
-                      make<small_integer>(static_cast<small_integer>(2 + length(alternative) + length(consequent))),
-                      append(alternative, append(consequent, assemble(assemble, caddr(c)))));
+                      make<control>(image, make<small_integer>(static_cast<small_integer>(offset + n2))),
+                      make<control>(image, make<small_integer>(static_cast<small_integer>(offset + n2 + n1))),
+                      append(c2, append(c1, assemble(assemble, caddr(c), offset + n2 + n1))));
         }
 
       default:
@@ -201,7 +213,9 @@ namespace meevax::inline kernel
       }
     };
 
-    return make<vector>(assemble(assemble, generate(form, bound_variables, unit)) | as_proper_list);
+    std::ranges::copy(assemble(assemble, generate(form, bound_variables, unit), 0) | as_proper_list, std::back_inserter(image.as<vector>().objects));
+
+    return image;
   }
 
   auto syntactic_environment::generate(object const& form,

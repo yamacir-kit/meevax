@@ -73,12 +73,12 @@
 
   '#(load-constant 2
      load-constant 1
-     load-closure 4
+     load-closure 9
      load-absolute +
      call
      load-constant 4
      load-constant 3
-     load-closure 4
+     load-closure 18
      load-absolute +
      call
      load-constant 6
@@ -108,12 +108,12 @@
 
   '#(load-constant 2
      load-constant 1
-     load-closure 4
+     load-closure 9
      load-absolute +
      call
      load-constant 4
      load-constant 3
-     load-closure 4
+     load-closure 18
      load-absolute +
      call
      load-constant 6
@@ -138,7 +138,7 @@
 
   '#(load-constant 42
      load-constant #k
-     load-closure 2
+     load-closure 7
      call
      load-constant 1
      load-relative (0 . 1)
@@ -166,7 +166,7 @@
      load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 11
      call
      load-relative (0 . 3)
      load-relative (0 . 2)
@@ -201,12 +201,12 @@
      load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 11
      call
      load-constant 5
      load-constant 4
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 20
      call
      load-relative (0 . 2)
      load-relative (0 . 1)
@@ -246,16 +246,16 @@
      load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 11
      call
      load-constant 5
      load-constant 4
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 20
      call
      load-constant 6
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 27
      call
      load-relative (0 . 1)
      load-relative (1 . 1)
@@ -295,16 +295,16 @@
      load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 11
      call
      load-constant 5
      load-constant 4
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 20
      call
      load-constant 6
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 27
      call
      load-relative (0 . 1)
      load-relative (1 . 1)
@@ -335,13 +335,13 @@
     #k)
 
   '#(load-constant #k
-     load-closure 2
+     load-closure 5
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 10
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 15
      call
      load-constant 42
      load-relative (0 . 0)
@@ -371,24 +371,24 @@
   '#(load-constant
      load-constant
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-constant 2
      load-constant 1
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 18
      call
      load-relative (0 . 1)
      store-relative (1 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 28
      call
      load-relative (1 . 2)
      store-relative (2 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 38
      call
      load-relative (3 . 2)
      load-relative (3 . 1)
@@ -419,21 +419,21 @@
 
   '#(load-constant 2
      load-constant 3
-     load-closure 4
+     load-closure 9
      load-absolute >
      call
      load-relative (0 . 0)
-     select 2 7
+     select 14 19
      load-constant greater
      load-constant #k
      call
      load-constant 2
      load-constant 3
-     load-closure 4
+     load-closure 28
      load-absolute <
      call
      load-relative (0 . 0)
-     select 2 7
+     select 33 38
      load-constant less
      load-constant #k
      call
@@ -472,29 +472,29 @@
     #k)
 
   '#(load-constant #k
-     load-closure 2
+     load-closure 5
      call
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 14
      call
      load-constant 1
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 24
      call
      load-constant 1
      load-relative (1 . 1)
-     load-closure 4
+     load-closure 33
      load-absolute +
      call
      load-relative (0 . 0)
      store-relative (2 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 43
      call
      load-relative (3 . 2)
      load-relative (3 . 1)
@@ -537,24 +537,24 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 18
      call
      load-constant 10
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 28
      call
      load-constant 20
      store-relative (1 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 38
      call
      load-relative (2 . 2)
      load-relative (2 . 1)
@@ -602,28 +602,28 @@
 
   '#(load-constant 5
      load-constant #k
-     load-closure 2
+     load-closure 7
      call
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 16
      call
-     load-closure 53
+     load-closure 70
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 26
      call
-     load-closure 25
+     load-closure 52
      store-relative (1 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 36
      call
      load-constant 3
      load-relative (3 . 1)
-     load-closure 4
+     load-closure 45
      load-absolute +
      call
      load-relative (0 . 0)
@@ -632,7 +632,7 @@
      call
      load-relative (0 . 2)
      load-relative (0 . 1)
-     load-closure 4
+     load-closure 61
      load-absolute *
      call
      load-relative (1 . 1)
@@ -686,27 +686,27 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 18
      call
-     load-closure 42
+     load-closure 61
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 28
      call
-     load-closure 23
+     load-closure 52
      store-relative (1 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 38
      call
      load-constant 3
-     load-closure 4
+     load-closure 45
      load-relative (2 . 1)
      call
      load-relative (0 . 0)
@@ -782,7 +782,7 @@
                          ())))
             (#k))
 
-  '#(load-closure 9
+  '#(load-closure 10
      store-absolute f
      drop
      load-constant
@@ -791,22 +791,22 @@
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 19
      call
-     load-closure 42
+     load-closure 62
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 29
      call
-     load-closure 23
+     load-closure 53
      store-relative (1 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 39
      call
      load-relative (3 . 1)
-     load-closure 4
+     load-closure 46
      load-relative (2 . 2)
      call
      load-relative (0 . 0)
@@ -820,21 +820,21 @@
      call
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 69
      call
-     load-closure 35
+     load-closure 105
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 79
      call
      load-relative (2 . 1)
      load-constant 0
-     load-closure 4
+     load-closure 88
      load-absolute <
      call
      load-relative (0 . 0)
-     select 2 9
+     select 93 100
      load-relative (3 . 1)
      load-relative (2 . 0)
      load-relative (2 . 1)
@@ -879,9 +879,9 @@
     (<lambda> ($_ . $xs)
       (#k . $xs)))
 
-  '#(load-closure 11
+  '#(load-closure 12
      load-constant #k
-     load-closure 2
+     load-closure 7
      call
      load-relative (0 . 0)
      load-relative (0 . 1)
@@ -905,7 +905,7 @@
      (<lambda> ($k return)
        (return $k)))
 
-  '#(load-closure 6
+  '#(load-closure 7
      load-constant #k
      load-absolute call-with-current-continuation
      call
@@ -941,7 +941,7 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
@@ -966,7 +966,7 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
@@ -992,7 +992,7 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
@@ -1015,7 +1015,7 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
@@ -1047,12 +1047,12 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
      load-absolute values
-     load-closure 6
+     load-closure 18
      load-relative (0 . 0)
      load-absolute call-with-values
      call
@@ -1086,11 +1086,11 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
-     load-closure 6
+     load-closure 16
      load-relative (0 . 0)
      load-absolute call-with-current-continuation
      call
@@ -1122,11 +1122,11 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
-     load-closure 6
+     load-closure 16
      load-relative (0 . 0)
      load-absolute call-with-current-continuation
      call
@@ -1159,11 +1159,11 @@
                      list)
 
   '#(load-absolute list
-     load-closure 6
+     load-closure 9
      load-constant #k
      load-absolute call-with-values
      call
-     load-closure 6
+     load-closure 16
      load-relative (0 . 0)
      load-absolute call-with-current-continuation
      call
@@ -1221,41 +1221,41 @@
     #k)
 
   '#(load-constant #k
-     load-closure 2
+     load-closure 5
      call
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 14
      call
      load-absolute list
-     load-closure 71
-     load-closure 4
+     load-closure 88
+     load-closure 23
      load-absolute call-with-values
      call
      load-relative (0 . 0)
      store-relative (1 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 33
      call
      load-relative (2 . 1)
-     load-closure 4
+     load-closure 40
      load-absolute cadr
      call
      load-relative (0 . 0)
-     load-closure 26
-     load-closure 2
+     load-closure 69
+     load-closure 47
      call
      load-relative (4 . 1)
-     load-closure 4
+     load-closure 54
      load-absolute car
      call
      load-relative (0 . 0)
      store-relative (5 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 64
      call
      load-relative (2 . 1)
      load-relative (2 . 0)
@@ -1264,7 +1264,7 @@
      store-relative (4 . 2)
      drop
      load-constant
-     load-closure 2
+     load-closure 79
      call
      load-relative (5 . 2)
      load-relative (5 . 1)
@@ -1326,10 +1326,10 @@
      load-constant B
      load-constant A
      load-constant #k
-     load-closure 2
+     load-closure 13
      call
-     load-closure 17
-     load-closure 6
+     load-closure 31
+     load-closure 22
      load-relative (0 . 0)
      load-absolute call-with-values
      call
@@ -1341,10 +1341,10 @@
      load-relative (0 . 2)
      load-relative (0 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 40
      call
-     load-closure 17
-     load-closure 6
+     load-closure 58
+     load-closure 49
      load-relative (0 . 0)
      load-absolute call-with-values
      call
@@ -1356,10 +1356,10 @@
      load-relative (0 . 2)
      load-relative (0 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 67
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 72
      call
      load-relative (1 . 2)
      load-relative (1 . 1)
@@ -1397,14 +1397,14 @@
 
   '#(load-constant outer
      load-constant #k
-     load-closure 2
+     load-closure 7
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 12
      call
      load-constant inner
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 19
      call
      load-relative (2 . 1)
      load-relative (0 . 0)
@@ -1438,14 +1438,14 @@
 
   '#(load-constant outer
      load-constant #k
-     load-closure 2
+     load-closure 7
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 12
      call
      load-constant inner
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 19
      call
      load-relative (2 . 1)
      load-relative (0 . 0)
@@ -1490,17 +1490,17 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 16
      call
      load-relative (1 . 2)
      store-relative (1 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 26
      call
      load-relative (1 . 1)
      store-relative (2 . 2)
@@ -1544,24 +1544,24 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-constant SET!
      load-constant LET
      load-constant B
      load-constant A
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 22
      call
      load-relative (1 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 29
      call
      load-relative (2 . 2)
      store-relative (2 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 39
      call
      load-relative (1 . 1)
      store-relative (3 . 2)
@@ -1607,20 +1607,20 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 14
      call
      load-relative (1 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 21
      call
      load-relative (2 . 2)
      store-relative (2 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 31
      call
      load-relative (1 . 1)
      store-relative (3 . 2)
@@ -1667,17 +1667,17 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 16
      call
      load-relative (1 . 2)
      store-relative (1 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 26
      call
      load-relative (1 . 1)
      store-relative (2 . 2)
@@ -1726,20 +1726,20 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 14
      call
      load-relative (1 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 21
      call
      load-relative (2 . 2)
      store-relative (2 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 31
      call
      load-relative (1 . 1)
      store-relative (3 . 2)
@@ -1783,17 +1783,17 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 16
      call
      load-relative (1 . 2)
      store-relative (1 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 26
      call
      load-relative (1 . 1)
      store-relative (2 . 2)
@@ -1839,20 +1839,20 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 14
      call
      load-relative (1 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 21
      call
      load-relative (2 . 2)
      store-relative (2 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 31
      call
      load-relative (1 . 1)
      store-relative (3 . 2)
@@ -1894,17 +1894,17 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 16
      call
      load-relative (1 . 2)
      store-relative (1 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 26
      call
      load-relative (1 . 1)
      store-relative (2 . 2)
@@ -1948,20 +1948,20 @@
   '#(load-constant 2
      load-constant 1
      load-constant #k
-     load-closure 2
+     load-closure 9
      call
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 14
      call
      load-relative (1 . 1)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 21
      call
      load-relative (2 . 2)
      store-relative (2 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 31
      call
      load-relative (1 . 1)
      store-relative (3 . 2)
@@ -2004,15 +2004,15 @@
 
   '#(load-constant (a b c)
      load-constant b
-     load-closure 4
+     load-closure 9
      load-absolute memq
      call
      load-relative (0 . 0)
      load-constant #k
-     load-closure 2
+     load-closure 16
      call
      load-relative (0 . 1)
-     select 2 9
+     select 21 28
      load-relative (0 . 1)
      load-relative (0 . 0)
      load-absolute car
@@ -2050,18 +2050,18 @@
 
   '#(load-constant (a b c)
      load-constant b
-     load-closure 4
+     load-closure 9
      load-absolute memq
      call
      load-relative (0 . 0)
      load-constant #k
-     load-closure 2
+     load-closure 16
      call
      load-relative (0 . 1)
-     select 2 16
+     select 21 35
      load-constant (inner)
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 28
      call
      load-relative (1 . 1)
      load-relative (0 . 0)
@@ -2112,25 +2112,25 @@
     #k)
 
   '#(load-constant #k
-     load-closure 2
+     load-closure 5
      call
      load-constant ()
      load-constant ()
      load-constant ()
      load-relative (0 . 0)
-     load-closure 2
+     load-closure 16
      call
-     load-closure 37
+     load-closure 54
      store-relative (0 . 1)
      drop
      load-constant
-     load-closure 2
+     load-closure 26
      call
-     load-closure 18
+     load-closure 45
      store-relative (1 . 3)
      drop
      load-constant
-     load-closure 2
+     load-closure 36
      call
      load-constant 2
      load-constant 1
@@ -2207,7 +2207,7 @@
                              0)))
             (#k))
 
-  '#(load-closure 9
+  '#(load-closure 10
      store-absolute ack
      drop
      load-constant
@@ -2215,11 +2215,11 @@
      call
      load-constant 0
      load-relative (0 . 1)
-     load-closure 4
+     load-closure 19
      load-absolute =
      call
      load-relative (0 . 0)
-     select 2 11
+     select 24 33
      load-constant 1
      load-relative (1 . 2)
      load-relative (1 . 0)
@@ -2227,14 +2227,14 @@
      call
      load-constant 0
      load-relative (1 . 2)
-     load-closure 4
+     load-closure 42
      load-absolute =
      call
      load-relative (0 . 0)
-     select 2 20
+     select 47 65
      load-constant 1
      load-relative (2 . 1)
-     load-closure 4
+     load-closure 56
      load-absolute -
      call
      load-constant 1
@@ -2244,17 +2244,17 @@
      call
      load-constant 1
      load-relative (2 . 1)
-     load-closure 4
+     load-closure 74
      load-absolute -
      call
      load-constant 1
      load-relative (3 . 2)
-     load-closure 4
+     load-closure 83
      load-absolute -
      call
      load-relative (0 . 0)
      load-relative (4 . 1)
-     load-closure 4
+     load-closure 92
      load-absolute ack
      call
      load-relative (0 . 0)
@@ -2298,7 +2298,7 @@
                              2)))
             (#k))
 
-  '#(load-closure 9
+  '#(load-closure 10
      store-absolute fib
      drop
      load-constant
@@ -2306,30 +2306,30 @@
      call
      load-constant 2
      load-relative (0 . 1)
-     load-closure 4
+     load-closure 19
      load-absolute <
      call
      load-relative (0 . 0)
-     select 2 7
+     select 24 29
      load-relative (1 . 1)
      load-relative (1 . 0)
      call
      load-constant 1
      load-relative (1 . 1)
-     load-closure 4
+     load-closure 38
      load-absolute -
      call
      load-relative (0 . 0)
-     load-closure 4
+     load-closure 45
      load-absolute fib
      call
      load-constant 2
      load-relative (3 . 1)
-     load-closure 4
+     load-closure 54
      load-absolute -
      call
      load-relative (0 . 0)
-     load-closure 4
+     load-closure 61
      load-absolute fib
      call
      load-relative (0 . 0)
