@@ -37,7 +37,12 @@ namespace meevax::inline memory
     return std::make_pair(i / 64, i % 64);
   }
 
-  template <typename T, std::size_t E, std::size_t... Es>
+  enum class cleanup
+  {
+    automatic, manual
+  };
+
+  template <typename T, cleanup C, std::size_t E, std::size_t... Es>
   struct pointer_set
   {
     static_assert(sizeof(T) <= sizeof(std::uintptr_t));
@@ -50,7 +55,7 @@ namespace meevax::inline memory
 
     auto static constexpr R = 63;
 
-    using subset = pointer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
+    using subset = pointer_set<std::uintptr_t, cleanup::automatic, Es...>; // Only the outermost implementation knows the original type name T.
 
     std::array<subset *, N> data {};
 
@@ -119,13 +124,13 @@ namespace meevax::inline memory
       {
         assert(p);
 
-        auto seek = [this](auto i)
+        auto seek = [this](auto index)
         {
-          auto [q, r] = qr64(i);
+          auto [q, r] = qr64(index);
 
           if (auto word = p->occupancy[q] & (~0_u64 << r); word)
           {
-            return q * 64 + std::countr_zero(word);
+            return i = q * 64 + std::countr_zero(word);
           }
           else
           {
@@ -133,36 +138,35 @@ namespace meevax::inline memory
             {
               if (auto word = p->occupancy[q]; word)
               {
-                return q * 64 + std::countr_zero(word);
+                return i = q * 64 + std::countr_zero(word);
               }
             }
 
-            return N;
+            return i = N;
           }
         };
 
-        for (i = seek(i); i <= p->i_max; i = seek(i + 1))
+        if (i <= p->i_max and seek(i) < N)
         {
-          if (p->data[i] and (sub = p->data[i]->begin()))
-          {
-            return;
-          }
+          sub = p->data[i]->begin();
         }
-
-        invalidate();
+        else
+        {
+          invalidate();
+        }
       }
 
       auto decrement_unless_truthy() noexcept -> void
       {
         assert(p);
 
-        auto seek = [this](auto i)
+        auto seek = [this](auto index)
         {
-          auto [q, r] = qr64(i);
+          auto [q, r] = qr64(index);
 
           if (auto word = p->occupancy[q] & (~0_u64 >> (R - r)); word)
           {
-            return q * 64 + R - std::countl_zero(word);
+            return i = q * 64 + R - std::countl_zero(word);
           }
           else
           {
@@ -170,23 +174,22 @@ namespace meevax::inline memory
             {
               if (auto word = p->occupancy[q]; word)
               {
-                return q * 64 + R - std::countl_zero(word);
+                return i = q * 64 + R - std::countl_zero(word);
               }
             }
 
-            return N;
+            return i = N;
           }
         };
 
-        for (i = seek(std::min(i, N - 1)); i - p->i_min < N - p->i_min; i = seek(i - 1))
+        if (p->i_min <= i and seek(std::min(i, N - 1)) < N)
         {
-          if (p->data[i] and (sub = typename subset::const_iterator(p->data[i])))
-          {
-            return;
-          }
+          sub = typename subset::const_iterator(p->data[i]);
         }
-
-        invalidate();
+        else
+        {
+          invalidate();
+        }
       }
 
       auto invalidate() noexcept
@@ -250,21 +253,32 @@ namespace meevax::inline memory
       }
     };
 
-    ~pointer_set()
+    ~pointer_set() requires (C == cleanup::automatic)
     {
-      for (auto datum : data)
+      for (auto & datum : data)
       {
         delete datum;
       }
     }
 
+    ~pointer_set() requires (C == cleanup::manual) = default;
+
     static constexpr auto split(T value) noexcept -> std::pair<std::size_t, std::uintptr_t>
     {
       auto x = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
 
-      auto constexpr upper_mask = (1_u64 << E) - 1;
-      static_assert(std::countr_one(upper_mask) == E);
-      auto i = (x >> (Es + ...)) & upper_mask;
+      auto i = x >> (Es + ...);
+
+      if constexpr (std::is_pointer_v<T>)
+      {
+        assert(i < N);
+      }
+      else
+      {
+        auto constexpr upper_mask = (1_u64 << E) - 1;
+        static_assert(std::countr_one(upper_mask) == E);
+        i &= upper_mask;
+      }
 
       auto constexpr lower_mask = (1_u64 << (Es + ...)) - 1;
       static_assert(std::countr_one(lower_mask) == (Es + ...));
@@ -349,7 +363,22 @@ namespace meevax::inline memory
       return size() == 0;
     }
 
-    auto swap(pointer_set & other)
+    auto clear() noexcept -> void
+    {
+      for (auto & datum : data)
+      {
+        delete datum;
+      }
+
+      data.fill(0);
+      occupancy.fill(0);
+      n = 0;
+      i_min = N;
+      i_max = 0;
+    }
+
+    template <cleanup _>
+    auto swap(pointer_set<T, _, E, Es...> & other)
     {
       std::swap(data, other.data);
       std::swap(occupancy, other.occupancy);
@@ -359,8 +388,8 @@ namespace meevax::inline memory
     }
   };
 
-  template <typename T, std::size_t E>
-  struct pointer_set<T, E>
+  template <typename T, cleanup C, std::size_t E>
+  struct pointer_set<T, C, E>
   {
     auto static constexpr N = 1_u64 << E;
 

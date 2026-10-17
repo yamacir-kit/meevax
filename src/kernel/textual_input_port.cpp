@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
@@ -414,6 +415,10 @@ namespace meevax::inline kernel
 
         case 'i':
           return number::inexact(read()); // NOTE: Same as #,(inexact (read))
+
+        case 'k':
+          take_token(c2);
+          return make<continuation>();
 
         case 'o':
           switch (auto c3 = take_character())

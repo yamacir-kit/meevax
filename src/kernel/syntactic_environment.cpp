@@ -16,6 +16,8 @@
 
 #include <algorithm>
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/continuation.hpp>
+#include <meevax/kernel/control.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
@@ -25,12 +27,71 @@
 #include <meevax/kernel/syntactic_environment.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/transformer.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax::inline kernel
 {
   auto syntactic_environment::compile(object const& form) -> object
   {
-    return generate(expand(form, first), first);
+    return generate(convert(expand(form, first), first), first);
+  }
+
+  auto syntactic_environment::convert(object const& form, object const& bound_variables) const -> object
+  {
+    return T_c(form, bound_variables, make<continuation>());
+  }
+
+  auto syntactic_environment::T_c(object const& form, object const& bound_variables, syntactic_continuation const& c) const -> object
+  {
+    if (not form.is<pair>())
+    {
+      return list(c, M(form, bound_variables));
+    }
+    else if (car(form).is_also<identifier>())
+    {
+      if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
+      {
+        return cdr(identity).as<syntax>().T_c(*this, form, bound_variables, c);
+      }
+    }
+
+    return converter::call(*this, form, bound_variables, c);
+  }
+
+  auto syntactic_environment::T_k(object const& form, object const& bound_variables, administrative_beta_reducer const& k) const -> object
+  {
+    if (not form.is<pair>())
+    {
+      return k(M(form, bound_variables));
+    }
+    else if (car(form).is_also<identifier>())
+    {
+      if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
+      {
+        return cdr(identity).as<syntax>().T_k(*this, form, bound_variables, k);
+      }
+    }
+
+    return converter::call(*this, form, bound_variables, k);
+  }
+
+  auto syntactic_environment::M(object const& form, object const& bound_variables) const -> object
+  {
+    if (form.is<pair>())
+    {
+      let const k = make<symbol>("$k");
+
+      return list(default_rename("lambda"),
+                  cons(k, cadr(form)),
+                  converter::body(*this,
+                                  cddr(form),
+                                  cons(cadr(form), bound_variables),
+                                  k));
+    }
+    else
+    {
+      return form;
+    }
   }
 
   auto syntactic_environment::define(object const& variable, object const& value) -> object
@@ -89,9 +150,77 @@ namespace meevax::inline kernel
   }
 
   auto syntactic_environment::generate(object const& form,
+                                       object const& bound_variables) -> object
+  {
+    let image = make<vector>();
+
+    auto assemble = [&](auto assemble, object c, std::size_t offset) -> object
+    {
+      if (c.is<null>())
+      {
+        return c;
+      }
+      else switch (car(c).as<instruction>())
+      {
+      case instruction::call:
+      case instruction::drop:
+      case instruction::list_values:
+        offset += 1;
+        return cons(car(c), assemble(assemble, cdr(c), offset));
+
+      case instruction::current:
+      case instruction::install:
+      case instruction::load_absolute:
+      case instruction::load_constant:
+      case instruction::load_relative:
+      case instruction::load_variadic:
+      case instruction::store_absolute:
+      case instruction::store_relative:
+      case instruction::store_variadic:
+        offset += 2;
+        return cons(car(c), cadr(c), assemble(assemble, cddr(c), offset));
+
+      case instruction::load_closure:
+        {
+          offset += 2;
+
+          auto const c1 = assemble(assemble, cddr(c), offset);
+          auto const n1 = length(c1);
+
+          return cons(car(c),
+                      make<control>(image, make<small_integer>(static_cast<small_integer>(offset + n1))),
+                      append(c1, assemble(assemble, cadr(c), offset + n1)));
+        }
+
+      case instruction::select:
+        {
+          offset += 3;
+
+          auto const c2 = assemble(assemble, cdddr(c), offset);
+          auto const n2 = length(c2);
+          auto const c1 = assemble(assemble, cadr(c), offset + n2);
+          auto const n1 = length(c1);
+
+          return cons(car(c),
+                      make<control>(image, make<small_integer>(static_cast<small_integer>(offset + n2))),
+                      make<control>(image, make<small_integer>(static_cast<small_integer>(offset + n2 + n1))),
+                      append(c2, append(c1, assemble(assemble, caddr(c), offset + n2 + n1))));
+        }
+
+      default:
+        assert(false);
+        return unit;
+      }
+    };
+
+    std::ranges::copy(assemble(assemble, generate(form, bound_variables, unit), 0) | as_proper_list, std::back_inserter(image.as<vector>().objects));
+
+    return image;
+  }
+
+  auto syntactic_environment::generate(object const& form,
                                        object const& bound_variables,
-                                       object const& continuation,
-                                       bool tail) -> object
+                                       object const& continuation) -> object
   {
     if (not form.is<pair>())
     {
@@ -99,32 +228,32 @@ namespace meevax::inline kernel
       {
         if (let const& identity = identify(form, bound_variables); identity.is<relative>())
         {
-          return cons(make<instruction>(instruction::secd_load_relative), identity, continuation);
+          return cons(make<instruction>(instruction::load_relative), identity, continuation);
         }
         else if (identity.is<variadic>())
         {
-          return cons(make<instruction>(instruction::secd_load_variadic), identity, continuation);
+          return cons(make<instruction>(instruction::load_variadic), identity, continuation);
         }
         else
         {
           assert(identity.is_also<absolute>());
-          return cons(make<instruction>(instruction::secd_load_absolute), identity, continuation);
+          return cons(make<instruction>(instruction::load_absolute), identity, continuation);
         }
       }
       else // is <self-evaluating>
       {
-        return cons(make<instruction>(instruction::secd_load_constant), form, continuation);
+        return cons(make<instruction>(instruction::load_constant), form, continuation);
       }
     }
     else if (car(form).is_also<identifier>())
     {
       if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
+        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation);
       }
     }
 
-    return generator::call(*this, form, bound_variables, continuation, tail);
+    return generator::call(*this, form, bound_variables, continuation);
   }
 
   auto syntactic_environment::identify(object const& variable,
@@ -332,12 +461,19 @@ namespace meevax::inline kernel
 
   auto core_syntactic_environment() -> object const&
   {
-    #define BIND(NAME, SYNTAX) make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, generator::SYNTAX))
+    #define BIND(NAME, SYNTAX) \
+    make<absolute>(make_symbol(NAME), \
+                   make<syntax>(NAME, \
+                                expander::SYNTAX, \
+                                static_cast<decltype(syntax::T_c)>(converter::SYNTAX), \
+                                static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \
+                                generator::SYNTAX))
 
     let static const core_syntactic_environment = make<syntactic_environment>(
       unit,
       list(BIND("begin"                          , sequence                      ),
            BIND("call-with-current-continuation!", call_with_current_continuation),
+           BIND("call-with-values!"              , call_with_values              ),
            BIND("conditional-expand"             , conditional_expand            ),
            BIND("current"                        , current                       ),
            BIND("define"                         , define                        ),

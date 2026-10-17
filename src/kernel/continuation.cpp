@@ -18,8 +18,13 @@
 
 namespace meevax::inline kernel
 {
-  auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
+  auto operator ==(continuation const&, continuation const&) -> bool
   {
-    return os << magenta("#,(") << green("continuation ") << faint(";#", std::addressof(datum)) << magenta(")");
+    return true;
+  }
+
+  auto operator <<(std::ostream & os, continuation const&) -> std::ostream &
+  {
+    return os << cyan("#k");
   }
 } // namespace meevax::kernel
