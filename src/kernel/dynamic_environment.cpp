@@ -25,14 +25,21 @@
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/proper_list.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax::inline kernel
 {
   auto dynamic_environment::apply(object const& f, object const& xs) -> object
   {
+#if 0
     return execute(cons(f, make<continuation>(), xs),
                    nullptr,
                    list(make<instruction>(instruction::call)));
+#else
+    let c = make<vector>();
+    c.as<vector>().objects.emplace_back(instruction::call);
+    return execute(cons(f, make<continuation>(), xs), nullptr, c);
+#endif
   }
 
   auto dynamic_environment::execute(object const& c) -> object
@@ -42,6 +49,7 @@ namespace meevax::inline kernel
 
   auto dynamic_environment::execute(object s, object e, object c) -> object
   {
+#if 0
     auto i = [&]() -> decltype(auto)
     {
       assert(cadr(c).is<relative>() or cadr(c).is<variadic>());
@@ -261,7 +269,136 @@ namespace meevax::inline kernel
         s.reset<b1, bx>(car(s));
         c.reset<b1, b1>(cdr(c));
         goto fetch;
+#else
+    try
+    {
+      let * c0 = c.as<vector>().objects.data();
+      let * pc = c0;
 
+    fetch:
+      switch ((pc++)->as<instruction>())
+      {
+      case instruction::load_absolute:
+        assert(pc->is_also<absolute>());
+        s.reset<bx, b1>(cons(cdr(*pc), s));
+        ++pc;
+        goto fetch;
+
+      case instruction::load_relative:
+        assert(pc->is_also<relative>());
+        s.reset<bx, b1>(cons(head(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s));
+        ++pc;
+        goto fetch;
+
+      case instruction::load_variadic:
+        assert(pc->is_also<variadic>());
+        s.reset<bx, b1>(cons(tail(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s));
+        ++pc;
+        goto fetch;
+
+      case instruction::load_constant:
+        s.reset<bx, b1>(cons(*pc, s));
+        ++pc;
+        goto fetch;
+
+      case instruction::load_closure:
+        assert(pc->is<small_integer>());
+        s.reset<bx, b1>(cons(make<closure, segregated_storage_allocator<void>>(cons(c, make<small_integer>(static_cast<small_integer>(pc - c0) + pc->as<small_integer>())), e), s));
+        ++pc;
+        goto fetch;
+
+      case instruction::current:
+        s.reset<bx, b1>(cons(a[static_cast<std::size_t>(pc->as<small_integer>())], s));
+        ++pc;
+        goto fetch;
+
+      case instruction::select:
+        assert(pc[0].is<small_integer>());
+        assert(pc[1].is<small_integer>());
+        pc += (car(s) != f ? pc[0] : pc[1]).as<small_integer>();
+        s.reset<b1, bx>(cdr(s));
+        goto fetch;
+
+      case instruction::call:
+        if (let const& f = car(s); f.is<closure>())
+        {
+          e.reset<bx, b1>(cons(cdr(s), cdr(f)));
+          s.reset<bx>();
+
+          if (c != caar(f))
+          {
+            c.reset<b1, b1>(caar(f));
+            c0 = c.as<vector>().objects.data();
+          }
+
+          pc = c0 + static_cast<std::size_t>(cdar(f).as<small_integer>());
+          goto fetch;
+        }
+        else if (f.is<procedure>())
+        {
+          if (let const& k = cadr(s); k.is<closure>())
+          {
+            e.reset<bx, b1>(cons(list(f.as<procedure>().call(cddr(s))), cdr(k)));
+            s.reset<bx>();
+
+            if (c != caar(k))
+            {
+              c.reset<b1, b1>(caar(k));
+              c0 = c.as<vector>().objects.data();
+            }
+
+            pc = c0 + static_cast<std::size_t>(cdar(k).as<small_integer>());
+            goto fetch;
+          }
+          else if (k.is<continuation>())
+          {
+            return f.as<procedure>().call(cddr(s));
+          }
+          else
+          {
+            throw error(make<string>("not applicable"), k);
+          }
+        }
+        else if (f.is<continuation>())
+        {
+          return cadr(s);
+        }
+        else
+        {
+          throw error(make<string>("not applicable"), f);
+        }
+
+      case instruction::drop:
+        s.reset<b1, bx>(cdr(s));
+        goto fetch;
+
+      case instruction::store_absolute:
+        assert(pc->is<absolute>());
+        cdr(*pc) = car(s);
+        ++pc;
+        goto fetch;
+
+      case instruction::store_relative:
+        assert(pc->is<relative>());
+        head(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())) = car(s);
+        ++pc;
+        goto fetch;
+
+      case instruction::store_variadic:
+        assert(pc->is<variadic>());
+        tail(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())) = car(s);
+        ++pc;
+        goto fetch;
+
+      case instruction::install:
+        a[static_cast<std::size_t>(pc->as<small_integer>())] = car(s);
+        ++pc;
+        goto fetch;
+
+      case instruction::list_values:
+        s.reset<b1, bx>(car(s));
+        goto fetch;
+#endif
       default:
         assert(false);
         std::terminate();

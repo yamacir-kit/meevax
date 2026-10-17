@@ -26,6 +26,7 @@
 #include <meevax/kernel/syntactic_environment.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/transformer.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax::inline kernel
 {
@@ -145,6 +146,62 @@ namespace meevax::inline kernel
     }
 
     return expander::call(*this, form, bound_variables, alpha);
+  }
+
+  auto syntactic_environment::generate(object const& form,
+                                       object const& bound_variables) -> object
+  {
+    auto assemble = [&](auto assemble, object c) -> object
+    {
+      if (c.is<null>())
+      {
+        return c;
+      }
+      else switch (car(c).as<instruction>())
+      {
+      case instruction::call:
+      case instruction::drop:
+      case instruction::list_values:
+        return cons(car(c), assemble(assemble, cdr(c)));
+
+      case instruction::current:
+      case instruction::install:
+      case instruction::load_absolute:
+      case instruction::load_constant:
+      case instruction::load_relative:
+      case instruction::load_variadic:
+      case instruction::store_absolute:
+      case instruction::store_relative:
+      case instruction::store_variadic:
+        return cons(car(c), cadr(c), assemble(assemble, cddr(c)));
+
+      case instruction::load_closure:
+        {
+          let const body = assemble(assemble, cddr(c));
+
+          return cons(car(c),
+                      make<small_integer>(static_cast<small_integer>(1 + length(body))),
+                      append(body, assemble(assemble, cadr(c))));
+        }
+
+      case instruction::select:
+        {
+          let const consequent = assemble(assemble, cadr(c));
+          let const alternative = assemble(assemble, cdddr(c));
+
+          return cons(car(c),
+                      make<small_integer>(static_cast<small_integer>(2 + length(alternative))),
+                      make<small_integer>(static_cast<small_integer>(2 + length(alternative) + length(consequent))),
+                      append(alternative, append(consequent, assemble(assemble, caddr(c)))));
+        }
+
+      default:
+        assert(false);
+        return unit;
+      }
+    };
+
+    return make<vector>(assemble(assemble, generate(form, bound_variables, unit)) | as_proper_list);
   }
 
   auto syntactic_environment::generate(object const& form,

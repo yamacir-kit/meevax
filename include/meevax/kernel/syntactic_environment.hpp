@@ -45,8 +45,11 @@ namespace meevax::inline kernel
     auto expand(object const& form, object const& bound_variables, syntactic_closure::alpha &) const -> object;
 
     auto generate(object const& form,
+                  object const& bound_variables) -> object;
+
+    auto generate(object const& form,
                   object const& bound_variables,
-                  object const& continuation = unit) -> object;
+                  object const& continuation) -> object;
 
     auto identify(object const& variable, object const& bound_variables) const -> object;
 
