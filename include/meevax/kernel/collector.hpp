@@ -115,6 +115,16 @@ namespace meevax::inline kernel
       return typeid(Bound);
     }
 
+    auto virtual_cast(std::type_info const& type) noexcept -> void * override
+    {
+      return type == typeid(Bound) ? static_cast<Bound *>(this) : nullptr;
+    }
+
+    auto virtual_cast(std::type_info const& type) const noexcept -> void const* override
+    {
+      return type == typeid(Bound) ? static_cast<Bound const*>(this) : nullptr;
+    }
+
     auto write(std::ostream & os) const -> std::ostream & override
     {
       if constexpr (requires { os << static_cast<Bound const&>(*this); })

@@ -52,6 +52,10 @@ namespace meevax::inline kernel
 
     auto virtual type() const noexcept -> std::type_info const&;
 
+    auto virtual virtual_cast(std::type_info const&) noexcept -> void *;
+
+    auto virtual virtual_cast(std::type_info const&) const noexcept -> void const*;
+
     auto virtual write(std::ostream &) const -> std::ostream &;
   };
 

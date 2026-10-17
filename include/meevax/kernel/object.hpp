@@ -128,7 +128,11 @@ namespace meevax::inline kernel
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
-        if (auto data = dynamic_cast<std::add_pointer_t<U>>(x.get()); data)
+        if (auto data = x ? static_cast<std::add_pointer_t<U>>(x->virtual_cast(typeid(std::decay_t<U>))) : nullptr)
+        {
+          return *data;
+        }
+        else if (auto data = dynamic_cast<std::add_pointer_t<U>>(x.get()); data)
         {
           return *data;
         }
