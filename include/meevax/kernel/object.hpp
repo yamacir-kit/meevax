@@ -154,7 +154,14 @@ namespace meevax::inline kernel
     template <typename U>
     auto is() const noexcept
     {
-      return type() == typeid(std::decay_t<U>);
+      if constexpr (any_of<std::decay_t<U>, std::nullptr_t, bool, small_integer, float, double, instruction>)
+      {
+        return pointer::template is<U>();
+      }
+      else
+      {
+        return type() == typeid(std::decay_t<U>);
+      }
     }
 
     template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
