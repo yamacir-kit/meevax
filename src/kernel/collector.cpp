@@ -27,18 +27,38 @@ namespace meevax::inline kernel
 
      0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
   */
-  template <typename T>
-  using canonical_pointer_set = pointer_set<T const*, std::bit_width(0x7FFFu), std::bit_width(0xFFFFu), std::bit_width(0xFFFFu)>;
+  template <typename T, cleanup C>
+  using canonical_pointer_set = pointer_set<T const*, C, std::bit_width(0x7FFFu), std::bit_width(0xFFFFu), std::bit_width(0xFFFFu)>;
 
-  auto size = std::size_t(0_MiB);
+  static_assert(std::is_trivially_destructible_v<canonical_pointer_set<pair, cleanup::manual>>);
 
-  auto capacity = std::size_t(16_MiB);
+  static_assert(std::is_trivially_destructible_v<canonical_pointer_set<object, cleanup::manual>>);
 
-  auto data = canonical_pointer_set<pair>();
+  auto constinit size = std::size_t(0_MiB);
 
-  auto objects = canonical_pointer_set<object>();
+  auto constinit capacity = std::size_t(16_MiB);
 
-  auto cleared = false;
+  auto constinit data = canonical_pointer_set<pair, cleanup::manual>();
+
+  auto constinit objects = canonical_pointer_set<object, cleanup::manual>();
+
+  auto constinit anchor_count = std::size_t();
+
+  anchor::anchor() noexcept
+  {
+    ++anchor_count;
+  }
+
+  anchor::~anchor() noexcept
+  {
+    assert(anchor_count);
+
+    if (not --anchor_count)
+    {
+      data.clear();
+      objects.clear();
+    }
+  }
 
   object::object(std::nullptr_t) noexcept
   {}
@@ -61,7 +81,7 @@ namespace meevax::inline kernel
 
   object::~object() noexcept
   {
-    if (*this and not cleared)
+    if (*this)
     {
       erase();
     }
@@ -128,14 +148,6 @@ namespace meevax::inline kernel
     }
   }
 
-  auto clear_once() noexcept -> void
-  {
-    if (not std::exchange(cleared, true))
-    {
-      clear();
-    }
-  }
-
   auto collect() noexcept -> void
   {
     /*
@@ -150,6 +162,21 @@ namespace meevax::inline kernel
 
     roots.clear();
 
+    auto is_root = [next = data.begin(), base = std::uintptr_t(), end = std::uintptr_t()](auto x) mutable
+    {
+      auto const address = reinterpret_cast<std::uintptr_t>(x);
+
+      while (next and end <= address)
+      {
+        auto const datum = *next;
+        base = reinterpret_cast<std::uintptr_t>(datum->base());
+        end = base + datum->size();
+        ++next;
+      }
+
+      return address < base or end <= address;
+    };
+
     for (auto x : objects)
     {
       if (is_root(x))
@@ -160,7 +187,7 @@ namespace meevax::inline kernel
 
     size = 0;
 
-    auto new_data = canonical_pointer_set<pair>();
+    auto new_data = canonical_pointer_set<pair, cleanup::automatic>();
 
     for (auto root : roots)
     {
@@ -185,12 +212,12 @@ namespace meevax::inline kernel
       {
         auto const datum = stack.back();
 
-        size += datum->size;
+        size += datum->size();
 
         stack.pop_back();
 
-        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base)),
-                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base) + datum->size)),
+        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base())),
+                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base()) + datum->size())),
                       mark);
       }
     }
@@ -237,7 +264,7 @@ namespace meevax::inline kernel
 
     auto contains = [&](auto datum)
     {
-      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base) < datum->size; // NOTE: Same as base <= x and x < base + size
+      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base()) < datum->size(); // NOTE: Same as base <= x and x < base + size
     };
 
     return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));

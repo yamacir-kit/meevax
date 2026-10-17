@@ -31,16 +31,26 @@ namespace meevax::inline kernel
                    object const& bound_variables,
                    syntactic_closure::alpha &) -> object;
 
+    auto (*T_c)(syntactic_environment const& converter,
+                object const& form,
+                object const& bound_variables,
+                syntactic_continuation const& c) -> object;
+
+    auto (*T_k)(syntactic_environment const& converter,
+                object const& form,
+                object const& bound_variables,
+                administrative_beta_reducer const& k) -> object;
+
     auto (*generate)(syntactic_environment & generator,
                      object const& form,
                      object const& bound_variables,
-                     object const& continuation,
-                     bool tail) -> object;
+                     object const& continuation) -> object;
 
-    template <typename Expander, typename Generator>
-    explicit syntax(std::string const& name, Expander const& expand, Generator const& generate)
+    explicit syntax(auto const& name, auto expand, auto T_c, auto T_k, auto generate)
       : name { name }
       , expand { expand }
+      , T_c { T_c }
+      , T_k { T_k }
       , generate { generate }
     {}
   };

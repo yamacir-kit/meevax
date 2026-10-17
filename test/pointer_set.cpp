@@ -10,7 +10,7 @@ auto main() -> int
 {
   using namespace meevax;
 
-  using int_pointer_set = meevax::pointer_set<int const*, 15, 16, 16>;
+  using int_pointer_set = meevax::pointer_set<int const*, cleanup::automatic, 15, 16, 16>;
 
   auto int_pointers = int_pointer_set();
 
