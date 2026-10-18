@@ -121,16 +121,28 @@ namespace meevax::inline kernel
 
   auto syntactic_closure::identify(let const& bound_variables) -> object
   {
+    auto const& syntactic_environment_const = syntactic_environment.as<struct syntactic_environment>();
+
     auto identify = [&]()
     {
-      let xs = syntactic_environment.as<struct syntactic_environment>().first;
-
-      for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
+      if (let const& identity = syntactic_environment_const.identify(form, syntactic_environment_const.first); identity.is<relative>())
       {
-        xs = cons(unit, xs);
+        return syntactic_environment_const.identify(head(head(syntactic_environment_const.first,
+                                                              car(identity).as<small_integer>()),
+                                                         cdr(identity).as<small_integer>()),
+                                                    bound_variables);
       }
-
-      return syntactic_environment.as<struct syntactic_environment const>().identify(form, xs);
+      else if (identity.is<variadic>())
+      {
+        return syntactic_environment_const.identify(tail(head(syntactic_environment_const.first,
+                                                              car(identity).as<small_integer>()),
+                                                         cdr(identity).as<small_integer>()),
+                                                    bound_variables);
+      }
+      else
+      {
+        return identity;
+      }
     };
 
     if (let const& identity = identify(); identity != f)
@@ -139,7 +151,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return syntactic_environment.as<struct syntactic_environment const>().identify(form, bound_variables);
+      return syntactic_environment_const.identify(form, bound_variables);
     }
   }
 

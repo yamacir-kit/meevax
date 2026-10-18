@@ -26,7 +26,15 @@ namespace meevax::inline kernel
   {
     mutable std::string cache {};
 
-    using pair::pair;
+    /*
+       Workaround for CWG 2504: GCC 16.1.0 Can't compile if following block
+       replaced with `using pair::pair;`
+    */
+    template <typename... Ts>
+    requires std::constructible_from<pair, Ts...>
+    explicit error(Ts&&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
+    {}
 
     ~error() override = default;
 

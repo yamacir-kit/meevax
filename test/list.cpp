@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
@@ -16,23 +15,23 @@ auto main() -> int
       c = make<symbol>("c"),
       d = make<symbol>("d");
 
-  assert(lexical_cast(cons(a, nullptr)) == "(a)");
+  assert(cons(a, nullptr).external_representation() == "(a)");
 
-  assert(lexical_cast(cons(list(a), list(b, c, d))) == "((a) b c d)");
+  assert(cons(list(a), list(b, c, d)).external_representation() == "((a) b c d)");
 
-  assert(lexical_cast(cons(make<string>("a"), list(b, c))) == "(\"a\" b c)");
+  assert(cons(make<string>("a"), list(b, c)).external_representation() == "(\"a\" b c)");
 
-  assert(lexical_cast(cons(a, make<small_integer>(3))) == "(a . 3)");
+  assert(cons(a, make<small_integer>(3)).external_representation() == "(a . 3)");
 
-  assert(lexical_cast(cons(list(a, b), c)) == "((a b) . c)");
+  assert(cons(list(a, b), c).external_representation() == "((a b) . c)");
 
-  assert(lexical_cast(list(a, make<small_integer>(3 + 4), c)) == "(a 7 c)");
+  assert(list(a, make<small_integer>(3 + 4), c).external_representation() == "(a 7 c)");
 
-  assert(lexical_cast(unit) == "()");
+  assert(unit.external_representation() == "()");
 
-  assert(lexical_cast(xcons(list(b, c), a)) == "(a b c)");
+  assert(xcons(list(b, c), a).external_representation() == "(a b c)");
 
-  assert(lexical_cast(make_list(4, c)) == "(c c c c)");
+  assert(make_list(4, c).external_representation() == "(c c c c)");
 
   {
     let xs = list(a, b, c);

@@ -15,7 +15,6 @@
 */
 
 #include <algorithm>
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
@@ -30,7 +29,7 @@ namespace meevax::inline kernel
     {
       if (car(requirement).as<symbol>().name == "library")
       {
-        return libraries().find(lexical_cast(cadr(requirement))) != libraries().end();
+        return libraries().find(cadr(requirement).external_representation()) != libraries().end();
       }
       else if (car(requirement).as<symbol>().name == "and")
       {

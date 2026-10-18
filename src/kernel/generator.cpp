@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
@@ -26,19 +25,18 @@ namespace meevax::inline kernel
   auto NAME([[maybe_unused]] syntactic_environment & generator,                \
             [[maybe_unused]] object const& form,                               \
             [[maybe_unused]] object const& bound_variables,                    \
-            [[maybe_unused]] object const& continuation,                       \
-            [[maybe_unused]] bool tail) -> object
+            [[maybe_unused]] object const& continuation) -> object
 
   GENERATOR(generator::quote)
   {
-    return cons(make<instruction>(instruction::secd_load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
-                                                                                                      : car(form),
+    return cons(make<instruction>(instruction::load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
+                                                                                                 : car(form),
                 continuation);
   }
 
   GENERATOR(generator::quote_syntax)
   {
-    return cons(make<instruction>(instruction::secd_load_constant), car(form),
+    return cons(make<instruction>(instruction::load_constant), car(form),
                 continuation);
   }
 
@@ -49,8 +47,7 @@ namespace meevax::inline kernel
                    bound_variables,
                    generator.generate(car(form),
                                       bound_variables,
-                                      tail ? list(make<instruction>(instruction::secd_tail_call))
-                                           : cons(make<instruction>(instruction::secd_call), continuation)));
+                                      list(make<instruction>(instruction::call))));
   }
 
   GENERATOR(generator::operand)
@@ -62,22 +59,28 @@ namespace meevax::inline kernel
                      bound_variables,
                      generator.generate(car(form),
                                         bound_variables,
-                                        cons(make<instruction>(instruction::secd_cons),
-                                             continuation)));
+                                        continuation));
+    }
+    else if (form.is<null>())
+    {
+      return continuation;
     }
     else
     {
-      return generator.generate(form, bound_variables, continuation);
+      return generator.generate(form,
+                                bound_variables,
+                                cons(make<instruction>(instruction::list_values),
+                                     continuation));
     }
   }
 
   GENERATOR(generator::lambda)
   {
-    return cons(make<instruction>(instruction::secd_load_closure),
+    return cons(make<instruction>(instruction::load_closure),
                 body(generator,
                      cdr(form),
                      cons(car(form), bound_variables), // Extend scope.
-                     list(make<instruction>(instruction::secd_return))),
+                     unit),
                 continuation);
   }
 
@@ -87,57 +90,40 @@ namespace meevax::inline kernel
     {
       return generator.generate(car(form),
                                 bound_variables,
-                                continuation,
-                                true);
+                                continuation);
     }
     else
     {
       return generator.generate(car(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_drop),
+                                cons(make<instruction>(instruction::drop),
                                      body(generator,
                                           cdr(form),
                                           bound_variables,
-                                          continuation)),
-                                false);
+                                          continuation)));
     }
   }
 
   GENERATOR(generator::conditional)
   {
-    if (tail)
-    {
-      assert(lexical_cast(continuation) == "(return)");
+    /*
+       [R7RS 4.1.5. Conditionals]
 
-      return generator.generate(car(form), // <test>
-                                bound_variables,
-                                list(make<instruction>(instruction::secd_tail_select),
-                                     generator.generate(cadr(form),
-                                                        bound_variables,
-                                                        continuation,
-                                                        tail),
-                                     cddr(form) ? generator.generate(caddr(form),
-                                                                     bound_variables,
-                                                                     continuation,
-                                                                     tail)
-                                                : list(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       make<instruction>(instruction::secd_return))));
-    }
-    else
-    {
-      return generator.generate(car(form), // <test>
-                                bound_variables,
-                                cons(make<instruction>(instruction::secd_select),
-                                     generator.generate(cadr(form),
-                                                        bound_variables,
-                                                        list(make<instruction>(instruction::secd_join))),
-                                     cddr(form) ? generator.generate(caddr(form),
-                                                                     bound_variables,
-                                                                     list(make<instruction>(instruction::secd_join)))
-                                                : list(make<instruction>(instruction::secd_load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                       make<instruction>(instruction::secd_join)),
-                                     continuation));
-    }
+       If <test> yields a false value and no <alternate> is specified, then the
+       result of the expression is unspecified.
+    */
+
+    return generator.generate(car(form), // <test>
+                              bound_variables,
+                              list(make<instruction>(instruction::select),
+                                   generator.generate(cadr(form),
+                                                      bound_variables,
+                                                      continuation),
+                                   cddr(form) ? generator.generate(caddr(form),
+                                                                   bound_variables,
+                                                                   continuation)
+                                              : cons(make<instruction>(instruction::load_constant), unspecified,
+                                                     continuation)));
   }
 
   GENERATOR(generator::set)
@@ -148,14 +134,14 @@ namespace meevax::inline kernel
     {
       return generator.generate(cadr(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_relative), identity,
+                                cons(make<instruction>(instruction::store_relative), identity,
                                      continuation));
     }
     else if (identity.is<variadic>())
     {
       return generator.generate(cadr(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_variadic), identity,
+                                cons(make<instruction>(instruction::store_variadic), identity,
                                      continuation));
     }
     else
@@ -164,26 +150,9 @@ namespace meevax::inline kernel
 
       return generator.generate(cadr(form),
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_absolute), identity,
+                                cons(make<instruction>(instruction::store_absolute), identity,
                                      continuation));
     }
-  }
-
-  GENERATOR(generator::letrec)
-  {
-    assert(not tail or lexical_cast(continuation) == "(return)");
-
-    let const formals = map(car, car(form));
-
-    return cons(make<instruction>(instruction::secd_dummy),
-                operand(generator,
-                        map(cadr, car(form)),
-                        cons(formals, bound_variables),
-                        lambda(generator,
-                               cons(formals, cdr(form)), // (<formals> <body>)
-                               bound_variables,
-                               tail ? list(make<instruction>(instruction::secd_tail_letrec))
-                                    : cons(make<instruction>(instruction::secd_letrec), continuation))));
   }
 
   GENERATOR(generator::sequence)
@@ -192,8 +161,7 @@ namespace meevax::inline kernel
     {
       return generator.generate(car(form),
                                 bound_variables,
-                                continuation,
-                                tail);
+                                continuation);
     }
     else
     {
@@ -202,20 +170,20 @@ namespace meevax::inline kernel
          In that case, the macro definition must be compiled before the
          macro is used (the evaluation order of function arguments in C++
          is not specified, but in most environments they are evaluated from
-         right to left). Therefore, the first expression is compiled
-         separately and then combined with the compiled result of the
-         remaining expressions by append.
+         right to left). Therefore, the first expression is compiled with a
+         continuation whose tail is patched after compiling the remaining
+         expressions.
       */
-      let const& head = generator.generate(car(form), // Head expression or definition
+      let rest = list(make<instruction>(instruction::drop)); // Pop result of head expression
+
+      let const& code = generator.generate(car(form), // Head expression or definition
                                            bound_variables,
-                                           unit);
-      return append(head,
-                    cons(make<instruction>(instruction::secd_drop), // Pop result of head expression
-                         sequence(generator,
-                                  cdr(form), // Rest expression or definitions
-                                  bound_variables,
-                                  continuation,
-                                  tail)));
+                                           rest);
+      cdr(rest) = sequence(generator,
+                           cdr(form), // Rest expression or definitions
+                           bound_variables,
+                           continuation);
+      return code;
     }
   }
 
@@ -233,7 +201,7 @@ namespace meevax::inline kernel
     {
       return generator.generate(cdr(form) ? cadr(form) : unspecified,
                                 bound_variables,
-                                cons(make<instruction>(instruction::secd_store_absolute), generator.identify(car(form), bound_variables),
+                                cons(make<instruction>(instruction::store_absolute), generator.identify(car(form), bound_variables),
                                      continuation));
     }
   }
@@ -244,31 +212,19 @@ namespace meevax::inline kernel
 
     let identity = generator.identify(car(form), unit);
 
-    cdr(identity) = make<transformer>(environment().execute(generator.generate(cadr(form),
+    cdr(identity) = make<transformer>(environment().execute(generator.generate(generator.convert(cadr(form),
+                                                                                                 bound_variables),
                                                                                bound_variables)),
                                       make<syntactic_environment>(bound_variables,
                                                                   generator.second));
 
-    return cons(make<instruction>(instruction::secd_load_constant), unspecified,
+    return cons(make<instruction>(instruction::load_constant), unspecified,
                 continuation);
-  }
-
-  GENERATOR(generator::call_with_current_continuation)
-  {
-    assert(form.is<pair>());
-    assert(cdr(form).is<null>());
-
-    return cons(make<instruction>(instruction::secd_load_continuation),
-                continuation,
-                generator.generate(car(form),
-                                   bound_variables,
-                                   list(make<instruction>(instruction::secd_tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                                   tail));
   }
 
   GENERATOR(generator::current)
   {
-    return cons(make<instruction>(instruction::secd_current), car(form),
+    return cons(make<instruction>(instruction::current), car(form),
                 continuation);
   }
 
@@ -276,7 +232,7 @@ namespace meevax::inline kernel
   {
     return generator.generate(cadr(form),
                               bound_variables,
-                              cons(make<instruction>(instruction::secd_install), car(form),
+                              cons(make<instruction>(instruction::install), car(form),
                                    continuation));
   }
 } // namespace meevax::kernel

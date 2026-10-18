@@ -23,9 +23,7 @@ namespace meevax::inline kernel
 {
   struct pair : public std::pair<object, object>
   {
-    void const* base = this;
-
-    std::size_t size = sizeof(pair);
+    std::uintptr_t hint;
 
     pair()
       : std::pair<object, object> { nullptr, nullptr }
@@ -37,16 +35,31 @@ namespace meevax::inline kernel
       : std::pair<object, object> { std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto base() const noexcept -> void const*
+    {
+      static constexpr auto mask = (static_cast<std::uintptr_t>(1) << 48) - 1;
+      return reinterpret_cast<void const*>(hint & mask);
+    }
+
+    auto size() const noexcept -> std::size_t
+    {
+      return hint >> 48;
+    }
+
     virtual ~pair() = default;
 
     auto virtual eqv(pair const*) const -> bool;
 
     auto virtual type() const noexcept -> std::type_info const&;
 
+    auto virtual virtual_cast(std::type_info const&) noexcept -> void *;
+
+    auto virtual virtual_cast(std::type_info const&) const noexcept -> void const*;
+
     auto virtual write(std::ostream &) const -> std::ostream &;
   };
 
-  static_assert(sizeof(pair) == CHAR_BIT * 5);
+  static_assert(sizeof(pair) == CHAR_BIT * 4);
 
   static_assert(alignof(pair) == 8);
 

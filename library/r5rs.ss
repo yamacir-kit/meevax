@@ -1,6 +1,6 @@
 (define-library (scheme r5rs)
   (import (only (meevax continuation) dynamic-wind)
-          (only (meevax core) define-syntax let-syntax letrec-syntax)
+          (only (meevax core) call-with-values! define-syntax let-syntax letrec-syntax)
           (only (meevax environment) environment eval)
           (scheme r4rs)
           (srfi 149))
@@ -71,32 +71,13 @@
      SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   |#
 
-  (begin ; (define values
-         ;   (lambda xs
-         ;     (call-with-current-continuation
-         ;       (lambda (cc)
-         ;         (apply cc xs)))))
-         ;
-         ; (define (call-with-values producer consumer)
-         ;   (let-values ((xs (producer)))
-         ;     (apply consumer xs)))
+  (begin (define (values . xs)
+           (call-with-current-continuation
+             (lambda (k)
+               (k . xs))))
 
-         (define <values> (list 'values)) ; Chibi-Scheme
-
-         (define (values . xs) ; Chibi-Scheme
-           (if (and (pair? xs)
-                    (null? (cdr xs)))
-               (car xs)
-               (cons <values> xs)))
-
-         (define (call-with-values produce consume) ; Chibi-Scheme
-           (define (values? x)
-             (and (pair? x)
-                  (eq? <values> (car x))))
-           (let ((vs (produce)))
-             (if (values? vs)
-                 (apply consume (cdr vs))
-                 (consume vs))))
+         (define (call-with-values producer consumer)
+           (call-with-values! producer consumer))
 
          (define (scheme-report-environment version)
            (environment `(scheme ,(string->symbol (string-append "r" (number->string version) "rs")))))

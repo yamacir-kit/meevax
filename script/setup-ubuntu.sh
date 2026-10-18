@@ -16,7 +16,7 @@ sudo apt update
 
 if test "$#" -eq 0
 then
-  required | xargs sudo apt install
+  essential | xargs sudo apt install
 else
   for each in "$@"
   do

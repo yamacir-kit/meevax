@@ -28,8 +28,6 @@ namespace meevax::inline kernel
 {
   auto clear() noexcept -> void;
 
-  auto clear_once() noexcept -> void;
-
   auto collect() noexcept -> void;
 
   auto count() noexcept -> std::size_t;
@@ -59,15 +57,11 @@ namespace meevax::inline kernel
 
   template <typename A>
   struct stateful_allocator : public A
+                            , private anchor
   {
     ~stateful_allocator() noexcept
     {
-      /*
-         Execute clear before any static allocator is destroyed. Otherwise,
-         when the destructor of the collector executes clear, the collector may
-         touch the freed memory of the stateful allocator.
-      */
-      clear_once();
+      clear();
     }
   };
 
@@ -84,15 +78,15 @@ namespace meevax::inline kernel
     explicit binder(auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
     {
-      pair::base = this;
-      pair::size = sizeof(binder);
+      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
+      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
     }
 
     explicit binder(with_braces_tag, auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
     {
-      pair::base = this;
-      pair::size = sizeof(binder);
+      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
+      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
     }
 
     ~binder() override = default;
@@ -119,6 +113,16 @@ namespace meevax::inline kernel
     auto type() const noexcept -> std::type_info const& override
     {
       return typeid(Bound);
+    }
+
+    auto virtual_cast(std::type_info const& type) noexcept -> void * override
+    {
+      return type == typeid(Bound) ? static_cast<Bound *>(this) : nullptr;
+    }
+
+    auto virtual_cast(std::type_info const& type) const noexcept -> void const* override
+    {
+      return type == typeid(Bound) ? static_cast<Bound const*>(this) : nullptr;
     }
 
     auto write(std::ostream & os) const -> std::ostream & override
@@ -154,8 +158,8 @@ namespace meevax::inline kernel
     explicit binder(auto&&... xs) noexcept
       : pair { std::forward<decltype(xs)>(xs)... }
     {
-      base = this;
-      size = sizeof(binder);
+      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
+      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
     }
 
     ~binder() override = default;
@@ -171,8 +175,8 @@ namespace meevax::inline kernel
     }
   };
 
-  template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
-  auto make(auto&&... xs) -> object
+  template <typename T, typename A, typename... Ts>
+  object::object(std::type_identity<binder<T, A>>, Ts&&... xs)
   {
     if constexpr (std::is_class_v<T>)
     {
@@ -182,7 +186,7 @@ namespace meevax::inline kernel
       {
         insert(datum);
 
-        return datum;
+        reset(pointer(datum));
       }
       else [[unlikely]]
       {
@@ -191,8 +195,14 @@ namespace meevax::inline kernel
     }
     else
     {
-      return { std::forward<decltype(xs)>(xs)... };
+      reset(pointer(std::forward<Ts>(xs)...));
     }
+  }
+
+  template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
+  auto make(auto&&... xs) -> object
+  {
+    return object(std::type_identity<binder<T, A>>(), std::forward<decltype(xs)>(xs)...);
   }
 } // namespace meevax::kernel
 
