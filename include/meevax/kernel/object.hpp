@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
 #include <cassert>
+#include <tuple>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
@@ -28,6 +29,9 @@ namespace meevax::inline kernel
   using null = std::nullptr_t;
 
   struct pair;
+
+  template <typename, typename>
+  struct binder;
 
   struct b1
   {
@@ -63,6 +67,9 @@ namespace meevax::inline kernel
 
     object(object const&) noexcept;
 
+    template <typename T, typename A, typename... Ts>
+    object(std::type_identity<binder<T, A>>, Ts&&...);
+
     object(pair *) noexcept;
 
     template <any_of<bool, small_integer, float, double, character, instruction> T>
@@ -76,6 +83,8 @@ namespace meevax::inline kernel
 
     auto operator =(object const&) noexcept -> object &;
 
+    auto operator =(std::tuple<object const&, object const&>) -> object &;
+
     auto operator =(std::nullptr_t) noexcept -> object &;
 
     auto erase() const noexcept -> void;
@@ -83,7 +92,7 @@ namespace meevax::inline kernel
     auto insert() const noexcept -> void;
 
     template <typename Precondition = bx, typename Postcondition = bx>
-    auto reset(object const& x) noexcept
+    auto reset(pointer const& x) noexcept
     {
       if (Precondition()(*this))
       {

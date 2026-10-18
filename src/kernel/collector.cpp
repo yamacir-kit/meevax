@@ -93,6 +93,24 @@ namespace meevax::inline kernel
     return *this;
   }
 
+  auto object::operator =(std::tuple<object const&, object const&> tuple) -> object &
+  {
+    request(sizeof(pair));
+
+    if (auto datum = new binder<pair, segregated_storage_allocator<void>>(std::get<0>(tuple), std::get<1>(tuple)); datum)
+    {
+      kernel::insert(datum);
+
+      reset<bx, b1>(pointer(datum));
+
+      return *this;
+    }
+    else [[unlikely]]
+    {
+      throw std::bad_alloc();
+    }
+  }
+
   auto object::operator =(std::nullptr_t) noexcept -> object &
   {
     reset();

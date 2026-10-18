@@ -175,8 +175,8 @@ namespace meevax::inline kernel
     }
   };
 
-  template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
-  auto make(auto&&... xs) -> object
+  template <typename T, typename A, typename... Ts>
+  object::object(std::type_identity<binder<T, A>>, Ts&&... xs)
   {
     if constexpr (std::is_class_v<T>)
     {
@@ -184,9 +184,9 @@ namespace meevax::inline kernel
 
       if (auto datum = new binder<T, A>(std::forward<decltype(xs)>(xs)...); datum)
       {
-        insert(datum);
+        kernel::insert(datum);
 
-        return datum;
+        reset<b0, b1>(pointer(datum));
       }
       else [[unlikely]]
       {
@@ -195,8 +195,14 @@ namespace meevax::inline kernel
     }
     else
     {
-      return { std::forward<decltype(xs)>(xs)... };
+      reset<b0, bx>(pointer(std::forward<Ts>(xs)...));
     }
+  }
+
+  template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
+  auto make(auto&&... xs) -> object
+  {
+    return object(std::type_identity<binder<T, A>>(), std::forward<decltype(xs)>(xs)...);
   }
 } // namespace meevax::kernel
 

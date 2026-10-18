@@ -15,6 +15,7 @@
 */
 
 #include <exception>
+#include <tuple>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
@@ -54,35 +55,35 @@ namespace meevax::inline kernel
       {
       case instruction::load_absolute:
         assert(pc->is_also<absolute>());
-        s.reset<bx, b1>(cons(cdr(*pc), s));
+        s = std::forward_as_tuple(cdr(*pc), s);
         ++pc;
         goto fetch;
 
       case instruction::load_relative:
         assert(pc->is_also<relative>());
-        s.reset<bx, b1>(cons(head(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s));
+        s = std::forward_as_tuple(head(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s);
         ++pc;
         goto fetch;
 
       case instruction::load_variadic:
         assert(pc->is_also<variadic>());
-        s.reset<bx, b1>(cons(tail(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s));
+        s = std::forward_as_tuple(tail(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s);
         ++pc;
         goto fetch;
 
       case instruction::load_constant:
-        s.reset<bx, b1>(cons(*pc, s));
+        s = std::forward_as_tuple(*pc, s);
         ++pc;
         goto fetch;
 
       case instruction::load_closure:
         assert(pc->is<control>());
-        s.reset<bx, b1>(cons(make<closure, segregated_storage_allocator<void>>(*pc, e), s));
+        s = std::forward_as_tuple(make<closure, segregated_storage_allocator<void>>(*pc, e), s);
         ++pc;
         goto fetch;
 
       case instruction::current:
-        s.reset<bx, b1>(cons(a[static_cast<std::size_t>(pc->as<small_integer>())], s));
+        s = std::forward_as_tuple(a[static_cast<std::size_t>(pc->as<small_integer>())], s);
         ++pc;
         goto fetch;
 
@@ -97,7 +98,7 @@ namespace meevax::inline kernel
         if (let const& f = car(s); f.is<closure>())
         {
           assert(car(f).is<control>());
-          e.reset<bx, b1>(cons(cdr(s), cdr(f)));
+          e = std::forward_as_tuple(cdr(s), cdr(f));
           s.reset<bx>();
 
           if (c != caar(f))
@@ -114,7 +115,7 @@ namespace meevax::inline kernel
           if (let const& k = cadr(s); k.is<closure>())
           {
             assert(car(k).is<control>());
-            e.reset<bx, b1>(cons(list(f.as<procedure>().call(cddr(s))), cdr(k)));
+            e = std::forward_as_tuple(list(f.as<procedure>().call(cddr(s))), cdr(k));
             s.reset<bx>();
 
             if (c != caar(k))
