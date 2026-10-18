@@ -306,11 +306,11 @@ namespace meevax::inline memory
         auto const [q, r] = qr64(i);
         assert(occupancy[q] != (occupancy[q] | (1_u64 << r)));
         occupancy[q] |= (1_u64 << r);
+        ++n;
       }
 
       assert(data[i]);
       data[i]->insert(j);
-      ++n;
     }
 
     auto erase(T value) noexcept
@@ -321,13 +321,13 @@ namespace meevax::inline memory
 
       assert(data[i]);
       data[i]->erase(j);
-      --n;
 
       if (data[i]->empty())
       {
         auto const [q, r] = qr64(i);
         assert(occupancy[q] != (occupancy[q] & ~(1_u64 << r)));
         occupancy[q] &= ~(1_u64 << r);
+        --n;
       }
     }
 
@@ -355,12 +355,12 @@ namespace meevax::inline memory
 
     auto size() const noexcept -> std::size_t
     {
-      return n;
+      return std::distance(begin(), end());
     }
 
     auto empty() const noexcept
     {
-      return size() == 0;
+      return n == 0;
     }
 
     auto clear() noexcept -> void
