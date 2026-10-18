@@ -91,19 +91,20 @@ namespace meevax::inline kernel
         assert(pc[0].is<control>());
         assert(pc[1].is<control>());
         pc = c0 + cdr(car(s) != f ? pc[0] : pc[1]).as<small_integer>();
-        s.reset<b1, bx>(cdr(s));
+        s = cdr(s);
         goto fetch;
 
       case instruction::call:
         if (let const& f = car(s); f.is<closure>())
         {
           assert(car(f).is<control>());
+
           e = std::forward_as_tuple(cdr(s), cdr(f));
-          s.reset<bx>();
+          s = nullptr;
 
           if (c != caar(f))
           {
-            c.reset<b1, b1>(caar(f));
+            c = caar(f);
             c0 = c.as<vector>().objects.data();
           }
 
@@ -115,12 +116,13 @@ namespace meevax::inline kernel
           if (let const& k = cadr(s); k.is<closure>())
           {
             assert(car(k).is<control>());
+
             e = std::forward_as_tuple(list(f.as<procedure>().call(cddr(s))), cdr(k));
-            s.reset<bx>();
+            s = nullptr;
 
             if (c != caar(k))
             {
-              c.reset<b1, b1>(caar(k));
+              c = caar(k);
               c0 = c.as<vector>().objects.data();
             }
 
@@ -146,7 +148,7 @@ namespace meevax::inline kernel
         }
 
       case instruction::drop:
-        s.reset<b1, bx>(cdr(s));
+        s = cdr(s);
         goto fetch;
 
       case instruction::store_absolute:
@@ -173,7 +175,7 @@ namespace meevax::inline kernel
         goto fetch;
 
       case instruction::list_values:
-        s.reset<b1, bx>(car(s));
+        s = car(s);
         goto fetch;
 
       default:

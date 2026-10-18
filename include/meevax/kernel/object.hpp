@@ -33,32 +33,6 @@ namespace meevax::inline kernel
   template <typename, typename>
   struct binder;
 
-  struct b1
-  {
-    auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
-    {
-      assert(x);
-      return true;
-    }
-  };
-
-  struct b0
-  {
-    auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
-    {
-      assert(not x);
-      return false;
-    }
-  };
-
-  struct bx
-  {
-    auto constexpr operator ()(auto const& x) const noexcept
-    {
-      return static_cast<bool>(x);
-    }
-  };
-
   struct object : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
   {
     using pointer = nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
@@ -91,42 +65,9 @@ namespace meevax::inline kernel
 
     auto insert() const noexcept -> void;
 
-    template <typename Precondition = bx, typename Postcondition = bx>
-    auto reset(pointer const& x) noexcept
-    {
-      if (Precondition()(*this))
-      {
-        pointer::reset(x);
+    auto reset(pointer const&) noexcept -> void;
 
-        if (not Postcondition()(*this))
-        {
-          erase();
-        }
-      }
-      else
-      {
-        pointer::reset(x);
-
-        if (Postcondition()(*this))
-        {
-          insert();
-        }
-      }
-    }
-
-    template <typename Precondition = bx>
-    auto reset(std::nullptr_t = nullptr) noexcept -> void
-    {
-      if (Precondition()(*this))
-      {
-        pointer::reset();
-        erase();
-      }
-      else
-      {
-        pointer::reset();
-      }
-    }
+    auto reset(std::nullptr_t = nullptr) noexcept -> void;
 
     template <typename U>
     auto static as(auto&& x) -> decltype(auto)

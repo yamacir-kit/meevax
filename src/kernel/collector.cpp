@@ -101,7 +101,7 @@ namespace meevax::inline kernel
     {
       kernel::insert(datum);
 
-      reset<bx, b1>(pointer(datum));
+      reset(pointer(datum));
 
       return *this;
     }
@@ -139,6 +139,41 @@ namespace meevax::inline kernel
   {
     assert(not objects.contains(this));
     objects.insert(this);
+  }
+
+  auto object::reset(pointer const& x) noexcept -> void
+  {
+    if (*this)
+    {
+      pointer::reset(x);
+
+      if (not *this)
+      {
+        erase();
+      }
+    }
+    else
+    {
+      pointer::reset(x);
+
+      if (*this)
+      {
+        insert();
+      }
+    }
+  }
+
+  auto object::reset(std::nullptr_t) noexcept -> void
+  {
+    if (*this)
+    {
+      pointer::reset();
+      erase();
+    }
+    else
+    {
+      pointer::reset();
+    }
   }
 
   auto object::type() const noexcept -> std::type_info const&

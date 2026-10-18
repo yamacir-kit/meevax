@@ -186,7 +186,7 @@ namespace meevax::inline kernel
       {
         kernel::insert(datum);
 
-        reset<b0, b1>(pointer(datum));
+        reset(pointer(datum));
       }
       else [[unlikely]]
       {
@@ -195,7 +195,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      reset<b0, bx>(pointer(std::forward<Ts>(xs)...));
+      reset(pointer(std::forward<Ts>(xs)...));
     }
   }
 
