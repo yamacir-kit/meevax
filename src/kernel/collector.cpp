@@ -189,6 +189,46 @@ namespace meevax::inline kernel
     }
   }
 
+  auto roots() -> auto &
+  {
+    auto static roots = std::vector<object const*>();
+
+    roots.clear();
+
+    auto objects_iterator = objects.begin();
+
+    for (auto data_iterator = data.begin(); data_iterator; )
+    {
+      auto const lower_address = reinterpret_cast<std::uintptr_t>((*data_iterator)->base());
+
+      auto upper_address = lower_address + (*data_iterator)->size();
+
+      while (++data_iterator and reinterpret_cast<std::uintptr_t>((*data_iterator)->base()) == upper_address)
+      {
+        upper_address += (*data_iterator)->size();
+      }
+
+      while (objects_iterator and reinterpret_cast<std::uintptr_t>(*objects_iterator) < lower_address)
+      {
+        roots.push_back(*objects_iterator);
+        ++objects_iterator;
+      }
+
+      if (objects_iterator and reinterpret_cast<std::uintptr_t>(*objects_iterator) < upper_address)
+      {
+        objects_iterator = objects.lower_bound(reinterpret_cast<object const*>(upper_address));
+      }
+    }
+
+    while (objects_iterator)
+    {
+      roots.push_back(*objects_iterator);
+      ++objects_iterator;
+    }
+
+    return roots;
+  }
+
   auto collect() noexcept -> void
   {
     /*
@@ -198,39 +238,11 @@ namespace meevax::inline kernel
        - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
        - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
     */
-
-    auto static roots = std::vector<object const*>();
-
-    roots.clear();
-
-    auto is_root = [next = data.begin(), base = std::uintptr_t(), end = std::uintptr_t()](auto x) mutable
-    {
-      auto const address = reinterpret_cast<std::uintptr_t>(x);
-
-      while (next and end <= address)
-      {
-        auto const datum = *next;
-        base = reinterpret_cast<std::uintptr_t>(datum->base());
-        end = base + datum->size();
-        ++next;
-      }
-
-      return address < base or end <= address;
-    };
-
-    for (auto x : objects)
-    {
-      if (is_root(x))
-      {
-        roots.push_back(x);
-      }
-    }
-
     size = 0;
 
     auto new_data = canonical_pointer_set<pair, cleanup::automatic>();
 
-    for (auto root : roots)
+    for (auto root : roots())
     {
       auto static stack = std::vector<pair const*>();
 
