@@ -199,13 +199,22 @@ namespace meevax::inline kernel
 
     for (auto data_iterator = data.begin(); data_iterator; )
     {
-      auto const lower_address = reinterpret_cast<std::uintptr_t>((*data_iterator)->base());
+      auto const [base, size] = (*data_iterator)->extent();
 
-      auto upper_address = lower_address + (*data_iterator)->size();
+      auto const lower_address = reinterpret_cast<std::uintptr_t>(base);
 
-      while (++data_iterator and reinterpret_cast<std::uintptr_t>((*data_iterator)->base()) == upper_address)
+      auto upper_address = lower_address + size;
+
+      while (++data_iterator)
       {
-        upper_address += (*data_iterator)->size();
+        auto const [base, size] = (*data_iterator)->extent();
+
+        if (reinterpret_cast<std::uintptr_t>(base) != upper_address)
+        {
+          break;
+        }
+
+        upper_address += size;
       }
 
       while (objects_iterator and reinterpret_cast<std::uintptr_t>(*objects_iterator) < lower_address)
@@ -265,12 +274,14 @@ namespace meevax::inline kernel
       {
         auto const datum = stack.back();
 
-        size += datum->size();
+        auto const [base, size_] = datum->extent();
+
+        size += size_;
 
         stack.pop_back();
 
-        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base())),
-                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base()) + datum->size())),
+        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(base)),
+                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
                       mark);
       }
     }
@@ -317,7 +328,8 @@ namespace meevax::inline kernel
 
     auto contains = [&](auto datum)
     {
-      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base()) < datum->size(); // NOTE: Same as base <= x and x < base + size
+      auto const [base, size] = datum->extent();
+      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(base) < size; // NOTE: Same as base <= x and x < base + size
     };
 
     return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));
