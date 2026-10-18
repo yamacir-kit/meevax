@@ -61,10 +61,6 @@ namespace meevax::inline kernel
 
     auto operator =(std::nullptr_t) noexcept -> object &;
 
-    auto erase() const noexcept -> void;
-
-    auto insert() const noexcept -> void;
-
     auto reset(pointer const&) noexcept -> void;
 
     auto reset(std::nullptr_t = nullptr) noexcept -> void;

@@ -68,7 +68,7 @@ namespace meevax::inline kernel
   {
     if (*this)
     {
-      insert();
+      objects.insert(this);
     }
   }
 
@@ -76,14 +76,14 @@ namespace meevax::inline kernel
     : pointer { pair }
   {
     assert(*this);
-    insert();
+    objects.insert(this);
   }
 
   object::~object() noexcept
   {
     if (*this)
     {
-      erase();
+      objects.erase(this);
     }
   }
 
@@ -99,7 +99,7 @@ namespace meevax::inline kernel
 
     if (auto datum = new binder<pair, segregated_storage_allocator<void>>(std::get<0>(tuple), std::get<1>(tuple)); datum)
     {
-      kernel::insert(datum);
+      insert(datum);
 
       reset(pointer(datum));
 
@@ -129,18 +129,6 @@ namespace meevax::inline kernel
     return oss.str();
   }
 
-  auto object::erase() const noexcept -> void
-  {
-    assert(objects.contains(this));
-    objects.erase(this);
-  }
-
-  auto object::insert() const noexcept -> void
-  {
-    assert(not objects.contains(this));
-    objects.insert(this);
-  }
-
   auto object::reset(pointer const& x) noexcept -> void
   {
     if (*this)
@@ -149,7 +137,7 @@ namespace meevax::inline kernel
 
       if (not *this)
       {
-        erase();
+        objects.erase(this);
       }
     }
     else
@@ -158,7 +146,7 @@ namespace meevax::inline kernel
 
       if (*this)
       {
-        insert();
+        objects.insert(this);
       }
     }
   }
@@ -168,7 +156,7 @@ namespace meevax::inline kernel
     if (*this)
     {
       pointer::reset();
-      erase();
+      objects.erase(this);
     }
     else
     {

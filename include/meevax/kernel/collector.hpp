@@ -184,7 +184,7 @@ namespace meevax::inline kernel
 
       if (auto datum = new binder<T, A>(std::forward<decltype(xs)>(xs)...); datum)
       {
-        kernel::insert(datum);
+        insert(datum);
 
         reset(pointer(datum));
       }
