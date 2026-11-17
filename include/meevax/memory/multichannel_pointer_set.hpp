@@ -80,7 +80,7 @@ namespace meevax::inline memory
 
       typename decltype(data)::iterator chunk {};
 
-      typename bit_matrix<Row, Column>::iterator<R, Rs...> column {};
+      typename bit_matrix<Row, Column>::template iterator<R, Rs...> column {};
 
       auto constexpr seek() noexcept
       {
@@ -92,7 +92,7 @@ namespace meevax::inline memory
 
       constexpr iterator() noexcept = default;
 
-      constexpr iterator(typename decltype(data)::iterator chunk, typename bit_matrix<Row, Column>::iterator<R, Rs...> column) noexcept
+      constexpr iterator(typename decltype(data)::iterator chunk, typename bit_matrix<Row, Column>::template iterator<R, Rs...> column) noexcept
         : chunk { chunk }
         , column { column }
       {}
@@ -131,13 +131,13 @@ namespace meevax::inline memory
         return std::exchange(*this, std::next(*this));
       }
 
-      auto constexpr friend operator ==(iterator const& a, iterator const& b) noexcept
+      auto constexpr friend operator ==(iterator const& a, iterator const& b) noexcept -> bool
       {
         return a == std::default_sentinel ? b == std::default_sentinel
                                           : b != std::default_sentinel and a.chunk == b.chunk and a.column == b.column;
       }
 
-      auto constexpr friend operator ==(iterator const& a, std::default_sentinel_t) noexcept
+      auto constexpr friend operator ==(iterator const& a, std::default_sentinel_t) noexcept -> bool
       {
         return a.chunk == std::default_sentinel;
       }

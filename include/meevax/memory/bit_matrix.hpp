@@ -199,12 +199,12 @@ namespace meevax::inline memory
         return previous;
       }
 
-      auto constexpr friend operator ==(iterator const& a, iterator const& b) noexcept
+      auto constexpr friend operator ==(iterator const& a, iterator const& b) noexcept -> bool
       {
         return a.matrix == b.matrix and a.j == b.j and (not a.word ? not b.word : b.word and *a == *b);
       }
 
-      auto constexpr friend operator ==(iterator const& a, std::default_sentinel_t) noexcept
+      auto constexpr friend operator ==(iterator const& a, std::default_sentinel_t) noexcept -> bool
       {
         return not a.word;
       }
