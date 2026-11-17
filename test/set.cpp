@@ -1,14 +1,17 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <concepts>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <ranges>
 #include <set>
 #include <vector>
 
 #include <meevax/memory/pointer_set.hpp>
+#include <meevax/memory/multichannel_pointer_set.hpp>
 
 auto duration(auto thunk)
 {
@@ -40,13 +43,20 @@ auto measure(std::vector<Element const*> const& pointers)
     }
   });
 
-  std::cout << '\t' << duration([&]()
+  if constexpr (requires { set.lower_bound(pointers.front()); })
   {
-    for (auto p : pointers)
+    std::cout << '\t' << duration([&]()
     {
-      checksum += reinterpret_cast<std::uintptr_t>(*set.lower_bound(p));
-    }
-  });
+      for (auto p : pointers)
+      {
+        checksum += reinterpret_cast<std::uintptr_t>(*set.lower_bound(p));
+      }
+    });
+  }
+  else
+  {
+    std::cout << "\t-";
+  }
 
   std::cout << '\t' << duration([&]()
   {
@@ -56,25 +66,41 @@ auto measure(std::vector<Element const*> const& pointers)
     }
   });
 
-  std::cout << '\t' << duration([&]()
+  if constexpr (std::same_as<decltype(set.begin()), decltype(set.end())> and requires (decltype(set.begin()) i) { --i; })
   {
-    auto const first = set.begin();
-
-    for (auto i = set.end(); i != first; )
+    std::cout << '\t' << duration([&]()
     {
-      checksum += reinterpret_cast<std::uintptr_t>(*--i);
-    }
-  });
+      auto const first = set.begin();
 
-  std::cout << '\t' << duration([&]()
+      for (auto i = set.end(); i != first; )
+      {
+        checksum += reinterpret_cast<std::uintptr_t>(*--i);
+      }
+    });
+  }
+  else
   {
-    for (auto p : pointers)
+    std::cout << "\t-";
+  }
+
+  if constexpr (requires { set.erase(pointers.front()); })
+  {
+    std::cout << '\t' << duration([&]()
     {
-      set.erase(p);
-    }
-  });
+      for (auto p : pointers)
+      {
+        set.erase(p);
+      }
+    });
+  }
+  else
+  {
+    std::cout << "\t-";
+  }
 
   std::cout << '\t' << checksum << '\n';
+
+  set.clear();
 }
 
 template <auto N>
@@ -95,13 +121,17 @@ auto compare()
 
   std::shuffle(pointers.begin(), pointers.end(), engine);
 
+  std::cout << "std::set\t<std::array<std::uint64_t, " << N << "> const*>";
+
+  measure<std::set<element const*>>(pointers);
+
   std::cout << "pointer_set\t<std::array<std::uint64_t, " << N << "> const*>";
 
   measure<meevax::pointer_set<element const*, meevax::cleanup::automatic, 15, 16, 16>>(pointers);
 
-  std::cout << "std::set\t<std::array<std::uint64_t, " << N << "> const*>";
+  std::cout << "multichannel_pointer_set\t<std::array<std::uint64_t, " << N << "> const*>";
 
-  measure<std::set<element const*>>(pointers);
+  measure<meevax::multichannel_pointer_set<element>>(pointers);
 }
 
 auto main() -> int

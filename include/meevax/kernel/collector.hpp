@@ -32,9 +32,7 @@ namespace meevax::inline kernel
 
   auto count() noexcept -> std::size_t;
 
-  auto insert(pair const*) noexcept -> void;
-
-  auto is_root(object const*) noexcept -> bool;
+  auto insert(pair const*, void const*, std::size_t) noexcept -> void;
 
   auto request(std::size_t) noexcept -> void;
 
@@ -42,11 +40,11 @@ namespace meevax::inline kernel
 
   struct status
   {
-    std::size_t root_count;
+    std::size_t root_count = 0;
 
     std::map<std::type_index, std::size_t> root_count_of;
 
-    std::size_t non_root_count;
+    std::size_t non_root_count = 0;
 
     std::map<std::type_index, std::size_t> non_root_count_of;
 
@@ -185,7 +183,7 @@ namespace meevax::inline kernel
 
       if (auto datum = new binder<T, A>(std::forward<decltype(xs)>(xs)...); datum)
       {
-        insert(datum);
+        insert(datum, datum, sizeof(*datum));
 
         reset(pointer(datum));
       }
