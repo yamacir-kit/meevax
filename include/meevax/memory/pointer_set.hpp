@@ -298,19 +298,18 @@ namespace meevax::inline memory
         i_min = std::min(i_min, i);
         i_max = std::max(i_max, i);
         data[i] = new subset();
-        assert(data[i]->empty());
       }
 
-      if (data[i]->empty())
+      if (data[i]->insert(j))
       {
         auto const [q, r] = qr64(i);
-        assert(occupancy[q] != (occupancy[q] | (1_u64 << r)));
         occupancy[q] |= (1_u64 << r);
+        return n++ == 0;
       }
-
-      assert(data[i]);
-      data[i]->insert(j);
-      ++n;
+      else
+      {
+        return false;
+      }
     }
 
     auto erase(T value) noexcept
@@ -319,15 +318,15 @@ namespace meevax::inline memory
 
       auto [i, j] = split(value);
 
-      assert(data[i]);
-      data[i]->erase(j);
-      --n;
-
-      if (data[i]->empty())
+      if (data[i]->erase(j))
       {
         auto const [q, r] = qr64(i);
-        assert(occupancy[q] != (occupancy[q] & ~(1_u64 << r)));
         occupancy[q] &= ~(1_u64 << r);
+        return --n == 0;
+      }
+      else
+      {
+        return false;
       }
     }
 
@@ -355,12 +354,12 @@ namespace meevax::inline memory
 
     auto size() const noexcept -> std::size_t
     {
-      return n;
+      return std::distance(begin(), end());
     }
 
     auto empty() const noexcept
     {
-      return size() == 0;
+      return n == 0;
     }
 
     auto clear() noexcept -> void
@@ -541,17 +540,17 @@ namespace meevax::inline memory
     auto insert(T value) noexcept
     {
       assert(not contains(value));
-      ++n;
       auto const [q, r] = qr64(index(value));
       data[q] |= (1_u64 << r);
+      return n++ == 0;
     }
 
     auto erase(T value) noexcept
     {
       assert(contains(value));
-      --n;
       auto const [q, r] = qr64(index(value));
       data[q] &= ~(1_u64 << r);
+      return --n == 0;
     }
 
     auto contains(T value) noexcept -> bool

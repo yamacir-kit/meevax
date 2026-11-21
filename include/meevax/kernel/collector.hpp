@@ -32,9 +32,7 @@ namespace meevax::inline kernel
 
   auto count() noexcept -> std::size_t;
 
-  auto insert(pair const*) noexcept -> void;
-
-  auto is_root(object const*) noexcept -> bool;
+  auto insert(pair const*, void const*, std::size_t) noexcept -> void;
 
   auto request(std::size_t) noexcept -> void;
 
@@ -42,11 +40,11 @@ namespace meevax::inline kernel
 
   struct status
   {
-    std::size_t root_count;
+    std::size_t root_count = 0;
 
     std::map<std::type_index, std::size_t> root_count_of;
 
-    std::size_t non_root_count;
+    std::size_t non_root_count = 0;
 
     std::map<std::type_index, std::size_t> non_root_count_of;
 
@@ -77,17 +75,11 @@ namespace meevax::inline kernel
 
     explicit binder(auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
-    {
-      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
-      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
-    }
+    {}
 
     explicit binder(with_braces_tag, auto&&... xs)
       : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
-    {
-      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
-      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
-    }
+    {}
 
     ~binder() override = default;
 
@@ -108,6 +100,11 @@ namespace meevax::inline kernel
       {
         return false;
       }
+    }
+
+    auto extent() const noexcept -> std::pair<void const*, std::size_t> override
+    {
+      return { this, sizeof(binder) };
     }
 
     auto type() const noexcept -> std::type_info const& override
@@ -157,12 +154,14 @@ namespace meevax::inline kernel
 
     explicit binder(auto&&... xs) noexcept
       : pair { std::forward<decltype(xs)>(xs)... }
-    {
-      static_assert(sizeof(binder) <= std::numeric_limits<std::uint16_t>::max());
-      hint = reinterpret_cast<std::uintptr_t>(this) | (static_cast<std::uintptr_t>(sizeof(binder)) << 48);
-    }
+    {}
 
     ~binder() override = default;
+
+    auto extent() const noexcept -> std::pair<void const*, std::size_t> override
+    {
+      return { this, sizeof(binder) };
+    }
 
     auto operator new(std::size_t) -> void *
     {
@@ -184,7 +183,7 @@ namespace meevax::inline kernel
 
       if (auto datum = new binder<T, A>(std::forward<decltype(xs)>(xs)...); datum)
       {
-        insert(datum);
+        insert(datum, datum, sizeof(*datum));
 
         reset(pointer(datum));
       }

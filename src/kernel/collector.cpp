@@ -15,32 +15,22 @@
 */
 
 #include <meevax/kernel/collector.hpp>
-#include <meevax/kernel/object.hpp>
-#include <meevax/memory/pointer_set.hpp>
+#include <meevax/memory/multichannel_pointer_set.hpp>
+#include <functional>
 #include <sstream>
 #include <vector>
 
 namespace meevax::inline kernel
 {
-  /*
-     https://www.kernel.org/doc/html/latest/arch/x86/x86_64/mm.html
-
-     0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
-  */
-  template <typename T, cleanup C>
-  using canonical_pointer_set = pointer_set<T const*, C, std::bit_width(0x7FFFu), std::bit_width(0xFFFFu), std::bit_width(0xFFFFu)>;
-
-  static_assert(std::is_trivially_destructible_v<canonical_pointer_set<pair, cleanup::manual>>);
-
-  static_assert(std::is_trivially_destructible_v<canonical_pointer_set<object, cleanup::manual>>);
-
   auto constinit size = std::size_t(0_MiB);
 
+  enum class extent : std::uintptr_t {};
+
+  auto constinit directory = multichannel_pointer_set<pair, object, extent>();
+
+  static_assert(std::is_trivially_destructible_v<decltype(directory)>);
+
   auto constinit capacity = std::size_t(16_MiB);
-
-  auto constinit data = canonical_pointer_set<pair, cleanup::manual>();
-
-  auto constinit objects = canonical_pointer_set<object, cleanup::manual>();
 
   auto constinit anchor_count = std::size_t();
 
@@ -55,8 +45,7 @@ namespace meevax::inline kernel
 
     if (not --anchor_count)
     {
-      data.clear();
-      objects.clear();
+      directory.clear();
     }
   }
 
@@ -68,7 +57,7 @@ namespace meevax::inline kernel
   {
     if (*this)
     {
-      objects.insert(this);
+      directory.insert(this);
     }
   }
 
@@ -76,14 +65,14 @@ namespace meevax::inline kernel
     : pointer { pair }
   {
     assert(*this);
-    objects.insert(this);
+    directory.insert(this);
   }
 
   object::~object() noexcept
   {
     if (*this)
     {
-      objects.erase(this);
+      directory.erase<inserted>(this);
     }
   }
 
@@ -93,13 +82,14 @@ namespace meevax::inline kernel
     return *this;
   }
 
+  [[gnu::flatten]]
   auto object::operator =(std::tuple<object const&, object const&> tuple) -> object &
   {
     request(sizeof(pair));
 
     if (auto datum = new binder<pair, segregated_storage_allocator<void>>(std::get<0>(tuple), std::get<1>(tuple)); datum)
     {
-      insert(datum);
+      insert(datum, datum, sizeof(*datum));
 
       reset(pointer(datum));
 
@@ -137,7 +127,7 @@ namespace meevax::inline kernel
 
       if (not *this)
       {
-        objects.erase(this);
+        directory.erase<inserted>(this);
       }
     }
     else
@@ -146,21 +136,20 @@ namespace meevax::inline kernel
 
       if (*this)
       {
-        objects.insert(this);
+        directory.insert(this);
       }
     }
   }
 
   auto object::reset(std::nullptr_t) noexcept -> void
   {
-    if (*this)
+    auto const b = static_cast<bool>(*this);
+
+    pointer::reset();
+
+    if (b)
     {
-      pointer::reset();
-      objects.erase(this);
-    }
-    else
-    {
-      pointer::reset();
+      directory.erase<inserted>(this);
     }
   }
 
@@ -181,134 +170,86 @@ namespace meevax::inline kernel
 
   auto clear() noexcept -> void
   {
-    for (auto const& datum : data)
+    for (auto datum : std::ranges::subrange(directory.begin<pair>(), directory.end()))
     {
+      auto const [base, size] = datum->extent();
       delete datum;
-      assert(data.contains(datum));
-      data.erase(datum);
+      directory.erase<inserted>(datum);
+      directory.erase(static_cast<extent const*>(base), size);
     }
   }
 
+  [[gnu::noinline]]
   auto collect() noexcept -> void
   {
-    /*
-       This mark-and-sweep garbage collector is based on the `gc_ptr`
-       implementation developed and posted to CodeProject by William E. Kempf.
+    static constinit decltype(directory) new_directory;
 
-       - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
-       - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
-    */
+    auto static stack = std::vector<pair const*>();
 
-    auto static roots = std::vector<object const*>();
+    auto live_size = std::size_t();
 
-    roots.clear();
-
-    auto is_root = [next = data.begin(), base = std::uintptr_t(), end = std::uintptr_t()](auto x) mutable
+    auto mark = [&](auto address)
     {
-      auto const address = reinterpret_cast<std::uintptr_t>(x);
-
-      while (next and end <= address)
+      if (auto const* datum = address->unsafe_get(); directory.erase(datum))
       {
-        auto const datum = *next;
-        base = reinterpret_cast<std::uintptr_t>(datum->base());
-        end = base + datum->size();
-        ++next;
+        new_directory.insert(datum);
+        stack.push_back(datum);
       }
-
-      return address < base or end <= address;
     };
 
-    for (auto x : objects)
+    for (auto address : directory.difference<object, extent>())
     {
-      if (is_root(x))
-      {
-        roots.push_back(x);
-      }
-    }
-
-    size = 0;
-
-    auto new_data = canonical_pointer_set<pair, cleanup::automatic>();
-
-    for (auto root : roots)
-    {
-      auto static stack = std::vector<pair const*>();
-
-      auto mark = [&](auto m)
-      {
-        assert(m);
-        assert(m->unsafe_get());
-
-        if (auto datum = m->unsafe_get(); not new_data.contains(datum))
-        {
-          new_data.insert(datum);
-          data.erase(datum);
-          stack.push_back(datum);
-        }
-      };
-
-      mark(root);
+      mark(address);
 
       while (not stack.empty())
       {
         auto const datum = stack.back();
 
-        size += datum->size();
-
         stack.pop_back();
 
-        std::for_each(objects.lower_bound(reinterpret_cast<object const*>(datum->base())),
-                      objects.lower_bound(reinterpret_cast<object const*>(reinterpret_cast<std::uintptr_t>(datum->base()) + datum->size())),
-                      mark);
+        auto const [base, size] = datum->extent();
+
+        live_size += size;
+
+        new_directory.insert(static_cast<extent const*>(base), size);
+
+        auto const* last = static_cast<std::byte const*>(base) + size;
+
+        for (auto iterator = directory.lower_bound(static_cast<object const*>(base)); iterator != directory.end() and std::less<void const*>()(*iterator, last); ++iterator)
+        {
+          mark(*iterator);
+        }
       }
     }
 
-    for (auto datum : data)
+    size = live_size;
+
+    for (auto datum : std::ranges::subrange(directory.begin<pair>(), directory.end()))
     {
       delete datum;
     }
 
-    data.swap(new_data);
+    for (auto each : std::ranges::subrange(directory.begin<object>(), directory.end()))
+    {
+      new_directory.insert(each);
+    }
+
+    directory.swap(new_directory);
+
+    new_directory.clear();
 
     capacity = std::max(capacity, size + (size / 2));
   }
 
   auto count() noexcept -> std::size_t
   {
-    return data.size();
+    return std::ranges::distance(directory.begin<pair>(), directory.end());
   }
 
-  auto insert(pair const* datum) noexcept -> void
+  auto insert(pair const* datum, void const* base, std::size_t size) noexcept -> void
   {
-    data.insert(datum);
-  }
-
-  auto is_root(object const* x) noexcept -> bool
-  {
-    /*
-       If the given object is a non-root object, then an object containing
-       this object as a data member exists somewhere in memory.
-
-       Containing the object as a data member means that the address of the
-       object is contained in the interval of the object's base-address ~
-       base-address + object-size. The pair is present to keep track of the
-       base-address and size of the object needed here.
-
-       The memory layout of the base class pair and Bound of the binder is
-       implementation-defined. That is, there is no guarantee that the
-       pointer value of pair const* is less than the pointer value of Bound
-       const*. Therefore, the iterator returned by lower_bound here points to
-       pair const*, which may be an iterator to the object itself, which may
-       contain m, or the next iterator of the object, which may contain m.
-    */
-    auto iterator = data.lower_bound(reinterpret_cast<pair const*>(x));
-
-    auto contains = [&](auto datum)
-    {
-      return reinterpret_cast<std::uintptr_t>(x) - reinterpret_cast<std::uintptr_t>(datum->base()) < datum->size(); // NOTE: Same as base <= x and x < base + size
-    };
-
-    return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));
+    directory.insert(datum);
+    directory.insert(static_cast<extent const*>(base), size);
   }
 
   auto request(std::size_t n) noexcept -> void
@@ -325,21 +266,12 @@ namespace meevax::inline kernel
   }
 
   status::status()
-    : root_count { 0 }
-    , non_root_count { 0 }
   {
-    for (auto const& x : objects)
+    for (auto i = directory.begin<object>(); i != directory.end(); ++i)
     {
-      if (is_root(x))
-      {
-        ++root_count;
-        ++root_count_of[x->type()];
-      }
-      else
-      {
-        ++non_root_count;
-        ++non_root_count_of[x->type()];
-      }
+      auto const root = not i.contains<extent>();
+      ++(root ? root_count : non_root_count);
+      ++(root ? root_count_of : non_root_count_of)[(*i)->type()];
     }
   }
 
