@@ -23,29 +23,20 @@ namespace meevax::inline kernel
 {
   enum class instruction
   {
-    secd_call,              // a.k.a APP
-    secd_cons,              //
-    secd_current,           //
-    secd_drop,              //
-    secd_dummy,             // a.k.a DUM
-    secd_install,           //
-    secd_join,              //
-    secd_letrec,            // a.k.a RAP
-    secd_load_absolute,     // a.k.a LDG
-    secd_load_closure,      // a.k.a LDF
-    secd_load_constant,     // a.k.a LDC
-    secd_load_continuation, //
-    secd_load_relative,     // a.k.a LDL
-    secd_load_variadic,     //
-    secd_return,            // a.k.a RTN
-    secd_select,            // a.k.a SEL
-    secd_stop,              //
-    secd_store_absolute,    //
-    secd_store_relative,    //
-    secd_store_variadic,    //
-    secd_tail_call,         //
-    secd_tail_letrec,       //
-    secd_tail_select,       //
+    call,
+    current,
+    drop,
+    install,
+    list_values,
+    load_absolute,
+    load_closure,
+    load_constant,
+    load_relative,
+    load_variadic,
+    select,
+    store_absolute,
+    store_relative,
+    store_variadic,
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;

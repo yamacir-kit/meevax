@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
 #include <cassert>
+#include <tuple>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
@@ -29,23 +30,8 @@ namespace meevax::inline kernel
 
   struct pair;
 
-  struct truthy
-  {
-    auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
-    {
-      assert(x);
-      return true;
-    }
-  };
-
-  struct falsy
-  {
-    auto constexpr operator ()([[maybe_unused]] auto const& x) const noexcept
-    {
-      assert(not x);
-      return false;
-    }
-  };
+  template <typename, typename>
+  struct binder;
 
   struct object : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
   {
@@ -54,6 +40,9 @@ namespace meevax::inline kernel
     object(std::nullptr_t = nullptr) noexcept;
 
     object(object const&) noexcept;
+
+    template <typename T, typename A, typename... Ts>
+    object(std::type_identity<binder<T, A>>, Ts&&...);
 
     object(pair *) noexcept;
 
@@ -68,48 +57,13 @@ namespace meevax::inline kernel
 
     auto operator =(object const&) noexcept -> object &;
 
+    auto operator =(std::tuple<object const&, object const&>) -> object &;
+
     auto operator =(std::nullptr_t) noexcept -> object &;
 
-    auto erase() const noexcept -> void;
+    auto reset(pointer const&) noexcept -> void;
 
-    auto insert() const noexcept -> void;
-
-    template <typename Precondition = std::identity, typename Postcondition = std::identity>
-    auto reset(object const& x) noexcept
-    {
-      if (Precondition()(*this))
-      {
-        pointer::reset(x);
-
-        if (not Postcondition()(*this))
-        {
-          erase();
-        }
-      }
-      else
-      {
-        pointer::reset(x);
-
-        if (Postcondition()(*this))
-        {
-          insert();
-        }
-      }
-    }
-
-    template <typename From = std::identity>
-    auto reset(std::nullptr_t = nullptr) noexcept -> void
-    {
-      if (From()(*this))
-      {
-        pointer::reset();
-        erase();
-      }
-      else
-      {
-        pointer::reset();
-      }
-    }
+    auto reset(std::nullptr_t = nullptr) noexcept -> void;
 
     template <typename U>
     auto static as(auto&& x) -> decltype(auto)
@@ -120,7 +74,11 @@ namespace meevax::inline kernel
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
-        if (auto data = dynamic_cast<std::add_pointer_t<U>>(x.get()); data)
+        if (auto data = x ? static_cast<std::add_pointer_t<U>>(x->virtual_cast(typeid(std::decay_t<U>))) : nullptr)
+        {
+          return *data;
+        }
+        else if (auto data = dynamic_cast<std::add_pointer_t<U>>(x.get()); data)
         {
           return *data;
         }
@@ -141,10 +99,19 @@ namespace meevax::inline kernel
 
     auto eqv(object const&) const noexcept -> bool;
 
+    auto external_representation() const -> std::string;
+
     template <typename U>
     auto is() const noexcept
     {
-      return type() == typeid(std::decay_t<U>);
+      if constexpr (any_of<std::decay_t<U>, std::nullptr_t, bool, small_integer, float, double, instruction>)
+      {
+        return pointer::template is<U>();
+      }
+      else
+      {
+        return type() == typeid(std::decay_t<U>);
+      }
     }
 
     template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
@@ -163,6 +130,20 @@ namespace meevax::inline kernel
   using let = object;
 
   let extern unit;
+
+  struct anchor
+  {
+    anchor() noexcept;
+
+    anchor(anchor const&) = delete;
+
+    anchor(anchor &&) = delete;
+
+    ~anchor() noexcept;
+  };
+
+  [[maybe_unused]]
+  auto const _ = anchor();
 } // namespace meevax::kernel
 
 namespace std

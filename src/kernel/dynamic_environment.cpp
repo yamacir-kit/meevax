@@ -14,9 +14,12 @@
    limitations under the License.
 */
 
+#include <exception>
+#include <tuple>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
+#include <meevax/kernel/control.hpp>
 #include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -24,438 +27,160 @@
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/proper_list.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax::inline kernel
 {
   auto dynamic_environment::apply(object const& f, object const& xs) -> object
   {
-    return execute(list(f, xs),
-                   nullptr,
-                   list(make<instruction>(instruction::secd_call),
-                        make<instruction>(instruction::secd_stop)),
-                   nullptr);
+    let c = make<vector>();
+    c.as<vector>().objects.emplace_back(instruction::call);
+    return execute(cons(f, make<continuation>(), xs), nullptr, c);
   }
 
   auto dynamic_environment::execute(object const& c) -> object
   {
-    assert(last(c).is<instruction>());
-    assert(last(c).as<instruction>() == instruction::secd_stop);
-
-    return execute(nullptr, nullptr, c, nullptr);
+    return execute(nullptr, nullptr, c);
   }
 
-  auto dynamic_environment::execute(object s, object e, object c, object d) -> object
+  auto dynamic_environment::execute(object s, object e, object c) -> object
   {
-    assert(last(c).template is<instruction>());
-    assert(last(c).template as<instruction>() == instruction::secd_stop);
-
     try
     {
+      let * c0 = c.as<vector>().objects.data();
+      let * pc = c0;
+
     fetch:
-      assert(c);
-
-      switch (car(c).template as<instruction>())
+      switch ((pc++)->as<instruction>())
       {
-      case instruction::secd_load_absolute: /* ---------------------------------
-        *
-        *  s e (%load-absolute <absolute> . c) d => (x . s) e c d
-        *
-        *  where <absolute> = (<symbol> . x)
-        *
-        * ------------------------------------------------------------------- */
-        assert(cadr(c).template is_also<absolute>());
-        s.reset<std::identity, truthy>(cons(cdadr(c), s));
-        c.reset<truthy, truthy>(cddr(c));
+      case instruction::load_absolute:
+        assert(pc->is_also<absolute>());
+        s = std::forward_as_tuple(cdr(*pc), s);
+        ++pc;
         goto fetch;
 
-      case instruction::secd_load_relative: /* ---------------------------------
-        *
-        *  s  e (%load-relative <relative> . c) d => (x . s) e c d
-        *
-        *  where <relative> = (i . j)
-        *
-        *        x = (list-ref (list-ref e i) j)
-        *
-        * ------------------------------------------------------------------- */
+      case instruction::load_relative:
+        assert(pc->is_also<relative>());
+        s = std::forward_as_tuple(head(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s);
+        ++pc;
+        goto fetch;
+
+      case instruction::load_variadic:
+        assert(pc->is_also<variadic>());
+        s = std::forward_as_tuple(tail(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())), s);
+        ++pc;
+        goto fetch;
+
+      case instruction::load_constant:
+        s = std::forward_as_tuple(*pc, s);
+        ++pc;
+        goto fetch;
+
+      case instruction::load_closure:
+        assert(pc->is<control>());
+        s = std::forward_as_tuple(make<closure, segregated_storage_allocator<void>>(*pc, e), s);
+        ++pc;
+        goto fetch;
+
+      case instruction::current:
+        s = std::forward_as_tuple(a[static_cast<std::size_t>(pc->as<small_integer>())], s);
+        ++pc;
+        goto fetch;
+
+      case instruction::select:
+        assert(pc[0].is<control>());
+        assert(pc[1].is<control>());
+        pc = c0 + cdr(car(s) != f ? pc[0] : pc[1]).as<small_integer>();
+        s = cdr(s);
+        goto fetch;
+
+      case instruction::call:
+        if (let const& f = car(s); f.is<closure>())
         {
-          let const& operand = cadr(c);
+          assert(car(f).is<control>());
 
-          assert(operand.is<relative>());
+          e = std::forward_as_tuple(cdr(s), cdr(f));
+          s = nullptr;
 
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
+          if (c != caar(f))
+          {
+            c = caar(f);
+            c0 = c.as<vector>().objects.data();
+          }
 
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          s.reset<std::identity, truthy>(cons(head(head(e, i), j), s));
-          c.reset<truthy, truthy>(cddr(c));
-        }
-        goto fetch;
-
-      case instruction::secd_load_variadic: /* ---------------------------------
-        *
-        *  s  e (%load-variadic <variadic> . c) d => (x . s) e c d
-        *
-        *  where <variadic> = (i . j)
-        *
-        *        x = (list-tail (list-ref e i) j)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<variadic>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          s.reset<std::identity, truthy>(cons(tail(head(e, i), j), s));
-          c.reset<truthy, truthy>(cddr(c));
-        }
-        goto fetch;
-
-      case instruction::secd_load_constant: /* ---------------------------------
-        *
-        *  s e (%load-constant <object> . c) d => (x . s) e c d
-        *
-        * ------------------------------------------------------------------- */
-        s.reset<std::identity, truthy>(cons(cadr(c), s));
-        c.reset<truthy, truthy>(cddr(c));
-        goto fetch;
-
-      case instruction::secd_load_closure: /* ----------------------------------
-        *
-        *  s e (%load-closure c' . c) d => (<closure> . s) e c d
-        *
-        *  where <closure> = (c' . e)
-        *
-        * ------------------------------------------------------------------- */
-        s.reset<std::identity, truthy>(cons(make<closure, segregated_storage_allocator<void>>(cadr(c), e), s));
-        c.reset<truthy, truthy>(cddr(c));
-        goto fetch;
-
-      case instruction::secd_load_continuation: /* -----------------------------
-        *
-        *  s e (%load-continuation c' . c) d => ((<continuation>) . s) e c d
-        *
-        *  where <continuation> = (s e c' . d)
-        *
-        * ------------------------------------------------------------------- */
-        s.reset<std::identity, truthy>(cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s));
-        c.reset<truthy, truthy>(cddr(c));
-        goto fetch;
-
-      case instruction::secd_current: /* ---------------------------------------
-        *
-        *  s e (%current i . c) => (a[i] . s) e c d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<small_integer>());
-        s.reset<std::identity, truthy>(cons(a[exact_integer_cast<std::size_t>(cadr(c))], s));
-        c.reset<truthy, truthy>(cddr(c));
-        goto fetch;
-
-      case instruction::secd_select: /* ----------------------------------------
-        *
-        *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' (c . d)
-        *
-        *  where c' = (if <boolean> c1 c2)
-        *
-        * ------------------------------------------------------------------- */
-        d.reset<std::identity, truthy>(cons(cdddr(c), d));
-        c.reset<truthy, truthy>(car(s) != f ? cadr(c) : caddr(c));
-        s.reset<truthy, std::identity>(cdr(s));
-        goto fetch;
-
-      case instruction::secd_tail_select: /* -----------------------------------
-        *
-        *  (<boolean> . s) e (%tail-select c1 c2) d => s e c' d
-        *
-        *  where c' = (if <boolean> c1 c2)
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdddr(c).template is<null>());
-        c.reset<truthy, truthy>(car(s) != f ? cadr(c) : caddr(c));
-        s.reset<truthy, std::identity>(cdr(s));
-        goto fetch;
-
-      case instruction::secd_join: /* ------------------------------------------
-        *
-        *  s e (%join) (c . d) => s e c d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(c).template is<null>());
-        c.reset<truthy, truthy>(car(d));
-        d.reset<truthy, std::identity>(cdr(d));
-        goto fetch;
-
-      case instruction::secd_call:
-        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
-        *
-        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        {
-          assert(tail(c, 1).template is<pair>());
-          d.reset<std::identity, truthy>(cons(cddr(s), e, cdr(c), d));
-          c.reset<truthy, truthy>(car(callee));
-          e.reset<std::identity, truthy>(cons(cadr(s), cdr(callee)));
-          s.reset<truthy>();
+          pc = c0 + static_cast<std::size_t>(cdar(f).as<small_integer>());
           goto fetch;
         }
-        else if (callee.is<procedure>()) /* ------------------------------------
-        *
-        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
-        *
-        *  where x = procedure(xs)
-        *
-        * ------------------------------------------------------------------- */
+        else if (f.is<procedure>())
         {
-          assert(tail(c, 1).template is<pair>());
-          s.reset<truthy, truthy>(cons(callee.as<procedure>().call(cadr(s)), cddr(s)));
-          c.reset<truthy, truthy>(cdr(c));
-          goto fetch;
+          if (let const& k = cadr(s); k.is<closure>())
+          {
+            assert(car(k).is<control>());
+
+            e = std::forward_as_tuple(list(f.as<procedure>().call(cddr(s))), cdr(k));
+            s = nullptr;
+
+            if (c != caar(k))
+            {
+              c = caar(k);
+              c0 = c.as<vector>().objects.data();
+            }
+
+            pc = c0 + static_cast<std::size_t>(cdar(k).as<small_integer>());
+            goto fetch;
+          }
+          else if (k.is<continuation>())
+          {
+            return f.as<procedure>().call(cddr(s));
+          }
+          else
+          {
+            throw error(make<string>("not applicable"), k);
+          }
         }
-        else if (callee.is<continuation>()) /* ---------------------------------
-        *
-        *  (<continuation> xs) e (%call . c) d => (xs . s') e' c' d'
-        *
-        *  where <continuation> = (s' e' c' . 'd)
-        *
-        * ------------------------------------------------------------------- */
+        else if (f.is<continuation>())
         {
-          assert(tail(s, 2).template is<null>());
-          assert(tail(c, 1).template is<pair>());
-          s.reset<truthy, truthy>(cons(caadr(s), car(callee)));
-          e.reset<std::identity, std::identity>(cadr(callee));
-          c.reset<truthy, truthy>(caddr(callee));
-          d.reset<std::identity, std::identity>(cdddr(callee));
-          goto fetch;
+          return cadr(s);
         }
         else
         {
-          throw error(make<string>("not applicable"), callee);
+          throw error(make<string>("not applicable"), f);
         }
 
-      case instruction::secd_tail_call:
-        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
-        *
-        *  (<closure> xs) e (%tail-call) d => () (xs . e') c' d
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        {
-          assert(tail(s, 2).template is<null>());
-          assert(tail(c, 1).template is<null>());
-          c.reset<truthy, truthy>(car(callee));
-          e.reset<std::identity, truthy>(cons(cadr(s), cdr(callee)));
-          s.reset<truthy>();
-          goto fetch;
-        }
-        else if (callee.is<procedure>()) /* ------------------------------------
-        *
-        *  (<procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
-        *
-        *  where x = procedure(xs)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          assert(tail(s, 2).template is<null>());
-          assert(tail(c, 1).template is<null>());
-          s.reset<truthy, truthy>(cons(callee.as<procedure>().call(cadr(s)), car(d)));
-          e.reset<std::identity, std::identity>(cadr(d));
-          c.reset<truthy, truthy>(caddr(d));
-          d.reset<truthy, std::identity>(cdddr(d));
-          goto fetch;
-        }
-        else if (callee.is<continuation>()) /* ---------------------------------
-        *
-        *  (<continuation> xs) e (%tail-call) d => (xs . s') e' c' d'
-        *
-        *  where <continuation> = (s' e' c' . 'd)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          assert(tail(s, 2).template is<null>());
-          assert(tail(c, 1).template is<null>());
-          s.reset<truthy, truthy>(cons(caadr(s), car(callee)));
-          e.reset<std::identity, std::identity>(cadr(callee));
-          c.reset<truthy, truthy>(caddr(callee));
-          d.reset<std::identity, std::identity>(cdddr(callee));
-          goto fetch;
-        }
-        else
-        {
-          throw error(make<string>("not applicable"), callee);
-        }
-
-      case instruction::secd_dummy: /* -----------------------------------------
-        *
-        *  s e (%dummy . c) d => s (<null> . e) c d
-        *
-        * ------------------------------------------------------------------- */
-        e.reset<std::identity, truthy>(cons(nullptr, e));
-        c.reset<truthy, truthy>(cdr(c));
+      case instruction::drop:
+        s = cdr(s);
         goto fetch;
 
-      case instruction::secd_letrec: /* ----------------------------------------
-        *
-        *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        cadar(s) = cadr(s);
-        d.reset<std::identity, truthy>(cons(cddr(s), cdr(e), cdr(c), d));
-        c.reset<truthy, truthy>(caar(s));
-        e.reset<truthy, truthy>(cdar(s));
-        s.reset<truthy>();
+      case instruction::store_absolute:
+        assert(pc->is<absolute>());
+        cdr(*pc) = car(s);
+        ++pc;
         goto fetch;
 
-      case instruction::secd_tail_letrec: /* -----------------------------------
-        *
-        *  (<closure> xs . s) (<null> . e) (%tail-letrec) d => () (set-car! e' xs) c' d
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(c).template is<null>());
-        cadar(s) = cadr(s);
-        c.reset<truthy, std::identity>(caar(s));
-        e.reset<truthy, truthy>(cdar(s));
-        s.reset<truthy>();
+      case instruction::store_relative:
+        assert(pc->is<relative>());
+        head(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())) = car(s);
+        ++pc;
         goto fetch;
 
-      case instruction::secd_return: /* ----------------------------------------
-        *
-        *  (x)  e (%return) (s' e' c' . d) => (x . s') e' c' d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(s).template is<null>());
-        assert(cdr(c).template is<null>());
-
-        s.reset<truthy, truthy>(cons(car(s), car(d)));
-        e.reset<std::identity, std::identity>(cadr(d));
-        c.reset<truthy, truthy>(caddr(d));
-        d.reset<truthy, std::identity>(cdddr(d));
+      case instruction::store_variadic:
+        assert(pc->is<variadic>());
+        tail(head(e, static_cast<std::size_t>(car(*pc).as<small_integer>())), static_cast<std::size_t>(cdr(*pc).as<small_integer>())) = car(s);
+        ++pc;
         goto fetch;
 
-      case instruction::secd_cons: /* ------------------------------------------
-        *
-        *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
-        *
-        * ------------------------------------------------------------------- */
-        car(s).reset<std::identity, truthy>(cons(car(s), cadr(s)));
-        cdr(s).reset<truthy, std::identity>(cddr(s));
-        c.reset<truthy, truthy>(cdr(c));
+      case instruction::install:
+        a[static_cast<std::size_t>(pc->as<small_integer>())] = car(s);
+        ++pc;
         goto fetch;
 
-      case instruction::secd_drop: /* ------------------------------------------
-        *
-        *  (x . s) e (%drop . c) d => s e c d
-        *
-        * ------------------------------------------------------------------- */
-        s.reset<truthy, std::identity>(cdr(s));
-        c.reset<truthy, truthy>(cdr(c));
+      case instruction::list_values:
+        s = car(s);
         goto fetch;
 
-      case instruction::secd_store_absolute: /* --------------------------------
-        *
-        *  (x . s) e (%store-absolute <absolute> . c) d => (x . s) e c d
-        *
-        *  where <absolute> = (<symbol> . <object>)
-        *
-        *        (set-cdr! <absolute> x)
-        *
-        * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<absolute>());
-        cdadr(c) = car(s);
-        c.reset<truthy, truthy>(cddr(c));
-        goto fetch;
-
-      case instruction::secd_store_relative: /* --------------------------------
-        *
-        *  (x . s) e (%store-relative <relative> . c) d => (x . s) e c d
-        *
-        * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<relative>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          head(head(e, i), j) = car(s);
-
-          c.reset<truthy, truthy>(cddr(c));
-        }
-        goto fetch;
-
-      case instruction::secd_store_variadic: /* --------------------------------
-        *
-        *  (x . s) e (%store-variadic <variadic> . c) d => (x . s) e c d
-        *
-        * ------------------------------------------------------------------- */
-        {
-          let const& operand = cadr(c);
-
-          assert(operand.is<variadic>());
-
-          assert(car(operand).is<small_integer>());
-          assert(cdr(operand).is<small_integer>());
-
-          auto i = car(operand).as<small_integer>();
-          auto j = cdr(operand).as<small_integer>();
-
-          assert(i < length(e));
-
-          tail(head(e, i), j) = car(s);
-
-          c.reset<truthy, truthy>(cddr(c));
-        }
-        goto fetch;
-
-      case instruction::secd_install: /* ---------------------------------------
-        *
-        *  (x . s) e (%install i . c) d => (x . s) e c d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<small_integer>());
-        a[exact_integer_cast<std::size_t>(cadr(c))] = car(s);
-        c.reset<truthy, truthy>(cddr(c));
-        goto fetch;
-
-      default: // ERROR
+      default:
         assert(false);
-        [[fallthrough]];
-
-      case instruction::secd_stop: /* ------------------------------------------
-        *
-        *  (x) e (%stop) d => () e () d
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(s).template is<null>());
-        assert(e.is<null>());
-        assert(cdr(c).template is<null>());
-        assert(d.is<null>());
-        return car(s);
+        std::terminate();
       }
     }
     catch (object const& thrown) // by the procedure `throw`.

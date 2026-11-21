@@ -88,7 +88,7 @@
 
 (check (+ x 1) => 3)
 
-(check (set! x 4) => 4)
+(check (set! x 4) => (if #f #f))
 
 (check (+ x 1) => 5)
 
