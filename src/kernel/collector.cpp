@@ -72,7 +72,7 @@ namespace meevax::inline kernel
   {
     if (*this)
     {
-      directory.erase(this);
+      directory.erase<inserted>(this);
     }
   }
 
@@ -127,7 +127,7 @@ namespace meevax::inline kernel
 
       if (not *this)
       {
-        directory.erase(this);
+        directory.erase<inserted>(this);
       }
     }
     else
@@ -149,7 +149,7 @@ namespace meevax::inline kernel
 
     if (b)
     {
-      directory.erase(this);
+      directory.erase<inserted>(this);
     }
   }
 
@@ -174,7 +174,7 @@ namespace meevax::inline kernel
     {
       auto const [base, size] = datum->extent();
       delete datum;
-      directory.erase(datum);
+      directory.erase<inserted>(datum);
       directory.erase(static_cast<extent const*>(base), size);
     }
   }

@@ -28,6 +28,9 @@
 
 namespace meevax::inline memory
 {
+  struct inserted
+  {};
+
   template <typename... Ts>
   struct multichannel_pointer_set
   {
@@ -165,11 +168,21 @@ namespace meevax::inline memory
     }
 
     template <typename T>
-    auto constexpr erase(T const* p) noexcept
+    auto constexpr erase(T const* p) noexcept -> bool
     {
       auto const [q, r] = qr(to_index(p), Column);
       auto const node = data.find(q);
       return node != data.end() and (*node)(row_of<T>, r).exchange(false);
+    }
+
+    template <typename Inserted, typename T>
+    requires std::same_as<Inserted, inserted>
+    auto constexpr erase(T const* p) noexcept -> bool
+    {
+      assert(contains(p));
+      auto const [q, r] = qr(to_index(p), Column);
+      data.at(q)(row_of<T>, r) = false;
+      return true;
     }
 
     template <typename T>
