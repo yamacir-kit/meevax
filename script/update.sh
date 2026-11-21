@@ -11,7 +11,7 @@ build()
   cmake --build "$1/build" --target continuous-integration
 }
 
-echo "0.5.$(($(git rev-list --no-merges --count HEAD) - 3681))" > "$root/VERSION"
+echo "0.6.$(($(git rev-list --first-parent --merges --count master) - 203))" > "$root/VERSION"
 
 build "$root" "$@"
 
