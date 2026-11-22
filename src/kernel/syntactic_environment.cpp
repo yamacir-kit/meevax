@@ -16,12 +16,14 @@
 
 #include <algorithm>
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/control.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
@@ -114,6 +116,101 @@ namespace meevax::inline kernel
                                      object const& bound_variables,
                                      syntactic_closure::alpha & alpha) const -> object
   {
+    auto expand_operands = [&](auto&&... xs)
+    {
+      auto recur = [&](auto recur, object const& form) -> object
+      {
+        if (form.is<pair>())
+        {
+          return cons(expand(car(form), bound_variables, alpha), recur(recur, cdr(form)));
+        }
+        else
+        {
+          return expand(form, bound_variables, alpha);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
+    auto expand_body = [this](auto&&... xs)
+    {
+      auto recur = [this](auto recur, object const& form, object const& bound_variables, auto & alpha)
+      {
+        if (auto [reversed_binding_specs,
+                  sequence,
+                  current_environment] = sweep(form,
+                                               form,
+                                               bound_variables,
+                                               make<syntactic_environment>(bound_variables, second),
+                                               alpha);
+            reversed_binding_specs)
+        {
+          /*
+             (letrec* <binding specs> <sequence>)
+
+                 => ((lambda <variables> <assignments> <sequence>)
+                     <dummy 1> ... <dummy n>)
+
+             where <binding specs> = ((<variable 1> <initial 1>) ...
+                                      (<variable n> <initial n>))
+          */
+          let & formals = caar(current_environment);
+
+          for (let const& binding_spec : reversed_binding_specs | as_proper_list)
+          {
+            if (not car(binding_spec).is<macro>()) // The binding-spec is not an internal syntax definition.
+            {
+              sequence = cons(cons(default_rename("set!"), binding_spec), sequence);
+            }
+          }
+
+          for (let & formal : formals | as_proper_list)
+          {
+            if (formal.is<macro>()) // is internal-sytnax-definition
+            {
+              cdr(formal) = make<transformer>(environment().execute(current_environment.template as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
+                                              current_environment);
+            }
+          }
+
+          return expand(list(cons(cons(default_rename("lambda"),
+                                       formals,
+                                       sequence),
+                                  make_list(length(formals), unit))),
+                        bound_variables,
+                        alpha);
+        }
+        else if (sequence.template is<pair>())
+        {
+          return cons(expand(car(sequence), bound_variables, alpha), recur(recur, cdr(sequence), bound_variables, alpha));
+        }
+        else
+        {
+          return expand(sequence, bound_variables, alpha);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
+    auto expand_begin = [&](auto&&... xs)
+    {
+      auto recur = [&](auto recur, object const& form) -> object
+      {
+        if (form.is<pair>())
+        {
+          return cons(expand(car(form), bound_variables, alpha), recur(recur, cdr(form)));
+        }
+        else
+        {
+          return expand(form, bound_variables, alpha);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
     if (not form.is<pair>())
     {
       if (form.is<syntactic_closure>() and identify(form, bound_variables) == f)
@@ -137,12 +234,135 @@ namespace meevax::inline kernel
         }
         else if (value.is<syntax>())
         {
-          return value.as<syntax>().expand(*this, form, bound_variables, alpha);
+          switch (value.as<syntax>().kind)
+          {
+          case syntax::quote:
+          case syntax::quote_syntax:
+            return form;
+
+          case syntax::lambda:
+            {
+              auto scoped_alpha = alpha;
+
+              let const& formals = scoped_alpha.convert_formals(cadr(form), bound_variables);
+
+              return cons(alpha.convert(car(form)) /* lambda */,
+                          cons(formals,
+                               expand_body(cddr(form),
+                                           cons(formals, bound_variables),
+                                           scoped_alpha)));
+            }
+
+          case syntax::conditional:
+          case syntax::set:
+            return cons(alpha.convert(car(form)), expand_operands(cdr(form)));
+
+          case syntax::include:
+            return expand(cons(default_rename("begin"), include(cadr(form))), bound_variables, alpha);
+
+          case syntax::include_case_insensitive:
+            return expand(cons(default_rename("begin"), include<case_insensitive>(cadr(form))), bound_variables, alpha);
+
+          case syntax::conditional_expand:
+            return expand(cons(default_rename("begin"), conditional_expand(cdr(form))), bound_variables, alpha);
+
+          case syntax::letrec:
+            {
+              let const extended_bound_variables = cons(alpha.convert_formals(map(car, cadr(form)), bound_variables), bound_variables);
+
+              return cons(car(form),
+                          map([&](let const& binding)
+                              {
+                                return list(car(binding), expand(cadr(binding), extended_bound_variables, alpha));
+                              },
+                              cadr(form)),
+                          expand_body(cddr(form),
+                                      extended_bound_variables,
+                                      alpha));
+            }
+
+          case syntax::sequence:
+            return expand_begin(form);
+
+          case syntax::let_syntax:
+            {
+              let const current_environment = make<syntactic_environment>(bound_variables, second);
+
+              auto formal = [&](let const& syntax_spec)
+              {
+                return make<macro>(car(syntax_spec) /* keyword */,
+                                   make<transformer>(environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
+                                                     current_environment));
+              };
+
+              let const formals = map(formal, cadr(form));
+
+              return expand(list(cons(default_rename("lambda"),
+                                      formals,
+                                      cddr(form) /* body */)),
+                            bound_variables,
+                            alpha);
+            }
+
+          case syntax::letrec_syntax:
+            {
+              let current_environment = make<syntactic_environment>(bound_variables, second);
+
+              auto formal = [&](let const& syntax_spec)
+              {
+                return make<macro>(car(syntax_spec) /* keyword */,
+                                   make<transformer>(environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
+                                                     current_environment));
+              };
+
+              let const formals = map(formal, cadr(form));
+
+              current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
+
+              return expand(list(cons(default_rename("lambda"),
+                                      formals,
+                                      cddr(form) /* body */)),
+                            bound_variables,
+                            alpha);
+            }
+
+          case syntax::define:
+            {
+              if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
+              {
+                return list(alpha.convert(car(form)),
+                            caadr(form) /* variable */,
+                            expand(cons(default_rename("lambda"),
+                                        cdadr(form) /* formals */,
+                                        cddr(form) /* body */),
+                                   bound_variables,
+                                   alpha));
+              }
+              else // (define <variable> <expression>)
+              {
+                return cons(alpha.convert(car(form)),
+                            cadr(form),
+                            cddr(form) ? list(expand(caddr(form), bound_variables, alpha)) : unit);
+              }
+            }
+
+          case syntax::define_syntax:
+            return list(alpha.convert(car(form)), cadr(form), expand(caddr(form), bound_variables, alpha));
+
+          case syntax::call_with_current_continuation:
+          case syntax::call_with_values:
+          case syntax::current:
+          case syntax::install:
+            return cons(alpha.convert(car(form)), expand_operands(cdr(form)));
+
+          default:
+            return value.as<syntax>().expand(*this, form, bound_variables, alpha);
+          }
         }
       }
     }
 
-    return expander::call(*this, form, bound_variables, alpha);
+    return cons(expand(car(form), bound_variables, alpha), expand_operands(cdr(form)));
   }
 
   auto syntactic_environment::generate(object const& form,
