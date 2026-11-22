@@ -55,13 +55,9 @@ auto main() -> int
     }
   }
 
+  for (let xs = list(a, b, c); auto x : xs | as_proper_list)
   {
-    let xs = list(a, b, c);
-
-    for (auto x : xs | as_proper_list)
-    {
-      assert(x.template is<symbol>());
-    }
+    assert(x.template is<symbol>());
   }
 
   {
