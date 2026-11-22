@@ -127,11 +127,7 @@ namespace meevax::inline kernel
     }
     else if (car(form).is_also<identifier>())
     {
-      let const identifier = alpha.convert(car(form));
-
-      if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
-                                                                   : identify(car(form), bound_variables);
-          identity.is_also<absolute>())
+      if (let const& identity = identify(alpha.convert(car(form)), bound_variables); identity.is_also<absolute>())
       {
         if (let const& value = cdr(identity); value.is<transformer>())
         {
@@ -362,7 +358,7 @@ namespace meevax::inline kernel
       }
       else if (car(sequence).is<pair>() and caar(sequence).is_also<identifier>())
       {
-        if (let const& identity = identify(caar(sequence), bound_variables); identity.is_also<absolute>())
+        if (let const& identity = identify(alpha.convert(caar(sequence)), bound_variables); identity.is_also<absolute>())
         {
           if (let const& value = cdr(identity); value.is<transformer>())
           {
