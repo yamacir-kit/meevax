@@ -16,7 +16,7 @@ jobs:
         exclude:
           - { system: ubuntu-22.04, compiler: clang++ } # Drop before EOL due to incomplete C++20 support in Clang 15.
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - run: ./script/setup-${{ matrix.system }}.sh --all
       - run: cmake -B build -D CMAKE_BUILD_TYPE=${{ matrix.configuration }} -D CMAKE_CXX_COMPILER="$(./script/latest-of.sh ${{ matrix.compiler }})"
       - run: cmake --build build --target continuous-integration

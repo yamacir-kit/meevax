@@ -3,15 +3,19 @@ on:
   push:
     branches:
       - master
+permissions:
+  contents: write
+  pull-requests: read
 jobs:
   Ubuntu:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v3
-      - run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+      - uses: actions/checkout@v7
       - run: ./script/setup-ubuntu.sh
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --target package
-      - run: gh release create v${{ env.VERSION }} build/meevax_${{ env.VERSION }}_amd64.deb --title "Version ${{ env.VERSION }}"
-        env:
-         GH_TOKEN: ${{ github.token }}
+      - run: |
+          notes="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].body // ""')"
+          gh release create "v$(cat VERSION)" "build/meevax_$(cat VERSION)_amd64.deb" --title "Version $(cat VERSION)" --notes "$notes"
