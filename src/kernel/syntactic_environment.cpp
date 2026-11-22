@@ -464,6 +464,7 @@ namespace meevax::inline kernel
     #define BIND(NAME, SYNTAX) \
     make<absolute>(make_symbol(NAME), \
                    make<syntax>(NAME, \
+                                syntax::SYNTAX, \
                                 expander::SYNTAX, \
                                 static_cast<decltype(syntax::T_c)>(converter::SYNTAX), \
                                 static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \

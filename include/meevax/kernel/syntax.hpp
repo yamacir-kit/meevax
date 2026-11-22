@@ -26,6 +26,31 @@ namespace meevax::inline kernel
   {
     symbol name;
 
+    enum
+    {
+      quote,
+      quote_syntax,
+      call,
+      operand,
+      lambda,
+      body,
+      conditional,
+      set,
+      include,
+      include_case_insensitive,
+      conditional_expand,
+      letrec,
+      sequence,
+      let_syntax,
+      letrec_syntax,
+      define,
+      define_syntax,
+      call_with_current_continuation,
+      call_with_values,
+      current,
+      install,
+    } kind;
+
     auto (*expand)(syntactic_environment const& expander,
                    object const& form,
                    object const& bound_variables,
@@ -46,8 +71,9 @@ namespace meevax::inline kernel
                      object const& bound_variables,
                      object const& continuation) -> object;
 
-    explicit syntax(auto const& name, auto expand, auto T_c, auto T_k, auto generate)
+    explicit syntax(auto const& name, auto kind, auto expand, auto T_c, auto T_k, auto generate)
       : name { name }
+      , kind { kind }
       , expand { expand }
       , T_c { T_c }
       , T_k { T_k }
