@@ -25,39 +25,42 @@ auto main(int const argc, char const* const* const argv) -> int
   using namespace meevax;
   using namespace meevax::literals;
 
-  auto interact = [&](environment & e)
+  try
   {
-    e.load_scheme_libraries();
+    boot();
+
+    interaction_environment().as<environment>().load_scheme_libraries();
 
     if (configure(argc, argv); interactive())
     {
-      e.import("(scheme base)"_r);
-      e.import("(scheme bitwise)"_r);
-      e.import("(scheme box)"_r);
-      e.import("(scheme case-lambda)"_r);
-      e.import("(scheme char)"_r);
-      e.import("(scheme complex)"_r);
-      e.import("(scheme cxr)"_r);
-      e.import("(scheme division)"_r);
-      e.import("(scheme eval)"_r);
-      e.import("(scheme file)"_r);
-      e.import("(scheme fixnum)"_r);
-      e.import("(scheme flonum)"_r);
-      e.import("(scheme inexact)"_r);
-      e.import("(scheme lazy)"_r);
-      e.import("(scheme list)"_r);
-      e.import("(scheme load)"_r);
-      e.import("(scheme process-context)"_r);
-      e.import("(scheme read)"_r);
-      e.import("(scheme repl)"_r);
-      e.import("(scheme time)"_r);
-      e.import("(scheme write)"_r);
+      interaction_environment().as<environment>().evaluate(
+        "(import (scheme base)"
+                "(scheme bitwise)"
+                "(scheme box)"
+                "(scheme case-lambda)"
+                "(scheme char)"
+                "(scheme complex)"
+                "(scheme cxr)"
+                "(scheme division)"
+                "(scheme eval)"
+                "(scheme file)"
+                "(scheme fixnum)"
+                "(scheme flonum)"
+                "(scheme inexact)"
+                "(scheme lazy)"
+                "(scheme list)"
+                "(scheme load)"
+                "(scheme process-context)"
+                "(scheme read)"
+                "(scheme repl)"
+                "(scheme time)"
+                "(scheme write))"_r);
 
       while (not standard_input_port().at_end_of_file())
       {
         try
         {
-          std::cout << "> " << e.evaluate(standard_input_port().read()) << std::endl;
+          std::cout << "> " << interaction_environment().as<environment>().evaluate(standard_input_port().read()) << std::endl;
         }
         catch (error const& error)
         {
@@ -65,13 +68,6 @@ auto main(int const argc, char const* const* const argv) -> int
         }
       }
     }
-  };
-
-  try
-  {
-    boot();
-
-    interact(interaction_environment().as<environment>());
 
     return EXIT_SUCCESS;
   }

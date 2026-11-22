@@ -24,6 +24,7 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <ranges>
 
 namespace meevax::inline kernel
 {
@@ -186,11 +187,9 @@ namespace meevax::inline kernel
   {
     auto c = take_character();
 
-    auto const s = c.utf8();
-
-    for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
+    for (auto byte : c.utf8() | std::views::reverse)
     {
-      istream().putback(*iter);
+      istream().putback(byte);
     }
 
     return c;

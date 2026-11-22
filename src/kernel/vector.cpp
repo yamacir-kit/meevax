@@ -30,9 +30,7 @@ namespace meevax::inline kernel
   {
     output << magenta("#(");
 
-    auto whitespace = "";
-
-    for (auto const& object : datum.objects)
+    for (auto whitespace = ""; auto const& object : datum.objects)
     {
       output << std::exchange(whitespace, " ") << object;
     }

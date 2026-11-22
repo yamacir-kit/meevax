@@ -48,18 +48,18 @@ namespace meevax::inline kernel
       }
       else if (name == "include-library-declarations")
       {
-        for (let const& library_declaration : include(cdr(declaration)) | as_proper_list)
+        for (let const xs = include(cdr(declaration)); let const& x : xs | as_proper_list)
         {
-          evaluate(library_declaration);
+          evaluate(x);
         }
 
         return unspecified;
       }
       else if (name == "cond-expand")
       {
-        for (let const& library_declaration : conditional_expand(cdr(declaration)) | as_proper_list)
+        for (let const xs = conditional_expand(cdr(declaration)); let const& x : xs | as_proper_list)
         {
-          evaluate(library_declaration);
+          evaluate(x);
         }
 
         return unspecified;

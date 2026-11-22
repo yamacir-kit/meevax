@@ -46,18 +46,18 @@ namespace meevax::inline kernel
       }
       else if (name == "include")
       {
-        for (let const& command_or_definition : include(cdr(expression)) | as_proper_list)
+        for (let const xs = include(cdr(expression)); let const& x : xs | as_proper_list)
         {
-          evaluate(command_or_definition);
+          evaluate(x);
         }
 
         return unspecified;
       }
       else if (name == "include-ci")
       {
-        for (let const& command_or_definition : include<case_insensitive>(cdr(expression)) | as_proper_list)
+        for (let const xs = include<case_insensitive>(cdr(expression)); let const& x : xs | as_proper_list)
         {
-          evaluate(command_or_definition);
+          evaluate(x);
         }
 
         return unspecified;
@@ -167,7 +167,7 @@ namespace meevax::inline kernel
 
   auto environment::import(object const& form) -> void
   {
-    for (let const& x : import_set(form) | as_proper_list)
+    for (let const xs = import_set(form); let const& x : xs | as_proper_list)
     {
       assert(x.is<absolute>());
 
