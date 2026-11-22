@@ -16,7 +16,6 @@
 
 #include <regex>
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
@@ -99,7 +98,7 @@ namespace meevax::inline kernel
     {
       auto explicitly_signed = [](auto const& number)
       {
-        switch (auto const s = lexical_cast(number); s[0])
+        switch (auto const s = number.external_representation(); s[0])
         {
         case '+':
         case '-':

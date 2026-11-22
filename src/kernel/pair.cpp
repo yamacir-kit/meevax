@@ -25,9 +25,24 @@ namespace meevax::inline kernel
     return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
   }
 
+  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
+  {
+    return { this, sizeof(pair) };
+  }
+
   auto pair::type() const noexcept -> std::type_info const&
   {
     return typeid(pair);
+  }
+
+  auto pair::virtual_cast(std::type_info const& type) noexcept -> void *
+  {
+    return type == typeid(pair) ? this : nullptr;
+  }
+
+  auto pair::virtual_cast(std::type_info const& type) const noexcept -> void const*
+  {
+    return type == typeid(pair) ? this : nullptr;
   }
 
   auto pair::write(std::ostream & o) const -> std::ostream &

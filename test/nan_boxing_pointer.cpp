@@ -3,7 +3,6 @@
 #include <bitset>
 #include <cassert>
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -125,8 +124,8 @@ auto main() -> int
   }
 
   {
-    assert(lexical_cast(make<double>(3.14)) == "3.14");
-    assert(lexical_cast(make<small_integer>(42)) == "42");
+    assert(make<double>(3.14).external_representation() == "3.14");
+    assert(make<small_integer>(42).external_representation() == "42");
   }
 
   {

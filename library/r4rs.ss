@@ -40,7 +40,7 @@
           (only (meevax character) char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char->integer integer->char char-upcase char-downcase)
           (only (meevax comparator) eq? eqv? equal?)
           (only (meevax continuation) call-with-current-continuation)
-          (only (meevax core) begin define define-syntax if lambda letrec quote set!)
+          (only (meevax core) begin call-with-values! define define-syntax if lambda letrec quote set!)
           (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
           (only (meevax map) map)
@@ -301,19 +301,25 @@
                (begin (apply map f x xs)
                       (if #f #f))))
 
-         (define (call-with-input-file path f) ; R7RS incompatible (values unsupported)
-           (define (call-with-input-port port f)
-             (let ((result (f port)))
-               (close-input-port port)
-               result))
-           (call-with-input-port (open-input-file path) f))
+         (define (call-with-input-file path f)
+           (let ((port (open-input-file path)))
+             (call-with-values! (lambda ()
+                                  (f port))
+                                (lambda xs
+                                  (close-input-port port)
+                                  (call-with-current-continuation
+                                    (lambda (k)
+                                      (k . xs)))))))
 
-         (define (call-with-output-file path f) ; R7RS incompatible (values unsupported)
-           (define (call-with-output-port port f)
-             (let ((result (f port)))
-               (close-output-port port)
-               result))
-           (call-with-output-port (open-output-file path) f))
+         (define (call-with-output-file path f)
+           (let ((port (open-output-file path)))
+             (call-with-values! (lambda ()
+                                  (f port))
+                                (lambda xs
+                                  (close-output-port port)
+                                  (call-with-current-continuation
+                                    (lambda (k)
+                                      (k . xs)))))))
 
          (define current-input-port
            (make-parameter (standard-input-port)))
