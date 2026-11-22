@@ -20,7 +20,6 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/control.hpp>
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
@@ -356,7 +355,8 @@ namespace meevax::inline kernel
             return cons(alpha.convert(car(form)), expand_operands(cdr(form)));
 
           default:
-            return value.as<syntax>().expand(*this, form, bound_variables, alpha);
+            assert(false);
+            std::terminate();
           }
         }
       }
@@ -681,7 +681,6 @@ namespace meevax::inline kernel
     make<absolute>(make_symbol(NAME), \
                    make<syntax>(NAME, \
                                 syntax::SYNTAX, \
-                                expander::SYNTAX, \
                                 static_cast<decltype(syntax::T_c)>(converter::SYNTAX), \
                                 static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \
                                 generator::SYNTAX))
