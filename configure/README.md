@@ -1,10 +1,5 @@
 ## Overview
 
-> Programming languages should be designed not by piling feature on top of
-> feature, but by removing the weaknesses and restrictions that make additional
-> features appear necessary.
-> <div align="right">Revised<sup>7</sup> Report on the Algorithmic Language Scheme</div>
-
 Meevax is an implementation of Lisp-1 programming language, supporting the
 latest [Scheme](http://www.scheme-reports.org/) language standard and some
 [SRFI](https://srfi.schemers.org/)s (SRFI; Scheme requests for implementation).
@@ -17,7 +12,8 @@ Lisp-1 scripts](./example/example.ss) [via simple stubs](example/example.cpp).
 
 ### Features
 
-- Traditional [SECD machine][Landin-1964].
+- Compilation through continuation-passing style (CPS), targeting a stack-based
+  virtual machine.
 - Low-level hygienic macro system, known as [*syntactic closures*][Bawden-and-Rees-1988]
   and [*explicit renaming*][Clinger-1991]. For these, the well-known [macro transformers][Hanson-1991]
   `sc-macro-transformer`, `rsc-macro-transformer` and `er-macro-transformer`
