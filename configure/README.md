@@ -17,23 +17,21 @@ Lisp-1 scripts](./example/example.ss) [via simple stubs](example/example.cpp).
 
 ### Features
 
-- Traditional SECD machine [[2](#Landin-1964)].
-- Low-level hygienic macro system, known as *syntactic closures*
-  [[4](#Bawden-and-Rees-1988), [6](#Hanson-1991)] and *explicit renaming*
-  [[5](#Clinger-1991)]. For these, the well-known macro transformers
+- Traditional [SECD machine][Landin-1964].
+- Low-level hygienic macro system, known as [*syntactic closures*][Bawden-and-Rees-1988]
+  and [*explicit renaming*][Clinger-1991]. For these, the well-known [macro transformers][Hanson-1991]
   `sc-macro-transformer`, `rsc-macro-transformer` and `er-macro-transformer`
   from the library [`(meevax macro-transformer)`](./library/meevax.ss) are
   provided. Note that these are non-Scheme standards.
-- C++ friendly precise garbage collection [[10](#Kempf-2001a),
-  [11](#Kempf-2001b)]
+- [C++ friendly precise garbage collection][Kempf-2001a]
 
 ### Standards
 
 Meevax can be used as an interpreter that supports the Scheme standard specified by the following report:
 
-- Revised<sup>4</sup> Report on the Algorithmic Language Scheme (R4RS) [[5](#Clinger-and-Rees-1991a)]
-- Revised<sup>5</sup> Report on the Algorithmic Language Scheme (R5RS) [[9](#Kelsey-Clinger-and-Rees-1998)]
-- Revised<sup>7</sup> Report on the Algorithmic Language Scheme (R7RS) [[13](#Shinn-Cowan-and-Gleckler-2013)]
+- [Revised<sup>4</sup> Report on the Algorithmic Language Scheme (R4RS)][Clinger-and-Rees-1991a]
+- [Revised<sup>5</sup> Report on the Algorithmic Language Scheme (R5RS)][Kelsey-Clinger-and-Rees-1998]
+- [Revised<sup>7</sup> Report on the Algorithmic Language Scheme (R7RS)][Shinn-Cowan-and-Gleckler-2013]
 
 Procedures for each standard are provided by the following R7RS-style libraries:
 
@@ -112,30 +110,165 @@ Then, select one of the following targets and `make` it according to your purpos
 
 See [LICENSE](./LICENSE).
 
-## References
+<!--
+  @ARTICLE {
+    McCarthy-1960,
+    author  = "John McCarthy",
+    title   = "\href{https://dl.acm.org/doi/10.1145/367177.367199}{Recursive functions of symbolic expressions and their computation by machine, Part I}",
+    journal = "\href{https://dl.acm.org/toc/cacm/1960/3/4}{Communications of the ACM}",
+    year    = "1960",
+    volume  = "3",
+    number  = "4",
+    pages   = "184-195"
+  }
+-->
+[McCarthy-1960]: https://dl.acm.org/doi/10.1145/367177.367199
 
-[<span id="McCarthy-1960">1</span>] John McCarthy. [Recursive functions of symbolic expressions and their computation by machine, Part I](https://dl.acm.org/doi/10.1145/367177.367199). *[Communications of the ACM](https://dl.acm.org/toc/cacm/1960/3/4)*, 3(4):184--195, 1960.
+<!--
+  @ARTICLE {
+    Landin-1964,
+    author  = "Peter J. Landin",
+    title   = "\href{https://academic.oup.com/comjnl/article/6/4/308/375725}{The Mechanical Evaluation of Expressions}",
+    journal = "\href{https://academic.oup.com/comjnl/issue/6/4}{The Computor Journal}",
+    year    = "1964",
+    volume  = "6",
+    number  = "4",
+    pages   = "308-320",
+    note    = "Reference for the earlier SECD implementation."
+  }
+-->
+[Landin-1964]: https://doi.org/10.1093/comjnl/6.4.308
 
-[<span id="Landin-1964">2</span>] Peter J. Landin. [The Mechanical Evaluation of Expressions](https://academic.oup.com/comjnl/article/6/4/308/375725). *[The Computor Journal](https://academic.oup.com/comjnl/issue/6/4)*, 6(4):308--320, 1964.
+<!--
+  @BOOK {
+    Henderson-1980,
+    author    = "Peter Henderson",
+    title     = "\href{https://archive.org/details/functionalprogra0000hend/mode/2up}{Functional Programming: Application and Implementation}",
+    publisher = "Prentice Hall",
+    year      = "1980"
+  }
+-->
+[Henderson-1980]: https://archive.org/details/functionalprogra0000hend/mode/2up
 
-[<span id="Henderson-1980">3</span>] Peter Henderson. *[Functional Programming: Application and Implementation](https://archive.org/details/functionalprogra0000hend/mode/2up)*. Prentice Hall, 1980.
+<!--
+  @INPROCEEDINGS {
+    Bawden-and-Rees-1988,
+    author    = "Alan Bawden and Jonathan Rees",
+    title     = "\href{https://dl.acm.org/doi/10.1145/62678.62687}{Syntactic Closures}",
+    booktitle = "\href{https://dl.acm.org/doi/proceedings/10.1145/62678}{LFP '88: Proceedings of the 1988 ACM Conference on LISP and Functional Programming}",
+    year      = "1988",
+    pages     = "86-95"
+  }
+-->
+[Bawden-and-Rees-1988]: https://dl.acm.org/doi/10.1145/62678.62687
 
-[<span id="Bawden-and-Rees-1988">4</span>] Alan Bawden and Jonathan Rees. [Syntactic Closures](https://dl.acm.org/doi/10.1145/62678.62687). In *[LFP '88: Proceedings of the 1988 ACM Conference on LISP and Functional Programming](https://dl.acm.org/doi/proceedings/10.1145/62678)*, pages 86--95, 1988.
+<!--
+  @ARTICLE {
+    Clinger-and-Rees-1991a,
+    author  = "William Clinger and Jonathan Rees (Editors)",
+    title   = "\href{https://dl.acm.org/doi/10.1145/382130.382133}{Revised$^4$ Report on the Algorithmic Language Scheme}",
+    journal = "\href{https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/3}{ACM SIGPLAN LISP Pointers}",
+    year    = "1991",
+    volume  = "IV",
+    number  = "3",
+    pages   = "1-55"
+  }
+-->
+[Clinger-and-Rees-1991a]: https://dl.acm.org/doi/10.1145/382130.382133
 
-[<span id="Clinger-and-Rees-1991a">5</span>] William Clinger and Jonathan Rees (Editors). [Revised<sup>4</sup> Report on the Algorithmic Language Scheme](https://dl.acm.org/doi/10.1145/382130.382133). *[ACM SIGPLAN LISP Pointers](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/3)*, IV(3):1--55, 1991.
+<!--
+  @ARTICLE {
+    Hanson-1991,
+    author  = "Chris Hanson",
+    title   = "\href{https://dl.acm.org/doi/10.1145/1317265.1317267}{A Syntactic Closures Macro Facility}",
+    journal = "\href{https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4}{ACM SIGPLAN LISP Pointers}",
+    year    = "1991",
+    volume  = "IV",
+    number  = "4",
+    pages   = "9-16"
+  }
+-->
+[Hanson-1991]: https://dl.acm.org/doi/10.1145/1317265.1317267
 
-[<span id="Hanson-1991">6</span>] Chris Hanson. [A Syntactic Closures Macro Facility](https://dl.acm.org/doi/10.1145/1317265.1317267). *[ACM SIGPLAN LISP Pointers](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4)*, IV(4):9--16, 1991.
+<!--
+  @ARTICLE {
+    Clinger-1991,
+    author  = "William Clinger",
+    title   = "\href{https://dl.acm.org/doi/10.1145/1317265.1317269}{Hygienic Macros Through Explicit Renaming}",
+    journal = "\href{https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4}{ACM SIGPLAN LISP Pointers}",
+    year    = "1991",
+    volume  = "IV",
+    number  = "4",
+    pages   = "25-28"
+  }
+-->
+[Clinger-1991]: https://dl.acm.org/doi/10.1145/1317265.1317269
 
-[<span id="Clinger-1991">7</span>] William Clinger. [Hygienic Macros Through Explicit Renaming](https://dl.acm.org/doi/10.1145/1317265.1317269). *[ACM SIGPLAN LISP Pointers](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4)*, IV(4):25--28, 1991.
+<!--
+  @INPROCEEDINGS {
+    Clinger-and-Rees-1991b,
+    author    = "William Clinger and Jonathan Rees",
+    title     = "\href{https://dl.acm.org/doi/10.1145/99583.99607}{Macros That Work}",
+    booktitle = "\href{https://dl.acm.org/doi/proceedings/10.1145/99583}{POPL '91: Proceedings of the 18th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages}",
+    year      = "1991",
+    pages     = "155-162"
+  }
+-->
+[Clinger-and-Rees-1991b]: https://dl.acm.org/doi/10.1145/99583.99607
 
-[<span id="Clinger-and-Rees-1991b">8</span>] William Clinger and Jonathan Rees. [Macros That Work](https://dl.acm.org/doi/10.1145/99583.99607). In *[POPL '91: Proceedings of the 18th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages](https://dl.acm.org/doi/proceedings/10.1145/99583)*, pages 155--162, 1991.
+<!--
+  @ARTICLE {
+    Kelsey-Clinger-and-Rees-1998,
+    author  = "Rechard Kelsey and William Clinger and Jonathan Rees (Editors)",
+    title   = "\href{https://dl.acm.org/doi/10.1145/290229.290234}{Revised$^5$ Report on the Algorithmic Language Scheme}",
+    journal = "\href{https://dl.acm.org/toc/sigplan/1998/33/9}{ACM SIGPLAN Notices}",
+    year    = "1998",
+    volume  = "33",
+    number  = "9",
+    pages   = "26-76"
+  }
+-->
+[Kelsey-Clinger-and-Rees-1998]: https://dl.acm.org/doi/10.1145/290229.290234
 
-[<span id="Kelsey-Clinger-and-Rees-1998">9</span>] Rechard Kelsey, William Clinger, and Jonathan Rees (Editors). [Revised<sup>5</sup> Report on the Algorithmic Language Scheme](https://dl.acm.org/doi/10.1145/290229.290234). *[ACM SIGPLAN Notices](https://dl.acm.org/toc/sigplan/1998/33/9)*, 33(9):26--76, 1998.
+<!--
+  @ONLINE {
+    Kempf-2001a,
+    author = "William E. Kempf",
+    title  = "\href{https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C}{A garbage collection framework for C++}",
+    year   = "2001"
+  }
+-->
+[Kempf-2001a]: https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
 
-[<span id="Kempf-2001a">10</span>] William E. Kempf. [A garbage collection framework for C++](https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C), 2001.
+<!--
+  @MISC {
+    Kempf-2001b,
+    author = "William E. Kempf",
+    title  = "\href{https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II}{A garbage collection framework for C++ - Part II}",
+    year   = "2001"
+  }
+-->
+[Kempf-2001b]: https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
 
-[<span id="Kempf-2001b">11</span>] William E. Kempf. [A garbage collection framework for C++ - Part II](https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II), 2001.
+<!--
+  @INPROCEEDINGS {
+    Adams-and-Dybvig-2008,
+    author    = "Michael D. Adams and R. Kent Dybvig",
+    title     = "\href{https://dl.acm.org/doi/10.1145/1411204.1411230}{Efficient Nondestructive Equality Checking for Trees and Graphs}",
+    booktitle = "\href{https://dl.acm.org/doi/proceedings/10.1145/1411204}{ICFP '08: Proceedings of the 13th ACM SIGPLAN International Conference on Functional Programming}",
+    year      = "2008",
+    pages     = "179-188"
+  }
+-->
+[Adams-and-Dybvig-2008]: https://dl.acm.org/doi/10.1145/1411204.1411230
 
-[<span id="Adams-and-Dybvig-2008">12</span>] Michael D. Adams and R. Kent Dybvig. [Efficient Nondestructive Equality Checking for Trees and Graphs](https://dl.acm.org/doi/10.1145/1411204.1411230). In *[ICFP '08: Proceedings of the 13th ACM SIGPLAN International Conference on Functional Programming](https://dl.acm.org/doi/proceedings/10.1145/1411204)*, pages 179--188, 2008.
-
-[<span id="Shinn-Cowan-and-Gleckler-2013">13</span>] Alex Shinn, John Cowan, and Arthur A. Gleckler (Editors). [Revised<sup>7</sup> Report on the Algorithmic Language Scheme](https://standards.scheme.org/official/r7rs.pdf). Technical report, http://www.scheme-reports.org/, 2013.
+<!--
+  @TECHREPORT {
+    Shinn-Cowan-and-Gleckler-2013,
+    author      = "Alex Shinn and John Cowan and Arthur A. Gleckler (Editors)",
+    title       = "\href{https://standards.scheme.org/official/r7rs.pdf}{Revised$^7$ Report on the Algorithmic Language Scheme}",
+    institution = "http://www.scheme-reports.org/",
+    year        = "2013"
+  }
+-->
+[Shinn-Cowan-and-Gleckler-2013]: https://standards.scheme.org/official/r7rs.pdf
