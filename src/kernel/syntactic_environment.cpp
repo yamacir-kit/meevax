@@ -187,7 +187,8 @@ namespace meevax::inline kernel
           });
 
         default:
-          return cdr(identity).as<syntax>().T_c(*this, form, bound_variables, c);
+          assert(false);
+          std::terminate();
         }
       }
     }
@@ -823,7 +824,6 @@ namespace meevax::inline kernel
     make<absolute>(make_symbol(NAME), \
                    make<syntax>(NAME, \
                                 syntax::SYNTAX, \
-                                static_cast<decltype(syntax::T_c)>(converter::SYNTAX), \
                                 static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \
                                 generator::SYNTAX))
 
