@@ -44,6 +44,33 @@ namespace meevax::inline kernel
 
   auto syntactic_environment::T_c(object const& form, object const& bound_variables, syntactic_continuation const& c) const -> object
   {
+    auto T_star_k = [&](auto&&... xs)
+    {
+      auto recur = [&](auto recur, object const& form, administrative_beta_reducer const& k) -> object
+      {
+        if (form.is<pair>())
+        {
+          return T_k(car(form), bound_variables, [&](let const& x)
+          {
+            return recur(recur, cdr(form), [&](let const& xs)
+            {
+              return k(cons(x, xs));
+            });
+          });
+        }
+        else if (form.is<null>())
+        {
+          return k(unit);
+        }
+        else
+        {
+          return T_k(form, bound_variables, k);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
     if (not form.is<pair>())
     {
       return list(c, M(form, bound_variables));
@@ -52,11 +79,126 @@ namespace meevax::inline kernel
     {
       if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().T_c(*this, form, bound_variables, c);
+        switch (cdr(identity).as<syntax>().kind)
+        {
+        case syntax::quote:
+        case syntax::quote_syntax:
+        case syntax::current:
+          return list(c, form);
+
+        case syntax::lambda:
+          return list(c, M(form, bound_variables));
+
+        case syntax::conditional:
+          if (c.is<pair>())
+          {
+            let const k = make<symbol>("$k");
+
+            return list(list(default_rename("lambda"),
+                             list(k),
+                             T_c(form, bound_variables, k)),
+                        c);
+          }
+          else
+          {
+            return T_k(cadr(form), bound_variables, [&](let const& a)
+            {
+              return list(default_rename("if"),
+                          a,
+                          T_c(caddr(form),                              bound_variables, c),
+                          T_c(cdddr(form) ? cadddr(form) : unspecified, bound_variables, c));
+            });
+          }
+
+        case syntax::set:
+        case syntax::define:
+        case syntax::install:
+          return T_k(form, bound_variables, [&](let const& a)
+          {
+            return list(c, a);
+          });
+
+        case syntax::letrec:
+          {
+            let const formals1 = map(car, cadr(form));
+
+            let const formals2 = map([](let const&) { return make<symbol>("$temporary"); }, cadr(form));
+
+            let body = cddr(form);
+
+            for (let xs = reverse(formals1), ys = reverse(formals2); xs; xs = cdr(xs), ys = cdr(ys))
+            {
+              body = cons(list(default_rename("set!"), car(xs), car(ys)), body);
+            }
+
+            return T_c(cons(list(default_rename("lambda"),
+                                 formals1,
+                                 cons(cons(default_rename("lambda"),
+                                           formals2,
+                                           body),
+                                      map(cadr, cadr(form)))),
+                            make_list(length(formals1), unspecified)),
+                       bound_variables,
+                       c);
+          }
+
+        case syntax::sequence:
+          return converter::body(*this, cdr(form), bound_variables, c);
+
+        case syntax::define_syntax:
+          return list(default_rename("begin"), form, list(c, unspecified));
+
+        case syntax::call_with_current_continuation:
+          if (c.is<pair>())
+          {
+            let const k = make<symbol>("$k");
+
+            return list(list(default_rename("lambda"),
+                             list(k),
+                             T_c(form, bound_variables, k)),
+                        c);
+          }
+          else
+          {
+            return T_k(cadr(form), bound_variables, [&](let const& f)
+                       {
+                         let const xs = make<symbol>("$xs");
+
+                         return list(f,
+                                     c,
+                                     list(default_rename("lambda"),
+                                          cons(make<symbol>("$_"), xs),
+                                          cons(c, xs)));
+                       });
+          }
+
+        case syntax::call_with_values:
+          return T_k(cadr(form), bound_variables, [&](let const& producer)
+          {
+            return T_k(caddr(form), bound_variables, [&](let const& consumer)
+            {
+              let const xs = make<symbol>("$xs");
+
+              return list(producer,
+                          list(default_rename("lambda"),
+                               xs,
+                               cons(consumer, c, xs)));
+            });
+          });
+
+        default:
+          return cdr(identity).as<syntax>().T_c(*this, form, bound_variables, c);
+        }
       }
     }
 
-    return converter::call(*this, form, bound_variables, c);
+    return T_k(car(form), bound_variables, [&](let const& f)
+    {
+      return T_star_k(cdr(form), [&](let const& xs)
+      {
+        return cons(f, c, xs);
+      });
+    });
   }
 
   auto syntactic_environment::T_k(object const& form, object const& bound_variables, administrative_beta_reducer const& k) const -> object
