@@ -1,4 +1,5 @@
-(import (scheme base)
+(import (only (meevax macro-transformer) sc-macro-transformer)
+        (scheme base)
         (scheme process-context)
         (srfi 78))
 
@@ -68,6 +69,19 @@
          (h 1 2))
   => 3)
 
+(define-syntax with-internal-definition
+  (sc-macro-transformer
+    (lambda (form environment)
+      '((lambda ()
+          (begin (define x 'inner))
+          x)))))
+
+(check (let ((begin #f)
+             (define #f)
+             (x 'outer))
+         (with-internal-definition))
+  => 'inner)
+
 (check-report)
 
-(exit (check-passed? 6))
+(exit (check-passed? 7))

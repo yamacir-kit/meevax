@@ -16,12 +16,13 @@
 
 #include <algorithm>
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/control.hpp>
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
@@ -38,11 +39,39 @@ namespace meevax::inline kernel
 
   auto syntactic_environment::convert(object const& form, object const& bound_variables) const -> object
   {
+    // Matt Might's one-pass CPS transformation: https://matt.might.net/articles/cps-conversion/
     return T_c(form, bound_variables, make<continuation>());
   }
 
   auto syntactic_environment::T_c(object const& form, object const& bound_variables, syntactic_continuation const& c) const -> object
   {
+    auto T_star_k = [&](auto&&... xs)
+    {
+      auto recur = [&](auto recur, object const& form, administrative_beta_reducer const& k) -> object
+      {
+        if (form.is<pair>())
+        {
+          return T_k(car(form), bound_variables, [&](let const& x)
+          {
+            return recur(recur, cdr(form), [&](let const& xs)
+            {
+              return k(cons(x, xs));
+            });
+          });
+        }
+        else if (form.is<null>())
+        {
+          return k(unit);
+        }
+        else
+        {
+          return T_k(form, bound_variables, k);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
     if (not form.is<pair>())
     {
       return list(c, M(form, bound_variables));
@@ -51,11 +80,142 @@ namespace meevax::inline kernel
     {
       if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().T_c(*this, form, bound_variables, c);
+        switch (cdr(identity).as<syntax>().kind)
+        {
+        case syntax::quote:
+        case syntax::quote_syntax:
+        case syntax::current:
+          return list(c, form);
+
+        case syntax::lambda:
+          return list(c, M(form, bound_variables));
+
+        case syntax::conditional:
+          if (c.is<pair>())
+          {
+            let const k = make<symbol>("$k");
+
+            return list(list(default_rename("lambda"),
+                             list(k),
+                             T_c(form, bound_variables, k)),
+                        c);
+          }
+          else
+          {
+            return T_k(cadr(form), bound_variables, [&](let const& a)
+            {
+              return list(default_rename("if"),
+                          a,
+                          T_c(caddr(form),                              bound_variables, c),
+                          T_c(cdddr(form) ? cadddr(form) : unspecified, bound_variables, c));
+            });
+          }
+
+        case syntax::set:
+        case syntax::define:
+        case syntax::install:
+          return T_k(form, bound_variables, [&](let const& a)
+          {
+            return list(c, a);
+          });
+
+        case syntax::letrec:
+          {
+            let const formals1 = map(car, cadr(form));
+
+            let const formals2 = map([](let const&) { return make<symbol>("$temporary"); }, cadr(form));
+
+            let body = cddr(form);
+
+            for (let xs = reverse(formals1), ys = reverse(formals2); xs; xs = cdr(xs), ys = cdr(ys))
+            {
+              body = cons(list(default_rename("set!"), car(xs), car(ys)), body);
+            }
+
+            return T_c(cons(list(default_rename("lambda"),
+                                 formals1,
+                                 cons(cons(default_rename("lambda"),
+                                           formals2,
+                                           body),
+                                      map(cadr, cadr(form)))),
+                            make_list(length(formals1), unspecified)),
+                       bound_variables,
+                       c);
+          }
+
+        case syntax::sequence:
+          if (cdr(form).is<null>())
+          {
+            return list(c, unspecified);
+          }
+          else if (cddr(form).is<null>())
+          {
+            return T_c(cadr(form), bound_variables, c);
+          }
+          else
+          {
+            return T_c(cadr(form),
+                       bound_variables,
+                       list(default_rename("lambda"),
+                            make<symbol>("$xs"),
+                            T_c(cons(car(form), cddr(form)), bound_variables, c)));
+          }
+
+        case syntax::define_syntax:
+          return list(default_rename("begin"), form, list(c, unspecified));
+
+        case syntax::call_with_current_continuation:
+          if (c.is<pair>())
+          {
+            let const k = make<symbol>("$k");
+
+            return list(list(default_rename("lambda"),
+                             list(k),
+                             T_c(form, bound_variables, k)),
+                        c);
+          }
+          else
+          {
+            return T_k(cadr(form), bound_variables, [&](let const& f)
+                       {
+                         let const xs = make<symbol>("$xs");
+
+                         return list(f,
+                                     c,
+                                     list(default_rename("lambda"),
+                                          cons(make<symbol>("$_"), xs),
+                                          cons(c, xs)));
+                       });
+          }
+
+        case syntax::call_with_values:
+          return T_k(cadr(form), bound_variables, [&](let const& producer)
+          {
+            return T_k(caddr(form), bound_variables, [&](let const& consumer)
+            {
+              let const xs = make<symbol>("$xs");
+
+              return list(producer,
+                          list(default_rename("lambda"),
+                               xs,
+                               cons(consumer, c, xs)));
+            });
+          });
+
+        default:
+          assert(false);
+          std::terminate();
+        }
       }
     }
 
-    return converter::call(*this, form, bound_variables, c);
+    return T_k(car(form), bound_variables, [&](let const& f)
+    {
+      return T_star_k(cdr(form), [&](let const& xs)
+      {
+        return cons(f, c, xs);
+      });
+    });
   }
 
   auto syntactic_environment::T_k(object const& form, object const& bound_variables, administrative_beta_reducer const& k) const -> object
@@ -68,11 +228,86 @@ namespace meevax::inline kernel
     {
       if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().T_k(*this, form, bound_variables, k);
+        switch (cdr(identity).as<syntax>().kind)
+        {
+        case syntax::quote:
+        case syntax::quote_syntax:
+        case syntax::current:
+          return k(form);
+
+        case syntax::lambda:
+          return k(M(form, bound_variables));
+
+        case syntax::conditional:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        case syntax::set:
+        case syntax::install:
+          return T_k(cddr(form) ? caddr(form) : unspecified, bound_variables, [&](let const& a)
+          {
+            return list(default_rename("begin"),
+                        list(car(form),
+                             M(cadr(form), bound_variables),
+                             a),
+                        k(unspecified));
+          });
+
+        case syntax::letrec:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        case syntax::sequence:
+          if (cdr(form).is<null>())
+          {
+            return k(unspecified);
+          }
+          else if (cddr(form).is<null>())
+          {
+            return T_k(cadr(form), bound_variables, k);
+          }
+          else
+          {
+            return T_c(cadr(form),
+                       bound_variables,
+                       list(default_rename("lambda"),
+                            make<symbol>("$xs"),
+                            T_k(cons(car(form), cddr(form)), bound_variables, k)));
+          }
+
+        case syntax::define:
+          assert(bound_variables.is<null>());
+          return T_k(cons(default_rename("set!"), cdr(form)), bound_variables, k);
+
+        case syntax::define_syntax:
+          return list(default_rename("begin"), form, k(unspecified));
+
+        case syntax::call_with_current_continuation:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        case syntax::call_with_values:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        default:
+          assert(false);
+          std::terminate();
+        }
       }
     }
 
-    return converter::call(*this, form, bound_variables, k);
+    let const x = make<symbol>("$x");
+
+    return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   auto syntactic_environment::M(object const& form, object const& bound_variables) const -> object
@@ -83,10 +318,9 @@ namespace meevax::inline kernel
 
       return list(default_rename("lambda"),
                   cons(k, cadr(form)),
-                  converter::body(*this,
-                                  cddr(form),
-                                  cons(cadr(form), bound_variables),
-                                  k));
+                  T_c(cons(default_rename("begin"), cddr(form)),
+                      cons(cadr(form), bound_variables),
+                      k));
     }
     else
     {
@@ -114,6 +348,101 @@ namespace meevax::inline kernel
                                      object const& bound_variables,
                                      syntactic_closure::alpha & alpha) const -> object
   {
+    auto expand_operands = [&](auto&&... xs)
+    {
+      auto recur = [&](auto recur, object const& form) -> object
+      {
+        if (form.is<pair>())
+        {
+          return cons(expand(car(form), bound_variables, alpha), recur(recur, cdr(form)));
+        }
+        else
+        {
+          return expand(form, bound_variables, alpha);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
+    auto expand_body = [this](auto&&... xs)
+    {
+      auto recur = [this](auto recur, object const& form, object const& bound_variables, auto & alpha)
+      {
+        if (auto [reversed_binding_specs,
+                  sequence,
+                  current_environment] = sweep(form,
+                                               form,
+                                               bound_variables,
+                                               make<syntactic_environment>(bound_variables, second),
+                                               alpha);
+            reversed_binding_specs)
+        {
+          /*
+             (letrec* <binding specs> <sequence>)
+
+                 => ((lambda <variables> <assignments> <sequence>)
+                     <dummy 1> ... <dummy n>)
+
+             where <binding specs> = ((<variable 1> <initial 1>) ...
+                                      (<variable n> <initial n>))
+          */
+          let & formals = caar(current_environment);
+
+          for (let const& binding_spec : reversed_binding_specs | as_proper_list)
+          {
+            if (not car(binding_spec).is<macro>()) // The binding-spec is not an internal syntax definition.
+            {
+              sequence = cons(cons(default_rename("set!"), binding_spec), sequence);
+            }
+          }
+
+          for (let & formal : formals | as_proper_list)
+          {
+            if (formal.is<macro>()) // is internal-sytnax-definition
+            {
+              cdr(formal) = make<transformer>(environment().execute(current_environment.template as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
+                                              current_environment);
+            }
+          }
+
+          return expand(list(cons(cons(default_rename("lambda"),
+                                       formals,
+                                       sequence),
+                                  make_list(length(formals), unit))),
+                        bound_variables,
+                        alpha);
+        }
+        else if (sequence.template is<pair>())
+        {
+          return cons(expand(car(sequence), bound_variables, alpha), recur(recur, cdr(sequence), bound_variables, alpha));
+        }
+        else
+        {
+          return expand(sequence, bound_variables, alpha);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
+    auto expand_begin = [&](auto&&... xs)
+    {
+      auto recur = [&](auto recur, object const& form) -> object
+      {
+        if (form.is<pair>())
+        {
+          return cons(expand(car(form), bound_variables, alpha), recur(recur, cdr(form)));
+        }
+        else
+        {
+          return expand(form, bound_variables, alpha);
+        }
+      };
+
+      return recur(recur, std::forward<decltype(xs)>(xs)...);
+    };
+
     if (not form.is<pair>())
     {
       if (form.is<syntactic_closure>() and identify(form, bound_variables) == f)
@@ -127,11 +456,7 @@ namespace meevax::inline kernel
     }
     else if (car(form).is_also<identifier>())
     {
-      let const identifier = alpha.convert(car(form));
-
-      if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
-                                                                   : identify(car(form), bound_variables);
-          identity.is_also<absolute>())
+      if (let const& identity = identify(alpha.convert(car(form)), bound_variables); identity.is_also<absolute>())
       {
         if (let const& value = cdr(identity); value.is<transformer>())
         {
@@ -141,12 +466,136 @@ namespace meevax::inline kernel
         }
         else if (value.is<syntax>())
         {
-          return value.as<syntax>().expand(*this, form, bound_variables, alpha);
+          switch (value.as<syntax>().kind)
+          {
+          case syntax::quote:
+          case syntax::quote_syntax:
+            return form;
+
+          case syntax::lambda:
+            {
+              auto scoped_alpha = alpha;
+
+              let const& formals = scoped_alpha.convert_formals(cadr(form), bound_variables);
+
+              return cons(alpha.convert(car(form)) /* lambda */,
+                          cons(formals,
+                               expand_body(cddr(form),
+                                           cons(formals, bound_variables),
+                                           scoped_alpha)));
+            }
+
+          case syntax::conditional:
+          case syntax::set:
+            return cons(alpha.convert(car(form)), expand_operands(cdr(form)));
+
+          case syntax::include:
+            return expand(cons(default_rename("begin"), include(cadr(form))), bound_variables, alpha);
+
+          case syntax::include_case_insensitive:
+            return expand(cons(default_rename("begin"), include<case_insensitive>(cadr(form))), bound_variables, alpha);
+
+          case syntax::conditional_expand:
+            return expand(cons(default_rename("begin"), conditional_expand(cdr(form))), bound_variables, alpha);
+
+          case syntax::letrec:
+            {
+              let const extended_bound_variables = cons(alpha.convert_formals(map(car, cadr(form)), bound_variables), bound_variables);
+
+              return cons(car(form),
+                          map([&](let const& binding)
+                              {
+                                return list(car(binding), expand(cadr(binding), extended_bound_variables, alpha));
+                              },
+                              cadr(form)),
+                          expand_body(cddr(form),
+                                      extended_bound_variables,
+                                      alpha));
+            }
+
+          case syntax::sequence:
+            return expand_begin(form);
+
+          case syntax::let_syntax:
+            {
+              let const current_environment = make<syntactic_environment>(bound_variables, second);
+
+              auto formal = [&](let const& syntax_spec)
+              {
+                return make<macro>(car(syntax_spec) /* keyword */,
+                                   make<transformer>(environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
+                                                     current_environment));
+              };
+
+              let const formals = map(formal, cadr(form));
+
+              return expand(list(cons(default_rename("lambda"),
+                                      formals,
+                                      cddr(form) /* body */)),
+                            bound_variables,
+                            alpha);
+            }
+
+          case syntax::letrec_syntax:
+            {
+              let current_environment = make<syntactic_environment>(bound_variables, second);
+
+              auto formal = [&](let const& syntax_spec)
+              {
+                return make<macro>(car(syntax_spec) /* keyword */,
+                                   make<transformer>(environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
+                                                     current_environment));
+              };
+
+              let const formals = map(formal, cadr(form));
+
+              current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
+
+              return expand(list(cons(default_rename("lambda"),
+                                      formals,
+                                      cddr(form) /* body */)),
+                            bound_variables,
+                            alpha);
+            }
+
+          case syntax::define:
+            {
+              if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
+              {
+                return list(alpha.convert(car(form)),
+                            caadr(form) /* variable */,
+                            expand(cons(default_rename("lambda"),
+                                        cdadr(form) /* formals */,
+                                        cddr(form) /* body */),
+                                   bound_variables,
+                                   alpha));
+              }
+              else // (define <variable> <expression>)
+              {
+                return cons(alpha.convert(car(form)),
+                            cadr(form),
+                            cddr(form) ? list(expand(caddr(form), bound_variables, alpha)) : unit);
+              }
+            }
+
+          case syntax::define_syntax:
+            return list(alpha.convert(car(form)), cadr(form), expand(caddr(form), bound_variables, alpha));
+
+          case syntax::call_with_current_continuation:
+          case syntax::call_with_values:
+          case syntax::current:
+          case syntax::install:
+            return cons(alpha.convert(car(form)), expand_operands(cdr(form)));
+
+          default:
+            assert(false);
+            std::terminate();
+          }
         }
       }
     }
 
-    return expander::call(*this, form, bound_variables, alpha);
+    return cons(expand(car(form), bound_variables, alpha), expand_operands(cdr(form)));
   }
 
   auto syntactic_environment::generate(object const& form,
@@ -362,7 +811,7 @@ namespace meevax::inline kernel
       }
       else if (car(sequence).is<pair>() and caar(sequence).is_also<identifier>())
       {
-        if (let const& identity = identify(caar(sequence), bound_variables); identity.is_also<absolute>())
+        if (let const& identity = identify(alpha.convert(caar(sequence)), bound_variables); identity.is_also<absolute>())
         {
           if (let const& value = cdr(identity); value.is<transformer>())
           {
@@ -464,9 +913,7 @@ namespace meevax::inline kernel
     #define BIND(NAME, SYNTAX) \
     make<absolute>(make_symbol(NAME), \
                    make<syntax>(NAME, \
-                                expander::SYNTAX, \
-                                static_cast<decltype(syntax::T_c)>(converter::SYNTAX), \
-                                static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \
+                                syntax::SYNTAX, \
                                 generator::SYNTAX))
 
     let static const core_syntactic_environment = make<syntactic_environment>(

@@ -26,31 +26,39 @@ namespace meevax::inline kernel
   {
     symbol name;
 
-    auto (*expand)(syntactic_environment const& expander,
-                   object const& form,
-                   object const& bound_variables,
-                   syntactic_closure::alpha &) -> object;
-
-    auto (*T_c)(syntactic_environment const& converter,
-                object const& form,
-                object const& bound_variables,
-                syntactic_continuation const& c) -> object;
-
-    auto (*T_k)(syntactic_environment const& converter,
-                object const& form,
-                object const& bound_variables,
-                administrative_beta_reducer const& k) -> object;
+    enum
+    {
+      quote,
+      quote_syntax,
+      call,
+      operand,
+      lambda,
+      body,
+      conditional,
+      set,
+      include,
+      include_case_insensitive,
+      conditional_expand,
+      letrec,
+      sequence,
+      let_syntax,
+      letrec_syntax,
+      define,
+      define_syntax,
+      call_with_current_continuation,
+      call_with_values,
+      current,
+      install,
+    } kind;
 
     auto (*generate)(syntactic_environment & generator,
                      object const& form,
                      object const& bound_variables,
                      object const& continuation) -> object;
 
-    explicit syntax(auto const& name, auto expand, auto T_c, auto T_k, auto generate)
+    explicit syntax(auto const& name, auto kind, auto generate)
       : name { name }
-      , expand { expand }
-      , T_c { T_c }
-      , T_k { T_k }
+      , kind { kind }
       , generate { generate }
     {}
   };
