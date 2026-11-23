@@ -212,11 +212,71 @@ namespace meevax::inline kernel
     {
       if (let const& identity = identify(car(form), bound_variables); identity.is_also<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().T_k(*this, form, bound_variables, k);
+        switch (cdr(identity).as<syntax>().kind)
+        {
+        case syntax::quote:
+        case syntax::quote_syntax:
+        case syntax::current:
+          return k(form);
+
+        case syntax::lambda:
+          return k(M(form, bound_variables));
+
+        case syntax::conditional:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        case syntax::set:
+        case syntax::install:
+          return T_k(cddr(form) ? caddr(form) : unspecified, bound_variables, [&](let const& a)
+          {
+            return list(default_rename("begin"),
+                        list(car(form),
+                             M(cadr(form), bound_variables),
+                             a),
+                        k(unspecified));
+          });
+
+        case syntax::letrec:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        case syntax::sequence:
+          return converter::body(*this, cdr(form), bound_variables, k);
+
+        case syntax::define:
+          assert(bound_variables.is<null>());
+          return T_k(cons(default_rename("set!"), cdr(form)), bound_variables, k);
+
+        case syntax::define_syntax:
+          return list(default_rename("begin"), form, k(unspecified));
+
+        case syntax::call_with_current_continuation:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        case syntax::call_with_values:
+          {
+            let const x = make<symbol>("$x");
+            return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
+          }
+
+        default:
+          assert(false);
+          std::terminate();
+        }
       }
     }
 
-    return converter::call(*this, form, bound_variables, k);
+    let const x = make<symbol>("$x");
+
+    return T_c(form, bound_variables, list(default_rename("lambda"), list(x), k(x)));
   }
 
   auto syntactic_environment::M(object const& form, object const& bound_variables) const -> object
