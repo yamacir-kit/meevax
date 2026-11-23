@@ -39,6 +39,7 @@ namespace meevax::inline kernel
 
   auto syntactic_environment::convert(object const& form, object const& bound_variables) const -> object
   {
+    // Matt Might's one-pass CPS transformation: https://matt.might.net/articles/cps-conversion/
     return T_c(form, bound_variables, make<continuation>());
   }
 
@@ -884,7 +885,6 @@ namespace meevax::inline kernel
     make<absolute>(make_symbol(NAME), \
                    make<syntax>(NAME, \
                                 syntax::SYNTAX, \
-                                static_cast<decltype(syntax::T_k)>(converter::SYNTAX), \
                                 generator::SYNTAX))
 
     let static const core_syntactic_environment = make<syntactic_environment>(

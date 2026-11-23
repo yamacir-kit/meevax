@@ -51,20 +51,14 @@ namespace meevax::inline kernel
       install,
     } kind;
 
-    auto (*T_k)(syntactic_environment const& converter,
-                object const& form,
-                object const& bound_variables,
-                administrative_beta_reducer const& k) -> object;
-
     auto (*generate)(syntactic_environment & generator,
                      object const& form,
                      object const& bound_variables,
                      object const& continuation) -> object;
 
-    explicit syntax(auto const& name, auto kind, auto T_k, auto generate)
+    explicit syntax(auto const& name, auto kind, auto generate)
       : name { name }
       , kind { kind }
-      , T_k { T_k }
       , generate { generate }
     {}
   };
