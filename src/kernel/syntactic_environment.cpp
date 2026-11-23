@@ -144,7 +144,22 @@ namespace meevax::inline kernel
           }
 
         case syntax::sequence:
-          return converter::body(*this, cdr(form), bound_variables, c);
+          if (cdr(form).is<null>())
+          {
+            return list(c, unspecified);
+          }
+          else if (cddr(form).is<null>())
+          {
+            return T_c(cadr(form), bound_variables, c);
+          }
+          else
+          {
+            return T_c(cadr(form),
+                       bound_variables,
+                       list(default_rename("lambda"),
+                            make<symbol>("$xs"),
+                            T_c(cons(car(form), cddr(form)), bound_variables, c)));
+          }
 
         case syntax::define_syntax:
           return list(default_rename("begin"), form, list(c, unspecified));
@@ -247,7 +262,22 @@ namespace meevax::inline kernel
           }
 
         case syntax::sequence:
-          return converter::body(*this, cdr(form), bound_variables, k);
+          if (cdr(form).is<null>())
+          {
+            return k(unspecified);
+          }
+          else if (cddr(form).is<null>())
+          {
+            return T_k(cadr(form), bound_variables, k);
+          }
+          else
+          {
+            return T_c(cadr(form),
+                       bound_variables,
+                       list(default_rename("lambda"),
+                            make<symbol>("$xs"),
+                            T_k(cons(car(form), cddr(form)), bound_variables, k)));
+          }
 
         case syntax::define:
           assert(bound_variables.is<null>());
@@ -288,10 +318,9 @@ namespace meevax::inline kernel
 
       return list(default_rename("lambda"),
                   cons(k, cadr(form)),
-                  converter::body(*this,
-                                  cddr(form),
-                                  cons(cadr(form), bound_variables),
-                                  k));
+                  T_c(cons(default_rename("begin"), cddr(form)),
+                      cons(cadr(form), bound_variables),
+                      k));
     }
     else
     {

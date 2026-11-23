@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
-#include <meevax/kernel/converter.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
@@ -27,6 +26,10 @@ namespace meevax::inline kernel
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
     using pair::pair;
+
+    using syntactic_continuation = object;
+
+    using administrative_beta_reducer = std::function<auto (object const&) -> object>;
 
     auto compile(object const& form) -> object;
 
